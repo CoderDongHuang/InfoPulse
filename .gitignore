@@ -32,6 +32,7 @@ redisdata/
 
 # 爬虫插件（物理隔离）
 backend/app/services/crawler/plugins/*.py
+!backend/app/services/crawler/plugins/__init__.py
 !backend/app/services/crawler/plugins/README.md
 
 # OS

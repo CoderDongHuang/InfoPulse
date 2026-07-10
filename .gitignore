@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+dist/
+.nuxt/
+.output/
+
+# Docker
+pgdata/
+redisdata/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 爬虫插件（物理隔离）
+backend/app/services/crawler/plugins/*.py
+!backend/app/services/crawler/plugins/README.md
+
+# OS
+.DS_Store
+Thumbs.db
+*.log

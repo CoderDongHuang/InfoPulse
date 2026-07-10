@@ -1,0 +1,37 @@
+# ============================================================
+# InfoPulse Backend Docker Image (Render Demo — NO Chromium)
+# ============================================================
+# Used for the free demo site on Render (512MB RAM limit).
+# Does NOT install Playwright or Chromium — saves ~200MB image
+# size and ~50-80MB runtime memory.
+#
+# If any code accidentally imports playwright, the crawler/__init__.py
+# will catch ImportError and set CRAWLER_ENABLED=False gracefully.
+# ============================================================
+
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# --- Minimal system deps (NO Chromium libraries needed) ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Install Python dependencies (lightweight, no playwright) ---
+COPY requirements.render.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# --- Copy application code ---
+COPY . .
+
+# --- Demo mode enforced ---
+ENV DEMO_MODE=true
+ENV CRAWLER_ENABLED=false
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

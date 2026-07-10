@@ -39,3 +39,4 @@ backend/app/services/crawler/plugins/*.py
 .DS_Store
 Thumbs.db
 *.log
+*.db

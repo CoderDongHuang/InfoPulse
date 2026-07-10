@@ -1,0 +1,46 @@
+# ============================================================
+# InfoPulse Backend Dependencies (Full Version — with Playwright)
+# ============================================================
+# Python 3.10.x / 3.11.x required (DO NOT use 3.12+)
+
+# --- Web Framework ---
+fastapi>=0.109.0,<0.110.0
+uvicorn[standard]>=0.27.0,<0.28.0
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.1.0,<3.0.0
+
+# --- Database ---
+sqlalchemy[asyncio]>=2.0.0,<3.0.0
+asyncpg>=0.29.0,<0.30.0
+alembic>=1.13.0,<2.0.0
+
+# --- Redis ---
+redis>=5.0.0,<6.0.0
+
+# --- Authentication ---
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
+python-multipart>=0.0.6,<0.1.0
+
+# --- AI / LLM ---
+langchain>=0.1.0,<0.2.0
+langchain-openai>=0.0.5,<0.1.0
+openai>=1.7.0,<2.0.0
+
+# --- Lightweight Crawler ---
+httpx>=0.26.0,<0.28.0
+beautifulsoup4>=4.12.0,<5.0.0
+lxml>=4.9.0,<6.0.0
+
+# --- Heavy Crawler (Playwright) ---
+playwright>=1.41.0,<2.0.0
+playwright-stealth>=1.0.6,<2.0.0
+
+# --- System Monitoring ---
+psutil>=5.9.0,<6.0.0
+
+# --- SQLite (development fallback) ---
+aiosqlite>=0.19.0,<1.0.0
+
+# --- Password Hashing (pin to compatible version) ---
+bcrypt==4.0.1

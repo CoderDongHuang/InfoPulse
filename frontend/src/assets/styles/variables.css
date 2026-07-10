@@ -1,0 +1,56 @@
+/* ============================================================
+   InfoPulse — CSS Variables (Color System)
+   ============================================================ */
+
+:root {
+  /* Brand Colors */
+  --color-primary: #409EFF;
+  --color-primary-light: #66b1ff;
+  --color-primary-dark: #3a8ee6;
+
+  /* Accent */
+  --color-accent: #6B46C1;
+
+  /* Backgrounds */
+  --bg-page: #f5f7fa;
+  --bg-card: rgba(255, 255, 255, 0.85);
+
+  /* Text */
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+
+  /* Borders */
+  --border-color: #dcdfe6;
+
+  /* Status Colors */
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+
+/* --- Dark Mode --- */
+[data-theme="dark"] {
+  --bg-page: #1a1a2e;
+  --bg-card: rgba(30, 30, 50, 0.9);
+  --text-primary: #e4e7ed;
+  --text-regular: #c0c4cc;
+  --text-secondary: #909399;
+  --border-color: #3a3a5c;
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.4);
+}

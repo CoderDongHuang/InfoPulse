@@ -164,8 +164,9 @@ async def search(db:AsyncSession,user_id:str,base_ids:list[str],query:str,limit=
         if score>0: ranked.append({"citation_type":"private","chunk_id":chunk.id,"knowledge_base_id":base.id,"knowledge_base_name":base.name,"document_id":doc.id,"filename":doc.filename,"page":chunk.page_number,"paragraph":chunk.paragraph_index,"heading":chunk.heading,"quote":chunk.content[:700],"score":round(score,4)})
     return sorted(ranked,key=lambda x:x["score"],reverse=True)[:limit]
 
-async def delete_document(db:AsyncSession,doc:KnowledgeDocument):
+async def delete_document(db:AsyncSession,doc:KnowledgeDocument,strict_storage:bool=False):
     doc.deleted_at=datetime.now(timezone.utc);doc.status="deleted";versions=(await db.scalars(select(KnowledgeDocumentVersion).where(KnowledgeDocumentVersion.document_id==doc.id))).all();await db.commit()
     for version in versions:
         try: storage.remove(version.storage_key)
-        except Exception: pass
+        except Exception:
+            if strict_storage: raise

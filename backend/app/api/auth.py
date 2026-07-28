@@ -20,6 +20,7 @@ from app.schemas.auth import (
     UserRegisterRequest,
     UserResponse,
     UserUpdateRequest,
+    AccountDeleteRequest,
 )
 from app.schemas.workflows import RefreshTokenRequest
 from app.services import auth_service
@@ -82,3 +83,24 @@ async def update_me(
         return await auth_service.update_user(db, current_user.id, data)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    data: AccountDeleteRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently delete an account and its private knowledge objects."""
+    from sqlalchemy import select
+    from starlette.concurrency import run_in_threadpool
+    from app.core.security import verify_password
+    from app.models.intelligence import KnowledgeDocument
+    from app.services.knowledge import delete_document
+
+    if not await run_in_threadpool(verify_password, data.password, current_user.password_hash):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Password verification failed")
+    documents = (await db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.user_id == current_user.id))).all()
+    for document in documents:
+        await delete_document(db, document, strict_storage=True)
+    await db.delete(current_user)

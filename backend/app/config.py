@@ -5,12 +5,22 @@ All settings read from environment variables / .env file.
 Uses pydantic-settings for validation and auto-loading.
 """
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
     """Application settings loaded from .env file and environment variables."""
+
+    ENVIRONMENT: str = "development"
+    APP_VERSION: str = "1.0.0"
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:4173"]
+    TRUSTED_HOSTS: list[str] = ["localhost", "127.0.0.1", "testserver"]
+    ADMIN_EMAILS: list[str] = []
+    METRICS_TOKEN: str = ""
+    DATA_RETENTION_DAYS: int = 365
+    SLOW_QUERY_MS: int = 500
 
     # --- Database ---
     DATABASE_URL: str = "postgresql+asyncpg://infopulse:infopulse@localhost:5432/infopulse"
@@ -52,6 +62,38 @@ class Settings(BaseSettings):
     KNOWLEDGE_MAX_FILE_MB: int = 25
     KNOWLEDGE_MAX_FILES_PER_UPLOAD: int = 10
     KNOWLEDGE_WEB_MAX_BYTES: int = 5_000_000
+
+    @field_validator("CORS_ORIGINS", "TRUSTED_HOSTS", "ADMIN_EMAILS", mode="before")
+    @classmethod
+    def parse_csv(cls, value):
+        if isinstance(value, str) and not value.lstrip().startswith("["):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
+    def production_errors(self) -> list[str]:
+        if self.ENVIRONMENT.lower() != "production":
+            return []
+        errors = []
+        if self.JWT_SECRET_KEY.startswith("change-me") or len(self.JWT_SECRET_KEY) < 32:
+            errors.append("JWT_SECRET_KEY must be a random value of at least 32 characters")
+        if "sqlite" in self.DATABASE_URL.lower():
+            errors.append("production DATABASE_URL must use PostgreSQL")
+        if self.AUTO_CREATE_TABLES:
+            errors.append("AUTO_CREATE_TABLES must be false in production")
+        if not self.CORS_ORIGINS or "*" in self.CORS_ORIGINS:
+            errors.append("CORS_ORIGINS must contain explicit origins")
+        if not self.TRUSTED_HOSTS or "*" in self.TRUSTED_HOSTS:
+            errors.append("TRUSTED_HOSTS must contain explicit hosts")
+        if not self.ADMIN_EMAILS:
+            errors.append("ADMIN_EMAILS must contain at least one administrator")
+        if len(self.METRICS_TOKEN) < 24:
+            errors.append("METRICS_TOKEN must contain at least 24 characters")
+        return errors
+
+    def assert_production_ready(self) -> None:
+        errors = self.production_errors()
+        if errors:
+            raise RuntimeError("Invalid production configuration: " + "; ".join(errors))
 
     # --- Third-party APIs ---
     GITHUB_TOKEN: str = ""

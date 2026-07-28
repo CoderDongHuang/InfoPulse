@@ -60,6 +60,7 @@ class UserResponse(BaseModel):
     email: str
     avatar_url: str
     is_active: bool
+    is_admin: bool
     created_at: datetime
 
     class Config:
@@ -71,3 +72,8 @@ class UserUpdateRequest(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[str] = Field(None, max_length=100)
     avatar_url: Optional[str] = Field(None, max_length=500)
+
+
+class AccountDeleteRequest(BaseModel):
+    password: str = Field(..., min_length=6, max_length=128)
+    confirmation: str = Field(..., pattern="^DELETE$")

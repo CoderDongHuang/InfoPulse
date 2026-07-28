@@ -2,7 +2,7 @@ from datetime import datetime,timezone
 from fastapi import APIRouter,Depends,HTTPException,Query
 from sqlalchemy import func,select
 from app.core.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user,require_admin
 from app.models.user import User
 from app.models.intelligence import AgentMessage,AgentTask,AlertAction,AlertIncident,AlertReplayRun,AlertRule,Analysis,AuditLog,BIQueryHistory,DataSource,DeliveryAttempt,ModelUsage,SyncRun,TaskRun
 from app.schemas.stage10 import BIQuestion,IncidentActionRequest,ReplayRequest,RuleCreate,RuleUpdate
@@ -59,11 +59,11 @@ async def bi_query(p:BIQuestion,user:User=Depends(get_current_user),db=Depends(g
 @router.get("/bi/history")
 async def bi_history(user:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":x.id,"question":x.question,"plan":x.query_plan,"result":x.result,"created_at":x.created_at} for x in (await db.scalars(select(BIQueryHistory).where(BIQueryHistory.user_id==user.id).order_by(BIQueryHistory.created_at.desc()).limit(100))).all()]
 @router.get("/admin/source-health")
-async def source_health(_u:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":x.id,"name":x.name,"type":x.source_type,"status":x.health_status,"last_success_at":x.last_success_at,"last_error":bool(x.last_error),"enabled":x.enabled} for x in (await db.scalars(select(DataSource).order_by(DataSource.name))).all()]
+async def source_health(_u:User=Depends(require_admin),db=Depends(get_db)):return [{"id":x.id,"name":x.name,"type":x.source_type,"status":x.health_status,"last_success_at":x.last_success_at,"last_error":bool(x.last_error),"enabled":x.enabled} for x in (await db.scalars(select(DataSource).order_by(DataSource.name))).all()]
 @router.get("/admin/task-health")
-async def task_health(_u:User=Depends(get_current_user),db=Depends(get_db)):return {"tasks":{s:int(c) for s,c in (await db.execute(select(AgentTask.status,func.count()).group_by(AgentTask.status))).all()},"runs":{s:int(c) for s,c in (await db.execute(select(TaskRun.status,func.count()).group_by(TaskRun.status))).all()},"failed_deliveries":int(await db.scalar(select(func.count()).select_from(DeliveryAttempt).where(DeliveryAttempt.status.in_(["failed","dead_letter"]))) or 0)}
+async def task_health(_u:User=Depends(require_admin),db=Depends(get_db)):return {"tasks":{s:int(c) for s,c in (await db.execute(select(AgentTask.status,func.count()).group_by(AgentTask.status))).all()},"runs":{s:int(c) for s,c in (await db.execute(select(TaskRun.status,func.count()).group_by(TaskRun.status))).all()},"failed_deliveries":int(await db.scalar(select(func.count()).select_from(DeliveryAttempt).where(DeliveryAttempt.status.in_(["failed","dead_letter"]))) or 0)}
 @router.get("/admin/model-usage")
-async def model_usage(_u:User=Depends(get_current_user),db=Depends(get_db)):
+async def model_usage(_u:User=Depends(require_admin),db=Depends(get_db)):
  tracked=(await db.execute(select(ModelUsage.model_name,ModelUsage.feature,func.sum(ModelUsage.prompt_tokens),func.sum(ModelUsage.completion_tokens),func.sum(ModelUsage.cost)).group_by(ModelUsage.model_name,ModelUsage.feature))).all();analyses=(await db.execute(select(Analysis.model_name,func.count()).where(Analysis.model_name!="").group_by(Analysis.model_name))).all();messages=(await db.execute(select(AgentMessage.model_name,func.count()).where(AgentMessage.model_name!="").group_by(AgentMessage.model_name))).all();return {"usage":[{"model":m,"feature":f,"prompt_tokens":int(p or 0),"completion_tokens":int(c or 0),"cost":round(float(cost or 0),4)} for m,f,p,c,cost in tracked],"generated_objects":{"analyses":{m:int(c) for m,c in analyses},"agent_messages":{m:int(c) for m,c in messages}},"note":"历史对象未记录 token 时仅统计生成次数"}
 @router.get("/admin/audit-logs")
-async def admin_audits(limit:int=Query(100,ge=1,le=500),_u:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":x.id,"actor_id":x.user_id,"action":x.action,"target_type":x.target_type,"target_id":x.target_id,"created_at":x.created_at} for x in (await db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit))).all()]
+async def admin_audits(limit:int=Query(100,ge=1,le=500),_u:User=Depends(require_admin),db=Depends(get_db)):return [{"id":x.id,"actor_id":x.user_id,"action":x.action,"target_type":x.target_type,"target_id":x.target_id,"created_at":x.created_at} for x in (await db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit))).all()]

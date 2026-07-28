@@ -1,5 +1,11 @@
 # InfoPulse 产品与开发文档
 
+上线相关文档：
+
+- [生产运行手册](./06-production-runbook.md)
+- [安全、隐私与数据生命周期](./07-security-privacy.md)
+- [发布检查清单](./08-release-checklist.md)
+
 ## 文档顺序
 
 1. [重构方案](../重构方案.md)：产品定位、完整功能范围、数据源和迁移总纲。

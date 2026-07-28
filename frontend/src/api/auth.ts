@@ -13,6 +13,7 @@ export interface UserResponse {
   email: string
   avatar_url: string
   is_active: boolean
+  is_admin: boolean
   created_at: string
 }
 
@@ -58,5 +59,9 @@ export const authApi = {
   async updateMe(data: Partial<RegisterRequest>): Promise<UserResponse> {
     const res = await request.put('/auth/me', data)
     return res.data
+  },
+
+  async deleteMe(password: string): Promise<void> {
+    await request.delete('/auth/me', { data: { password, confirmation: 'DELETE' } })
   },
 }

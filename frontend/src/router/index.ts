@@ -86,7 +86,8 @@ const routes: RouteRecordRaw[] = [
   },
   { path: "/alerts", name: "Alerts", component: () => import("@/views/AlertsView.vue"), meta: { title: "预警中心", requiresAuth: true } },
   { path: "/bi", name: "ControlledBI", component: () => import("@/views/BIView.vue"), meta: { title: "自然语言 BI", requiresAuth: true } },
-  { path: "/admin", name: "AdminOperations", component: () => import("@/views/AdminView.vue"), meta: { title: "运行管理", requiresAuth: true } },
+  { path: "/admin", name: "AdminOperations", component: () => import("@/views/AdminView.vue"), meta: { title: "运行管理", requiresAuth: true, adminOnly: true } },
+  { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",
     name: "Insight",
@@ -162,7 +163,7 @@ const router = createRouter({
 });
 
 // --- Navigation Guard ---
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   // Update document title
   document.title = `${to.meta.title || "InfoPulse"} — InfoPulse`;
 
@@ -178,6 +179,16 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.guest && userStore.isLoggedIn) {
     next({ path: "/" });
     return;
+  }
+
+  if (to.meta.adminOnly) {
+    if (!userStore.userInfo && userStore.isLoggedIn) {
+      try { await userStore.fetchUserInfo() } catch { userStore.logout() }
+    }
+    if (!userStore.userInfo?.is_admin) {
+      next({ path: "/" })
+      return
+    }
   }
 
   next();

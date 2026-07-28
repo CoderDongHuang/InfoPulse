@@ -1,0 +1,54 @@
+name: Release Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: sqlite+aiosqlite:///./release-gate.db
+      AUTO_CREATE_TABLES: "false"
+      LLM_API_KEY: ""
+      GITHUB_TOKEN: ""
+      TASK_SCHEDULER_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m compileall -q app tests scripts
+      - run: python -m unittest discover -s tests -v
+      - run: alembic upgrade head
+      - run: alembic downgrade 20260729_0012
+      - run: alembic upgrade head
+      - run: python scripts/production_check.py
+        env:
+          ENVIRONMENT: production
+          DATABASE_URL: postgresql+asyncpg://app:password@db/infopulse
+          JWT_SECRET_KEY: ${{ secrets.RELEASE_GATE_JWT_SECRET || 'release-gate-only-secret-000000000000' }}
+          ADMIN_EMAILS: '["admin@example.com"]'
+          METRICS_TOKEN: ${{ secrets.RELEASE_GATE_METRICS_TOKEN || 'release-gate-metrics-token-000000' }}
+          CORS_ORIGINS: '["https://app.example.com"]'
+          TRUSTED_HOSTS: '["api.example.com"]'
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build

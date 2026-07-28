@@ -61,7 +61,7 @@ setup_cors(app)
 setup_error_handlers(app)
 
 # --- Routes ---
-from app.api import auth, history, hot_search, insights, mouthpiece, timeline  # noqa: E402
+from app.api import auth, history, hot_search, insights, mouthpiece, sources, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -69,6 +69,7 @@ app.include_router(mouthpiece.router)
 app.include_router(timeline.router)
 app.include_router(hot_search.router)
 app.include_router(history.router)
+app.include_router(sources.router)
 
 
 @app.get("/api/v1/health")
@@ -80,5 +81,5 @@ async def health_check():
         "demo_mode": settings.DEMO_MODE,
         "crawler_enabled": settings.CRAWLER_ENABLED,
         "llm_configured": bool(settings.LLM_API_KEY and "your-api-key" not in settings.LLM_API_KEY),
-        "modules": ["insights", "mouthpiece", "timeline", "hot_search", "history"],
+        "modules": ["insights", "mouthpiece", "timeline", "hot_search", "history", "sources"],
     }

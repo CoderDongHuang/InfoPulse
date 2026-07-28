@@ -632,3 +632,15 @@ class BIQueryHistory(Base):
 class ModelUsage(Base):
     __tablename__="model_usage"
     id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str|None]=mapped_column(ForeignKey("users.id",ondelete="SET NULL"),index=True);feature:Mapped[str]=mapped_column(String(40),index=True);model_name:Mapped[str]=mapped_column(String(120),index=True);prompt_tokens:Mapped[int]=mapped_column(Integer,default=0);completion_tokens:Mapped[int]=mapped_column(Integer,default=0);cost:Mapped[float]=mapped_column(Float,default=0);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
+
+class ProductEvent(Base):
+    __tablename__="product_events"
+    id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str|None]=mapped_column(ForeignKey("users.id",ondelete="SET NULL"),index=True);event_name:Mapped[str]=mapped_column(String(60),index=True);route:Mapped[str]=mapped_column(String(120),default="",index=True);properties:Mapped[dict]=mapped_column(JSON,default=dict);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
+
+class UserFeedback(Base):
+    __tablename__="user_feedback"
+    id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True);category:Mapped[str]=mapped_column(String(30),index=True);rating:Mapped[int]=mapped_column(Integer);message:Mapped[str]=mapped_column(Text,default="");status:Mapped[str]=mapped_column(String(20),default="new",index=True);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True);updated_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,onupdate=utc_now)
+
+class ReleaseRecord(Base):
+    __tablename__="release_records"
+    id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);version:Mapped[str]=mapped_column(String(80),unique=True,index=True);environment:Mapped[str]=mapped_column(String(20),index=True);status:Mapped[str]=mapped_column(String(20),index=True);commit_sha:Mapped[str]=mapped_column(String(64));notes:Mapped[str]=mapped_column(Text,default="");metrics:Mapped[dict]=mapped_column(JSON,default=dict);deployed_by:Mapped[str|None]=mapped_column(ForeignKey("users.id",ondelete="SET NULL"),index=True);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True);completed_at:Mapped[datetime|None]=mapped_column(DateTime(timezone=True))

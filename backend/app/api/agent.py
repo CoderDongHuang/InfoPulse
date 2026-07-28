@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
-from app.models.intelligence import AgentMessage,Conversation,MessageCitation,MessageFeedback,ContentItem,DataSource
+from app.models.intelligence import AgentMessage,Conversation,MessageCitation,MessageFeedback,ContentItem,DataSource,KnowledgeCitation,KnowledgeChunk,KnowledgeDocument,KnowledgeBase
 from app.schemas.agent import ConversationCreate,ConversationUpdate,FeedbackCreate,MessageCreate
 from app.services.agent_service import answer,gather
 router=APIRouter(prefix="/api/v1/conversations",tags=["AI Agent"])
@@ -17,7 +17,10 @@ async def owned(db,cid,uid):
  return c
 async def message_dict(db,m):
  cites=(await db.execute(select(MessageCitation,ContentItem,DataSource).join(ContentItem,ContentItem.id==MessageCitation.content_item_id).join(DataSource).where(MessageCitation.message_id==m.id))).all()
- return {"id":m.id,"role":m.role,"content":m.content,"status":m.status,"tool_name":m.tool_name,"tool_payload":m.tool_payload,"model_name":m.model_name,"created_at":m.created_at,"citations":[{"id":c.id,"quote":c.quote,"title":x.title,"source":s.name,"url":x.canonical_url} for c,x,s in cites]}
+ private=(await db.execute(select(KnowledgeCitation,KnowledgeChunk,KnowledgeDocument,KnowledgeBase).join(KnowledgeChunk,KnowledgeChunk.id==KnowledgeCitation.chunk_id).join(KnowledgeDocument,KnowledgeDocument.id==KnowledgeChunk.document_id).join(KnowledgeBase,KnowledgeBase.id==KnowledgeChunk.knowledge_base_id).where(KnowledgeCitation.message_id==m.id,KnowledgeDocument.deleted_at.is_(None),KnowledgeBase.deleted_at.is_(None),KnowledgeDocument.active_version_id==KnowledgeChunk.version_id))).all()
+ citations=[{"id":c.id,"citation_type":"public","quote":c.quote,"title":x.title,"source":s.name,"url":x.canonical_url} for c,x,s in cites]
+ citations += [{"id":c.id,"citation_type":"private","quote":c.quote,"title":d.filename,"source":b.name,"url":"","knowledge_base_id":b.id,"document_id":d.id,"page":x.page_number,"paragraph":x.paragraph_index} for c,x,d,b in private]
+ return {"id":m.id,"role":m.role,"content":m.content,"status":m.status,"tool_name":m.tool_name,"tool_payload":m.tool_payload,"model_name":m.model_name,"created_at":m.created_at,"citations":citations}
 @router.get("")
 async def listing(user:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":x.id,"title":x.title,"event_id":x.event_id,"updated_at":x.updated_at} for x in (await db.scalars(select(Conversation).where(Conversation.user_id==user.id,Conversation.deleted_at.is_(None)).order_by(Conversation.updated_at.desc()))).all()]
 @router.post("",status_code=201)
@@ -39,9 +42,8 @@ async def send(cid:str,p:MessageCreate,request:Request,user:User=Depends(get_cur
  async def stream():
   yield emit("message.started",{"message_id":a.id})
   try:
-   rows,tools=await gather(db,user.id,c,p.content,p.context_additions)
+   rows,tools=await gather(db,user.id,c,p.content,p.context_additions,p.knowledge_base_ids)
    for name,payload in tools:yield emit("tool.started",{"name":name,"payload":payload});yield emit("tool.completed",{"name":name,"count":len(rows)})
-   if p.knowledge_base_ids:yield emit("tool.completed",{"name":"knowledge_base","status":"unavailable","message":"知识库尚未启用，未使用私有文档"})
    result,model=await answer(p.content,rows);text=result["answer"]+("\n" if result["claims"] else "")+"\n".join(x["text"] for x in result["claims"])
    for part in [text[i:i+24] for i in range(0,len(text),24)]:
     if await request.is_disconnected():a.status="cancelled";await db.commit();return
@@ -50,7 +52,11 @@ async def send(cid:str,p:MessageCreate,request:Request,user:User=Depends(get_cur
    for ci,claim in enumerate(result["claims"]):
     for idx in claim["citation_indexes"]:
      if idx in used:continue
-     used.add(idx);x,_=rows[idx];mc=MessageCitation(message_id=a.id,content_item_id=x.id,quote=(x.body or x.title)[:500],locator={"url":x.canonical_url},claim_index=ci);db.add(mc);await db.flush();yield emit("citation.added",{"id":mc.id,"title":x.title,"url":x.canonical_url})
+     used.add(idx);x,_=rows[idx]
+     if isinstance(x,dict):
+      mc=KnowledgeCitation(message_id=a.id,chunk_id=x["chunk_id"],quote=x["quote"][:500],claim_index=ci);db.add(mc);await db.flush();yield emit("citation.added",{"id":mc.id,"citation_type":"private","title":x["filename"],"page":x["page"],"paragraph":x["paragraph"]})
+     else:
+      mc=MessageCitation(message_id=a.id,content_item_id=x.id,quote=(x.body or x.title)[:500],locator={"url":x.canonical_url},claim_index=ci);db.add(mc);await db.flush();yield emit("citation.added",{"id":mc.id,"citation_type":"public","title":x.title,"url":x.canonical_url})
    await db.commit();yield emit("message.completed",await message_dict(db,a))
   except asyncio.CancelledError:a.status="cancelled";await db.commit();raise
   except Exception:a.status="failed";await db.commit();yield emit("message.failed",{"message":"Agent 执行失败，未保存为完成回答"})

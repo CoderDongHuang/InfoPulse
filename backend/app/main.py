@@ -16,6 +16,7 @@ from app.core.redis import close_redis, init_redis
 from app.middleware.cors import setup_cors
 from app.services.crawler.browser_manager import BrowserManager
 from app.services.automation import scheduler_loop
+from app.services.knowledge import knowledge_worker_loop
 
 # Ensure all models are imported before table creation
 import app.models  # noqa: F401
@@ -41,6 +42,8 @@ async def lifespan(app: FastAPI):
     print(f"[InfoPulse] Crawler enabled: {settings.CRAWLER_ENABLED}")
     scheduler_stop = asyncio.Event()
     scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if settings.TASK_SCHEDULER_ENABLED else None
+    knowledge_stop = asyncio.Event()
+    knowledge_task = asyncio.create_task(knowledge_worker_loop(knowledge_stop))
     print("[InfoPulse] Ready to serve requests")
 
     yield
@@ -50,6 +53,8 @@ async def lifespan(app: FastAPI):
     scheduler_stop.set()
     if scheduler_task:
         await scheduler_task
+    knowledge_stop.set()
+    await knowledge_task
     await BrowserManager().close()
     await close_redis()
     await close_db()
@@ -68,7 +73,7 @@ setup_cors(app)
 setup_error_handlers(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, automation, contents, events, history, hot_search, insights, mouthpiece, personalization, reports, search, sources, stage3, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, events, history, hot_search, insights, knowledge, mouthpiece, personalization, reports, search, sources, stage3, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -86,6 +91,7 @@ app.include_router(analyses.router)
 app.include_router(agent.router)
 app.include_router(reports.router)
 app.include_router(automation.router)
+app.include_router(knowledge.router)
 
 
 @app.get("/api/v1/health")

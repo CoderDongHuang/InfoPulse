@@ -1,0 +1,31 @@
+"""Add isolated private knowledge and RAG records."""
+from alembic import op
+import sqlalchemy as sa
+
+revision = "20260728_0010"
+down_revision = "20260728_0009"
+branch_labels = None
+depends_on = None
+
+def upgrade():
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        from pgvector.sqlalchemy import Vector
+        embedding_type = Vector(96)
+    else:
+        embedding_type = sa.JSON()
+    op.create_table("knowledge_bases", sa.Column("id",sa.String(36),primary_key=True),sa.Column("user_id",sa.String(36),sa.ForeignKey("users.id",ondelete="CASCADE"),nullable=False),sa.Column("name",sa.String(160),nullable=False),sa.Column("description",sa.Text(),nullable=False),sa.Column("created_at",sa.DateTime(timezone=True),nullable=False),sa.Column("updated_at",sa.DateTime(timezone=True),nullable=False),sa.Column("deleted_at",sa.DateTime(timezone=True)))
+    op.create_table("knowledge_documents",sa.Column("id",sa.String(36),primary_key=True),sa.Column("knowledge_base_id",sa.String(36),sa.ForeignKey("knowledge_bases.id",ondelete="CASCADE"),nullable=False),sa.Column("user_id",sa.String(36),sa.ForeignKey("users.id",ondelete="CASCADE"),nullable=False),sa.Column("filename",sa.String(300),nullable=False),sa.Column("source_type",sa.String(20),nullable=False),sa.Column("source_url",sa.String(2000),nullable=False),sa.Column("mime_type",sa.String(120),nullable=False),sa.Column("byte_size",sa.BigInteger(),nullable=False),sa.Column("status",sa.String(20),nullable=False),sa.Column("active_version_id",sa.String(36)),sa.Column("error_message",sa.Text(),nullable=False),sa.Column("created_at",sa.DateTime(timezone=True),nullable=False),sa.Column("updated_at",sa.DateTime(timezone=True),nullable=False),sa.Column("deleted_at",sa.DateTime(timezone=True)))
+    op.create_table("knowledge_document_versions",sa.Column("id",sa.String(36),primary_key=True),sa.Column("document_id",sa.String(36),sa.ForeignKey("knowledge_documents.id",ondelete="CASCADE"),nullable=False),sa.Column("version_number",sa.Integer(),nullable=False),sa.Column("storage_key",sa.String(1000),nullable=False),sa.Column("content_hash",sa.String(64),nullable=False),sa.Column("page_count",sa.Integer(),nullable=False),sa.Column("metadata_json",sa.JSON(),nullable=False),sa.Column("created_at",sa.DateTime(timezone=True),nullable=False),sa.UniqueConstraint("document_id","version_number",name="uq_knowledge_document_version"))
+    op.create_table("knowledge_chunks",sa.Column("id",sa.String(36),primary_key=True),sa.Column("version_id",sa.String(36),sa.ForeignKey("knowledge_document_versions.id",ondelete="CASCADE"),nullable=False),sa.Column("document_id",sa.String(36),sa.ForeignKey("knowledge_documents.id",ondelete="CASCADE"),nullable=False),sa.Column("knowledge_base_id",sa.String(36),sa.ForeignKey("knowledge_bases.id",ondelete="CASCADE"),nullable=False),sa.Column("user_id",sa.String(36),sa.ForeignKey("users.id",ondelete="CASCADE"),nullable=False),sa.Column("ordinal",sa.Integer(),nullable=False),sa.Column("content",sa.Text(),nullable=False),sa.Column("page_number",sa.Integer()),sa.Column("paragraph_index",sa.Integer()),sa.Column("heading",sa.String(500),nullable=False),sa.Column("token_count",sa.Integer(),nullable=False),sa.Column("content_hash",sa.String(64),nullable=False),sa.Column("embedding",embedding_type,nullable=False),sa.Column("created_at",sa.DateTime(timezone=True),nullable=False))
+    if bind.dialect.name == "postgresql":
+        op.execute("CREATE INDEX ix_knowledge_chunks_embedding_hnsw ON knowledge_chunks USING hnsw (embedding vector_cosine_ops)")
+    op.create_table("knowledge_processing_runs",sa.Column("id",sa.String(36),primary_key=True),sa.Column("document_id",sa.String(36),sa.ForeignKey("knowledge_documents.id",ondelete="CASCADE"),nullable=False),sa.Column("user_id",sa.String(36),sa.ForeignKey("users.id",ondelete="CASCADE"),nullable=False),sa.Column("status",sa.String(20),nullable=False),sa.Column("stage",sa.String(30),nullable=False),sa.Column("progress",sa.Integer(),nullable=False),sa.Column("attempt",sa.Integer(),nullable=False),sa.Column("error_message",sa.Text(),nullable=False),sa.Column("diagnostic_id",sa.String(36),nullable=False),sa.Column("created_at",sa.DateTime(timezone=True),nullable=False),sa.Column("finished_at",sa.DateTime(timezone=True)))
+    op.create_table("knowledge_citations",sa.Column("id",sa.String(36),primary_key=True),sa.Column("message_id",sa.String(36),sa.ForeignKey("agent_messages.id",ondelete="CASCADE"),nullable=False),sa.Column("chunk_id",sa.String(36),sa.ForeignKey("knowledge_chunks.id",ondelete="RESTRICT"),nullable=False),sa.Column("quote",sa.Text(),nullable=False),sa.Column("claim_index",sa.Integer(),nullable=False))
+    for table, cols in {"knowledge_bases":["user_id","deleted_at"],"knowledge_documents":["knowledge_base_id","user_id","status","active_version_id","deleted_at"],"knowledge_document_versions":["document_id","content_hash"],"knowledge_chunks":["version_id","document_id","knowledge_base_id","user_id","content_hash"],"knowledge_processing_runs":["document_id","user_id","status"],"knowledge_citations":["message_id","chunk_id"]}.items():
+        for col in cols: op.create_index(f"ix_{table}_{col}",table,[col])
+
+def downgrade():
+    for table in ("knowledge_citations","knowledge_processing_runs","knowledge_chunks","knowledge_document_versions","knowledge_documents","knowledge_bases"):
+        op.drop_table(table)

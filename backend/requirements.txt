@@ -43,5 +43,11 @@ psutil>=5.9.0,<6.0.0
 # --- SQLite (development fallback) ---
 aiosqlite>=0.19.0,<1.0.0
 
+# --- Private knowledge / RAG ---
+boto3>=1.34.0,<2.0.0
+pgvector>=0.2.5,<1.0.0
+pypdf>=4.0.0,<6.0.0
+python-docx>=1.1.0,<2.0.0
+
 # --- Password Hashing (pin to compatible version) ---
 bcrypt==4.0.1

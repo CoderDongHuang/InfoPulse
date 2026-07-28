@@ -63,3 +63,11 @@ async def feedback(cid:str,mid:str,p:FeedbackCreate,user:User=Depends(get_curren
  if f:f.rating=p.rating;f.reason=p.reason
  else:db.add(MessageFeedback(message_id=mid,user_id=user.id,**p.model_dump()))
  return {"message_id":mid,"rating":p.rating}
+
+@router.post("/{cid}/messages/{mid}/retry")
+async def retry(cid:str,mid:str,request:Request,user:User=Depends(get_current_user),db=Depends(get_db)):
+ await owned(db,cid,user.id);target=await db.scalar(select(AgentMessage).where(AgentMessage.id==mid,AgentMessage.conversation_id==cid,AgentMessage.role=="assistant",AgentMessage.status.in_(["failed","cancelled"])))
+ if not target:raise HTTPException(409,"仅失败或已取消的回答可以重试")
+ previous=await db.scalar(select(AgentMessage).where(AgentMessage.conversation_id==cid,AgentMessage.role=="user",AgentMessage.created_at<=target.created_at).order_by(AgentMessage.created_at.desc()))
+ if not previous:raise HTTPException(422,"找不到原始问题")
+ return await send(cid,MessageCreate(content=previous.content),request,user,db)

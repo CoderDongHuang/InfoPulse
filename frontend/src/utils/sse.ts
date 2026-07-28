@@ -6,6 +6,7 @@ export interface SSECallbacks {
   onError?: (message: string) => void
   onPing?: () => void
   onTimeout?: () => void
+  onEvent?: (type: string, data: any) => void
 }
 
 export interface SSEConnection { close: () => void }
@@ -22,6 +23,7 @@ export function createSSEConnection(
     lastEventAt = Date.now()
     let parsed: any = raw
     try { parsed = JSON.parse(raw) } catch { /* text event */ }
+    options.callbacks.onEvent?.(type, parsed)
     if (type === 'progress') options.callbacks.onProgress?.(parsed)
     else if (type === 'chunk') options.callbacks.onChunk?.(typeof parsed === 'string' ? parsed : raw)
     else if (type === 'result') options.callbacks.onResult?.(parsed)

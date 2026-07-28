@@ -1,0 +1,63 @@
+<script setup lang="ts">
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { intelligenceApi, type SavedSearch, type SearchItem } from '@/api/intelligence'
+import { sourceApi, type DataSource } from '@/api/sources'
+import EmptyState from '@/components/common/EmptyState.vue'
+import LoadingState from '@/components/common/LoadingState.vue'
+
+const query = ref('')
+const filters = reactive({ source: '', type: '', language: '', sentiment: '', sort: 'relevance' })
+const items = ref<SearchItem[]>([]), total = ref(0), page = ref(1), loading = ref(false)
+const sources = ref<DataSource[]>([]), saved = ref<SavedSearch[]>([])
+const detail = ref<any>(null), detailLoading = ref(false), saveOpen = ref(false), saveName = ref('')
+const eventOpen = ref(false), selectedContent = ref<SearchItem | null>(null)
+const eventForm = reactive({ title: '', category: 'technology' })
+
+function params() {
+  return { q: query.value, 'sources[]': filters.source || undefined, 'types[]': filters.type || undefined,
+    'languages[]': filters.language || undefined, 'sentiments[]': filters.sentiment || undefined,
+    sort: filters.sort, page: page.value, page_size: 12 }
+}
+async function search(reset = false) {
+  if (reset) page.value = 1
+  loading.value = true
+  try { const data = await intelligenceApi.search(params()); items.value = data.items; total.value = data.total }
+  finally { loading.value = false }
+}
+async function openDetail(item: SearchItem) {
+  detailLoading.value = true; detail.value = { title: item.title }
+  try { detail.value = await intelligenceApi.content(item.id) } finally { detailLoading.value = false }
+}
+async function saveCurrent() {
+  if (!saveName.value.trim()) return
+  await intelligenceApi.saveSearch({ name: saveName.value.trim(), query: query.value, filters: { ...filters } })
+  saveOpen.value = false; saveName.value = ''; saved.value = await intelligenceApi.savedSearches(); ElMessage.success('搜索已保存')
+}
+function applySaved(item: SavedSearch) {
+  query.value = item.query; Object.assign(filters, item.filters); void search(true)
+}
+async function removeSaved(id: string) { await intelligenceApi.deleteSavedSearch(id); saved.value = saved.value.filter(item => item.id !== id) }
+function prepareEvent(item: SearchItem) { selectedContent.value = item; eventForm.title = item.title; eventOpen.value = true }
+async function createEvent() {
+  if (!selectedContent.value) return
+  const event = await intelligenceApi.createEvent({ title: eventForm.title, category: eventForm.category, content_ids: [selectedContent.value.id] })
+  eventOpen.value = false; ElMessage.success(`事件“${event.title}”已创建`); await search()
+}
+function date(value: string | null) { return value ? new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '时间未知' }
+onMounted(async () => { [sources.value, saved.value] = await Promise.all([sourceApi.list(), intelligenceApi.savedSearches()]); await search() })
+</script>
+
+<template>
+  <div class="search-page"><header class="search-hero"><div class="page-shell"><p class="eyebrow">RESEARCH SEARCH</p><h1>搜索中心</h1><form class="search-box" @submit.prevent="search(true)"><el-icon><Search /></el-icon><input v-model="query" placeholder="搜索标题、正文、实体或自然语言问题" /><button type="submit">搜索</button></form><div v-if="saved.length" class="saved"><span>已保存</span><button v-for="item in saved" :key="item.id" type="button" @click="applySaved(item)">{{ item.name }}<i @click.stop="removeSaved(item.id)">×</i></button></div></div></header>
+    <main class="page-shell search-layout"><aside class="filters"><header><h2>筛选</h2><button type="button" @click="Object.assign(filters,{source:'',type:'',language:'',sentiment:'',sort:'relevance'});search(true)">清空</button></header><label>来源<select v-model="filters.source" @change="search(true)"><option value="">全部来源</option><option v-for="source in sources" :key="source.id" :value="source.id">{{ source.name }}</option></select></label><label>内容类型<select v-model="filters.type" @change="search(true)"><option value="">全部类型</option><option value="article">资讯</option><option value="repository">开源项目</option><option value="paper">论文</option></select></label><label>语言<select v-model="filters.language" @change="search(true)"><option value="">全部语言</option><option value="zh">中文</option><option value="en">英文</option><option value="und">未识别</option></select></label><label>情绪<select v-model="filters.sentiment" @change="search(true)"><option value="">全部情绪</option><option value="positive">正向</option><option value="neutral">中性</option><option value="negative">负向</option><option value="unknown">未分析</option></select></label></aside>
+      <section class="results"><header><div><h2>{{ total }} 条真实内容</h2><p>结果来自已同步数据库，点击标题查看标准化字段。</p></div><div><select v-model="filters.sort" @change="search(true)"><option value="relevance">相关度</option><option value="newest">最新发布</option><option value="heat">互动热度</option></select><button type="button" @click="saveOpen=true"><el-icon><Collection /></el-icon>保存搜索</button></div></header><LoadingState v-if="loading" label="正在查询数据库" /><EmptyState v-else-if="!items.length" title="没有匹配内容" description="调整关键词或筛选条件，或先到数据源中心执行同步。" /><article v-for="item in items" v-else :key="item.id"><div class="result-meta"><span>{{ item.source.name }}</span><time>{{ date(item.published_at) }}</time><em>{{ item.content_type }}</em></div><button class="result-title" type="button" @click="openDetail(item)">{{ item.title }}</button><p>{{ item.summary || '该来源没有提供摘要。' }}</p><footer><span>热度 {{ item.heat }}</span><span>{{ item.sentiment }}</span><span>{{ item.language.toUpperCase() }}</span><button type="button" @click="prepareEvent(item)">创建事件</button><a :href="item.canonical_url" target="_blank" rel="noreferrer">打开原文<el-icon><TopRight /></el-icon></a></footer></article><nav v-if="total>12" class="pager"><button :disabled="page===1" @click="page--;search()">上一页</button><span>第 {{ page }} 页</span><button :disabled="page*12>=total" @click="page++;search()">下一页</button></nav></section></main>
+    <div v-if="detail" class="overlay" @click.self="detail=null"><aside class="detail-drawer"><header><p>CONTENT DETAIL</p><button @click="detail=null">×</button></header><LoadingState v-if="detailLoading" label="读取内容详情" /><template v-else><h2>{{ detail.title }}</h2><div class="detail-meta"><span>{{ detail.source?.name }}</span><span>{{ detail.author?.name }}</span><span>{{ date(detail.published_at) }}</span></div><p class="body">{{ detail.body || '来源未提供正文。' }}</p><dl><div><dt>内容类型</dt><dd>{{ detail.content_type }}</dd></div><div><dt>语言 / 地区</dt><dd>{{ detail.language }} / {{ detail.region || '未标注' }}</dd></div><div><dt>互动</dt><dd>{{ detail.metrics?.likes || 0 }} 赞 · {{ detail.metrics?.comments || 0 }} 评论</dd></div><div><dt>实体</dt><dd>{{ detail.entities?.join?.('、') || '待提取' }}</dd></div></dl><a :href="detail.canonical_url" target="_blank">打开原始来源</a></template></aside></div>
+    <div v-if="saveOpen" class="overlay center" @click.self="saveOpen=false"><form class="modal" @submit.prevent="saveCurrent"><h2>保存当前搜索</h2><label>名称<input v-model="saveName" maxlength="120" placeholder="例如：每日 Agent 动态" required /></label><footer><button type="button" @click="saveOpen=false">取消</button><button class="primary">保存</button></footer></form></div>
+    <div v-if="eventOpen" class="overlay center" @click.self="eventOpen=false"><form class="modal" @submit.prevent="createEvent"><h2>从内容创建事件</h2><label>事件标题<input v-model="eventForm.title" maxlength="500" required /></label><label>分类<select v-model="eventForm.category"><option value="technology">科技</option><option value="research">研究</option><option value="open-source">开源</option><option value="risk">风险</option></select></label><footer><button type="button" @click="eventOpen=false">取消</button><button class="primary">创建事件</button></footer></form></div>
+  </div>
+</template>
+
+<style scoped>
+.search-page{min-height:100vh;background:#f4f6f5}.search-hero{border-bottom:1px solid #d5deda;background:#fff}.search-hero .page-shell{padding-top:38px;padding-bottom:25px}.search-hero h1{margin:0 0 20px;font-size:36px}.search-box{height:56px;display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:10px;padding-left:17px;border:1px solid #9eb2ab;border-radius:7px;background:#fbfcfc;box-shadow:0 10px 30px rgba(25,55,45,.07)}.search-box input{height:100%;border:0;outline:0;background:transparent}.search-box button,.primary{height:42px;margin-right:6px;padding:0 20px;border:0;border-radius:5px;color:#fff;background:#167f76;cursor:pointer}.saved{margin-top:13px;display:flex;align-items:center;gap:7px;overflow-x:auto}.saved>span{color:#82908b;font-size:10px}.saved button{flex:0 0 auto;padding:5px 8px;border:1px solid #d6dfdc;border-radius:4px;background:white;color:#526760;font-size:10px}.saved i{margin-left:7px;font-style:normal}.search-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px}.filters{align-self:start;padding:18px;border:1px solid #d8e0dd;border-radius:7px;background:#fff}.filters header,.results>header{display:flex;align-items:center;justify-content:space-between}.filters h2,.results h2{margin:0;font-size:17px}.filters header button{border:0;color:#247b72;background:transparent;font-size:10px}.filters label{margin-top:18px;display:grid;gap:6px;color:#6f807a;font-size:10px;font-weight:700}.filters select,.results select,.modal input,.modal select{height:38px;padding:0 9px;border:1px solid #d0dad6;border-radius:4px;background:#fff}.results>header{min-height:58px}.results header p{margin:4px 0 0;color:#84928d;font-size:10px}.results header>div:last-child{display:flex;gap:7px}.results header button{height:38px;padding:0 11px;border:1px solid #cdd8d4;border-radius:4px;background:#fff}.results article{margin-top:10px;padding:19px 20px;border:1px solid #d8e0dd;border-radius:7px;background:#fff;transition:transform 160ms ease,border-color 160ms ease}.results article:hover{transform:translateY(-2px);border-color:#8fb7ae}.result-meta{display:flex;align-items:center;gap:9px;color:#80908a;font-size:9px}.result-meta span{color:#14776e;font-weight:700}.result-meta em{padding:2px 5px;background:#eef4f2;font-style:normal}.result-title{margin:10px 0 6px;padding:0;border:0;background:transparent;color:#17231f;font-size:18px;font-weight:750;text-align:left;cursor:pointer}.results article>p{margin:0;color:#60736c;font-size:12px;line-height:1.7}.results article footer{margin-top:14px;padding-top:12px;border-top:1px solid #e5eae8;display:flex;align-items:center;gap:12px;color:#82918c;font-size:9px}.results article footer button,.results article footer a{margin-left:auto;border:0;color:#16776e;background:transparent;cursor:pointer}.results article footer a{margin-left:0;display:flex;align-items:center}.pager{padding:20px;display:flex;justify-content:center;align-items:center;gap:12px}.pager button{padding:7px 12px;border:1px solid #ccd7d3;background:#fff}.overlay{position:fixed;inset:0;z-index:500;display:flex;justify-content:flex-end;background:rgba(10,25,20,.38);backdrop-filter:blur(2px)}.detail-drawer{width:min(620px,94vw);height:100%;padding:27px;overflow:auto;background:#fff}.detail-drawer header{display:flex;justify-content:space-between;border-bottom:1px solid #dae3df}.detail-drawer header p{color:#168078;font:700 9px monospace}.detail-drawer header button{border:0;background:transparent;font-size:26px}.detail-drawer h2{margin-top:28px;font-size:27px}.detail-meta{display:flex;gap:10px;color:#74857f;font-size:10px}.detail-drawer .body{margin:24px 0;white-space:pre-wrap;line-height:1.8}.detail-drawer dl div{padding:10px 0;border-top:1px solid #e1e7e4;display:flex;justify-content:space-between}.detail-drawer dd{margin:0}.detail-drawer>a{display:inline-flex;margin-top:20px;color:#16776e}.center{align-items:center;justify-content:center}.modal{width:min(480px,calc(100vw - 28px));padding:24px;border-radius:7px;background:#fff}.modal h2{margin:0 0 20px}.modal label{margin-top:14px;display:grid;gap:7px;font-size:11px}.modal footer{margin-top:24px;display:flex;justify-content:flex-end;gap:8px}.modal footer button{height:38px;padding:0 15px;border:1px solid #ccd7d3;border-radius:4px;background:#fff}.modal footer .primary{margin:0;border:0;background:#167f76}@media(max-width:760px){.search-layout{grid-template-columns:1fr}.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}.filters header{grid-column:1/-1}.filters label{margin-top:0}.results>header{align-items:flex-start;gap:10px;flex-direction:column}.search-hero h1{font-size:31px}.results article footer{flex-wrap:wrap}}
+</style>

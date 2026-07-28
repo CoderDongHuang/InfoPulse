@@ -27,7 +27,7 @@ async def get_current_user(
     token = credentials.credentials
     payload = verify_token(token)
 
-    if payload is None:
+    if payload is None or payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

@@ -9,11 +9,11 @@ from app.models.user import User
 from app.models.analysis_history import AnalysisHistory
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
-    RecentView, RecommendationFeedback, SavedSearch, SyncRun, WatchTopic,
+    RecentView, RecommendationFeedback, Report, ReportExport, ReportVersion, SavedSearch, SyncRun, WatchTopic,
 )
 
 __all__ = [
     "User", "AnalysisHistory", "DataSource", "SyncRun", "ContentItem", "Event", "EventContent",
     "SavedSearch", "EventEntity", "AuditLog", "Favorite", "RecentView", "WatchTopic",
-    "ChannelFollow", "RecommendationFeedback", "Analysis", "AnalysisCitation", "Conversation", "AgentMessage", "MessageCitation", "MessageFeedback",
+    "ChannelFollow", "RecommendationFeedback", "Analysis", "AnalysisCitation", "Conversation", "AgentMessage", "MessageCitation", "MessageFeedback", "Report", "ReportVersion", "ReportExport",
 ]

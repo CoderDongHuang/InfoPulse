@@ -1,4 +1,4 @@
-import hashlib, io, ipaddress, math, os, re, socket, zipfile
+import asyncio, hashlib, io, ipaddress, math, os, re, socket, zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -38,6 +38,23 @@ class Storage:
         if self.local in path.parents: path.unlink(missing_ok=True)
 
 storage=Storage()
+processing_queue: asyncio.Queue[tuple[str,bytes|None]] = asyncio.Queue()
+
+async def enqueue_document(document_id:str,data:bytes|None=None):
+    await processing_queue.put((document_id,data))
+
+async def knowledge_worker_loop(stop:asyncio.Event):
+    from app.core.database import _get_sessionmaker
+    while not stop.is_set():
+        try: document_id,data=await asyncio.wait_for(processing_queue.get(),timeout=1)
+        except asyncio.TimeoutError: continue
+        try:
+            async with _get_sessionmaker()() as db:
+                doc=await db.get(KnowledgeDocument,document_id)
+                if doc and doc.deleted_at is None: await process_document(db,doc,data)
+        except Exception:
+            pass
+        finally: processing_queue.task_done()
 
 def safe_filename(name:str)->str:
     name=Path(name or "document").name

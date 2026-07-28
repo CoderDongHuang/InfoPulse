@@ -6,7 +6,7 @@ from app.dependencies import get_current_user
 from app.models.user import User
 from app.models.intelligence import KnowledgeBase,KnowledgeChunk,KnowledgeDocument,KnowledgeDocumentVersion,KnowledgeProcessingRun
 from app.schemas.knowledge import KnowledgeBaseCreate,KnowledgeBaseUpdate,SearchTest,WebImportCreate
-from app.services.knowledge import ALLOWED,delete_document,fetch_web,process_document,safe_filename,search,settings,validate_upload
+from app.services.knowledge import ALLOWED,delete_document,enqueue_document,fetch_web,safe_filename,search,settings,validate_upload
 
 router=APIRouter(prefix="/api/v1",tags=["Knowledge RAG"])
 def fail(message,status=400): raise HTTPException(status,message)
@@ -53,8 +53,7 @@ async def upload(kid:str,files:list[UploadFile]=File(...),user:User=Depends(get_
         try:validate_upload(name,data)
         except Exception as exc:fail(str(exc))
         doc=KnowledgeDocument(knowledge_base_id=kid,user_id=user.id,filename=name,source_type="upload",mime_type=file.content_type or "",byte_size=len(data));db.add(doc);await db.flush()
-        try:await process_document(db,doc,data)
-        except Exception: pass
+        await db.commit();await enqueue_document(doc.id,data)
         result.append(doc_json(doc))
     return result
 @router.post("/knowledge-bases/{kid}/web-imports",status_code=201)
@@ -63,8 +62,7 @@ async def web_import(kid:str,p:WebImportCreate,user:User=Depends(get_current_use
     try:name,data=await fetch_web(str(p.url))
     except Exception as exc:fail(str(exc))
     doc=KnowledgeDocument(knowledge_base_id=kid,user_id=user.id,filename=name,source_type="web",source_url=str(p.url),mime_type="text/markdown",byte_size=len(data));db.add(doc);await db.flush()
-    try:await process_document(db,doc,data)
-    except Exception:pass
+    await db.commit();await enqueue_document(doc.id,data)
     return doc_json(doc)
 @router.get("/knowledge-documents/{did}")
 async def document_detail(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):
@@ -72,8 +70,7 @@ async def document_detail(did:str,user:User=Depends(get_current_user),db=Depends
 @router.post("/knowledge-documents/{did}/reindex")
 async def reindex(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):
     doc=await owned_doc(db,did,user.id)
-    try:await process_document(db,doc)
-    except Exception:pass
+    doc.status="queued";doc.error_message="";await db.commit();await enqueue_document(doc.id)
     return doc_json(doc)
 @router.delete("/knowledge-documents/{did}",status_code=204)
 async def remove_document(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):await delete_document(db,await owned_doc(db,did,user.id))

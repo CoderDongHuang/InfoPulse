@@ -1,9 +1,7 @@
-"""
-InfoPulse — LLM Client
-=======================
-OpenAI-compatible chat client with streaming support.
-"""
+"""OpenAI-compatible LLM client with streaming and JSON helpers."""
 
+import json
+import re
 from typing import AsyncIterator
 
 from openai import AsyncOpenAI
@@ -24,6 +22,11 @@ def get_llm_client() -> AsyncOpenAI:
             base_url=settings.LLM_API_BASE,
         )
     return _client
+
+
+def llm_is_configured() -> bool:
+    key = settings.LLM_API_KEY.strip()
+    return bool(key and "your-api-key" not in key)
 
 
 async def stream_chat(
@@ -54,3 +57,36 @@ async def stream_chat(
         delta = chunk.choices[0].delta
         if delta.content:
             yield delta.content
+
+
+async def complete_chat(
+    system_prompt: str,
+    user_message: str,
+    temperature: float = 0.5,
+    max_tokens: int = 2048,
+) -> str:
+    """Return a complete chat response."""
+    client = get_llm_client()
+    response = await client.chat.completions.create(
+        model=settings.LLM_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ],
+        temperature=temperature,
+        max_tokens=max_tokens,
+        stream=False,
+    )
+    return response.choices[0].message.content or ""
+
+
+async def complete_json(
+    system_prompt: str,
+    user_message: str,
+    temperature: float = 0.3,
+    max_tokens: int = 2048,
+) -> dict:
+    """Request JSON and tolerate fenced model output."""
+    text = await complete_chat(system_prompt, user_message, temperature, max_tokens)
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip())
+    return json.loads(cleaned)

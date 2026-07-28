@@ -21,6 +21,7 @@ from app.schemas.auth import (
     UserResponse,
     UserUpdateRequest,
 )
+from app.schemas.workflows import RefreshTokenRequest
 from app.services import auth_service
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
@@ -45,16 +46,21 @@ async def login(data: UserLoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(current_user: User = Depends(get_current_user)):
-    """Refresh the access token using a valid refresh token.
-    The current_user dependency handles token verification.
-    """
-    from app.core.security import create_access_token
+async def refresh(payload: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+    """Rotate an access token using a refresh token."""
+    from app.core.security import create_access_token, create_refresh_token, verify_token
+    from app.services.auth_service import get_user_by_id
 
+    token_payload = verify_token(payload.refresh_token)
+    if not token_payload or token_payload.get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="刷新凭证无效或已过期")
+    current_user = await get_user_by_id(db, token_payload.get("sub", ""))
+    if not current_user or not current_user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在或已停用")
     token_data = {"sub": current_user.id, "username": current_user.username}
     return TokenResponse(
         access_token=create_access_token(token_data),
-        refresh_token=create_access_token(token_data),  # Re-use for simplicity
+        refresh_token=create_refresh_token(token_data),
         token_type="bearer",
     )
 

@@ -4,8 +4,10 @@ InfoPulse — Auth Service
 Business logic for user registration, login, and profile management.
 """
 
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.core.security import (
     create_access_token,
@@ -26,19 +28,26 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
     """Register a new user and return JWT tokens."""
     # Check uniqueness
     existing = await db.execute(
-        select(User).where((User.username == data.username) | (User.email == data.email))
+        select(User).where(
+            (func.lower(User.username) == data.username.lower())
+            | (func.lower(User.email) == str(data.email).lower())
+        )
     )
     if existing.scalar_one_or_none():
-        raise ValueError("Username or email already registered")
+        raise ValueError("用户名或邮箱已被注册")
 
     # Create user
     user = User(
         username=data.username,
-        email=data.email,
-        password_hash=hash_password(data.password),
+        email=str(data.email).lower(),
+        password_hash=await run_in_threadpool(hash_password, data.password),
     )
     db.add(user)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise ValueError("用户名或邮箱已被注册") from exc
     await db.refresh(user)
 
     return _generate_tokens(user)
@@ -48,16 +57,17 @@ async def login_user(db: AsyncSession, username: str, password: str) -> TokenRes
     """Authenticate user and return JWT tokens."""
     result = await db.execute(
         select(User).where(
-            (User.username == username) | (User.email == username)
+            (func.lower(User.username) == username.lower())
+            | (func.lower(User.email) == username.lower())
         )
     )
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(password, user.password_hash):
-        raise ValueError("Invalid username or password")
+    if not user or not await run_in_threadpool(verify_password, password, user.password_hash):
+        raise ValueError("用户名、邮箱或密码不正确")
 
     if not user.is_active:
-        raise ValueError("Account is deactivated")
+        raise ValueError("账号已停用")
 
     return _generate_tokens(user)
 

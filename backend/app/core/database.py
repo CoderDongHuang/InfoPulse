@@ -5,6 +5,7 @@ SQLAlchemy async engine + session factory.
 Engine is created lazily so the app can import without a running database.
 """
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -54,18 +55,22 @@ def _get_sessionmaker():
 
 
 async def init_db():
-    """Create all tables on application startup."""
+    """Verify connectivity; optionally create tables in disposable development setups."""
     engine = _get_engine()
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        if get_settings().AUTO_CREATE_TABLES:
+            await conn.run_sync(Base.metadata.create_all)
+        else:
+            await conn.execute(text("SELECT 1"))
 
 
 async def close_db():
     """Dispose engine on application shutdown."""
-    global _engine
+    global _engine, _async_session
     if _engine is not None:
         await _engine.dispose()
         _engine = None
+    _async_session = None
 
 
 async def get_db() -> AsyncSession:

@@ -7,6 +7,8 @@ Base metadata before any relationships are resolved.
 
 from app.models.user import User
 from app.models.analysis_history import AnalysisHistory
-from app.models.saved_result import SavedResult
+from app.models.intelligence import ContentItem, DataSource, Event, EventContent, SyncRun
 
-__all__ = ["User", "AnalysisHistory", "SavedResult"]
+__all__ = [
+    "User", "AnalysisHistory", "DataSource", "SyncRun", "ContentItem", "Event", "EventContent"
+]

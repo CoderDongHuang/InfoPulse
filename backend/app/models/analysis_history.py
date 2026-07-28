@@ -32,7 +32,7 @@ class AnalysisHistory(Base):
     module: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
-        comment="Module name: anti_scam / mouthpiece / timeline",
+        comment="Module name: insight / mouthpiece / timeline / hot_search",
     )
     input_params: Mapped[dict] = mapped_column(JSON, default=dict)
     output_result: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -49,7 +49,6 @@ class AnalysisHistory(Base):
 
     # Relationships
     user = relationship("User", back_populates="histories")
-    saved_results = relationship("SavedResult", back_populates="history", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<AnalysisHistory(id={self.id}, module={self.module}, status={self.status})>"

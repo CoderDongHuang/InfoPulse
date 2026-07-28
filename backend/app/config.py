@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # --- Database ---
     DATABASE_URL: str = "postgresql+asyncpg://infopulse:infopulse@localhost:5432/infopulse"
+    AUTO_CREATE_TABLES: bool = False
 
     # --- Redis ---
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -34,6 +35,8 @@ class Settings(BaseSettings):
     CRAWLER_REQUEST_INTERVAL_MIN: float = 2.0
     CRAWLER_REQUEST_INTERVAL_MAX: float = 5.0
     BROWSER_RESTART_MB: int = 800
+    WEIBO_COOKIE: str = ""
+    TIEBA_COOKIE: str = ""
 
     # --- Demo Mode ---
     DEMO_MODE: bool = False
@@ -43,6 +46,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"
 
 
 @lru_cache()

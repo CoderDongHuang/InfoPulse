@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.db
+*.log
+.pytest_cache/
+.mypy_cache/
+tests/
+test_playwright.py

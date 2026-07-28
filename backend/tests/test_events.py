@@ -8,8 +8,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import app.models  # noqa: F401
 from app.core.database import Base
-from app.models.intelligence import ContentItem, DataSource, Event, EventContent, EventEntity
+from app.models.intelligence import AuditLog, ContentItem, DataSource, Event, EventContent, EventEntity
+from app.models.user import User
 from app.services.event_clustering import cluster_recent_content, event_scores, similarity
+from app.services.event_service import create_manual_event, merge_events, update_manual_event
 
 
 class EventClusteringTests(unittest.IsolatedAsyncioTestCase):
@@ -61,6 +63,24 @@ class EventClusteringTests(unittest.IsolatedAsyncioTestCase):
             rows = await self._seed(session)
             _heat, risk, _confidence = event_scores([rows[2]], 1)
             self.assertGreaterEqual(risk, 40)
+
+    async def test_manual_create_update_and_merge_are_locked_and_audited(self):
+        async with self.sessions() as session:
+            rows = await self._seed(session)
+            user = User(username="editor", email="editor@example.com", password_hash="hash")
+            session.add(user); await session.flush()
+            target = await create_manual_event(session, user.id, "Agent SDK launch", "technology", [rows[0].id])
+            source = await create_manual_event(session, user.id, "SDK developer coverage", "technology", [rows[1].id])
+            await update_manual_event(session, user.id, target, {"risk_notes": "Monitor adoption", "status": "responded"})
+            await merge_events(session, user.id, target, [source.id], "OpenAI Agent SDK launch")
+            await session.commit()
+            self.assertTrue(target.manual_locked)
+            self.assertEqual(target.title, "OpenAI Agent SDK launch")
+            self.assertEqual(await session.scalar(select(func.count(EventContent.content_item_id)).where(EventContent.event_id == target.id)), 2)
+            self.assertIsNotNone(source.deleted_at)
+            self.assertEqual(await session.scalar(select(func.count(AuditLog.id)).where(AuditLog.target_id == target.id)), 3)
+            rerun = await cluster_recent_content(session); await session.commit()
+            self.assertNotIn(target.id, rerun["event_ids"])
 
 
 if __name__ == "__main__": unittest.main()

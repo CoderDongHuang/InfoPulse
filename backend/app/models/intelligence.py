@@ -230,3 +230,33 @@ class RecommendationFeedback(Base):
     feedback_type: Mapped[str] = mapped_column(String(30), nullable=False)
     reason: Mapped[str] = mapped_column(String(500), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+class Analysis(Base):
+    __tablename__ = "analyses"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str | None] = mapped_column(ForeignKey("events.id", ondelete="SET NULL"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    parent_id: Mapped[str | None] = mapped_column(ForeignKey("analyses.id", ondelete="SET NULL"))
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    analysis_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="running")
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    confidence: Mapped[float] = mapped_column(Float, default=0)
+    evidence_coverage: Mapped[float] = mapped_column(Float, default=0)
+    model_name: Mapped[str] = mapped_column(String(120), default="")
+    prompt_version: Mapped[str] = mapped_column(String(30), default="analysis-v1")
+    data_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    data_to: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_message: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+class AnalysisCitation(Base):
+    __tablename__ = "analysis_citations"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    analysis_id: Mapped[str] = mapped_column(ForeignKey("analyses.id", ondelete="CASCADE"), index=True)
+    content_item_id: Mapped[str] = mapped_column(ForeignKey("content_items.id", ondelete="RESTRICT"), index=True)
+    quote: Mapped[str] = mapped_column(Text, nullable=False)
+    locator: Mapped[dict] = mapped_column(JSON, default=dict)
+    claim_index: Mapped[int] = mapped_column(Integer, nullable=False)

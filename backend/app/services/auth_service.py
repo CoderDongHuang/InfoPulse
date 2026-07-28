@@ -16,6 +16,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
+from app.config import get_settings
 from app.schemas.auth import (
     TokenResponse,
     UserRegisterRequest,
@@ -41,6 +42,7 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
         username=data.username,
         email=str(data.email).lower(),
         password_hash=await run_in_threadpool(hash_password, data.password),
+        is_admin=str(data.email).lower() in {email.lower() for email in get_settings().ADMIN_EMAILS},
     )
     db.add(user)
     try:

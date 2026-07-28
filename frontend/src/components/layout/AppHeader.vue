@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { useWatchlistStore } from "@/stores/watchlist";
@@ -48,14 +48,19 @@ const navGroups = [
       { path: "/notifications", label: "通知中心", icon: "Message" },
       { path: "/watchlist", label: "关注话题", icon: "CollectionTag" },
       { path: "/history", label: "历史报告", icon: "Files" },
+      { path: "/help", label: "帮助中心", icon: "QuestionFilled" },
     ],
   },
   {
     label: "平台管理",
-    items: [{ path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting" }],
+    items: [{ path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting", adminOnly: true }],
   },
 ];
-const navItems = navGroups.flatMap((group) => group.items);
+const visibleNavGroups = computed(() => navGroups.map(group => ({
+  ...group,
+  items: group.items.filter(item => !("adminOnly" in item) || userStore.userInfo?.is_admin),
+})));
+const navItems = computed(() => visibleNavGroups.value.flatMap((group) => group.items));
 
 const active = (path: string) =>
   route.path === path ||
@@ -85,7 +90,7 @@ function handleUserCommand(command: string) {
     </button>
 
     <nav class="desktop-nav" aria-label="主导航">
-      <section v-for="group in navGroups" :key="group.label">
+      <section v-for="group in visibleNavGroups" :key="group.label">
         <p>{{ group.label }}</p>
         <button
           v-for="item in group.items"

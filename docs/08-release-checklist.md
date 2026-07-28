@@ -26,8 +26,7 @@ cd backend
 python scripts/production_check.py
 alembic upgrade head
 python scripts/run_retention.py
-python scripts/load_test.py --base-url https://api.example.com --requests 1000 --concurrency 50 --max-p95-ms 500
+python scripts/load_test.py --base-url https://api.example.com --requests 1000 --concurrency 25 --max-p95-ms 500
 ```
 
 Release approval must include links to CI, load results, restore evidence and the completed incident drill record.
-

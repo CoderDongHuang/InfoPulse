@@ -77,6 +77,9 @@ onMounted(load);
             <h1>{{ event.title }}</h1>
           </div>
           <div class="event-actions">
+            <button class="edit" @click="router.push(`/events/${id}/graph`)">
+              <el-icon><Connection /></el-icon>知识图谱
+            </button>
             <button class="edit" @click="router.push({ path: '/analysis', query: { event_id: id } })">
               <el-icon><MagicStick /></el-icon>AI 分析
             </button>

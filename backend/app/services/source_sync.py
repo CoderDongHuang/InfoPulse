@@ -10,9 +10,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
 from app.models.intelligence import ContentItem, DataSource, SyncRun
-from app.services.collectors import HackerNewsCollector, NormalizedContent
+from app.config import get_settings
+from app.services.collectors import (
+    ArxivCollector, DevToCollector, GitHubCollector, HackerNewsCollector, NormalizedContent, RssCollector,
+)
 
 HACKER_NEWS_KEY = "hacker-news"
+BUILTIN_SOURCES = (
+    (HACKER_NEWS_KEY, "Hacker News", "official_api", HackerNewsCollector.base_url, 30),
+    ("github", "GitHub", "official_api", GitHubCollector.base_url, 30),
+    ("devto", "DEV Community", "official_api", DevToCollector.base_url, 60),
+    ("arxiv", "arXiv", "official_api", ArxivCollector.base_url, 120),
+)
 
 
 def utc_now() -> datetime:
@@ -33,25 +42,21 @@ def content_hash(item: NormalizedContent) -> str:
 
 
 async def ensure_builtin_sources(db: AsyncSession) -> None:
-    existing = await db.scalar(select(DataSource).where(DataSource.key == HACKER_NEWS_KEY))
-    if existing is None:
-        db.add(
-            DataSource(
-                key=HACKER_NEWS_KEY,
-                name="Hacker News",
-                source_type="official_api",
-                base_url=HackerNewsCollector.base_url,
-                config={"max_items": 30},
-                sync_interval_minutes=30,
-            )
-        )
+    keys = set((await db.scalars(select(DataSource.key).where(DataSource.key.in_([item[0] for item in BUILTIN_SOURCES])))).all())
+    for key, name, source_type, base_url, interval in BUILTIN_SOURCES:
+        if key not in keys:
+            db.add(DataSource(
+                key=key, name=name, source_type=source_type, base_url=base_url,
+                config={"max_items": 30}, sync_interval_minutes=interval,
+            ))
+    if len(keys) != len(BUILTIN_SOURCES):
         await db.flush()
 
 
 async def sync_source(db: AsyncSession, source: DataSource, collector=None) -> SyncRun:
     if not source.enabled:
         raise AppError("SOURCE_DISABLED", "数据源已停用", 409)
-    if source.key != HACKER_NEWS_KEY:
+    if source.key not in {item[0] for item in BUILTIN_SOURCES} and source.source_type != "rss":
         raise AppError("SOURCE_NOT_SUPPORTED", "该数据源尚未配置采集器", 409)
 
     run = SyncRun(
@@ -66,7 +71,7 @@ async def sync_source(db: AsyncSession, source: DataSource, collector=None) -> S
     await db.flush()
 
     try:
-        active_collector = collector or HackerNewsCollector()
+        active_collector = collector or collector_for(source)
         limit = min(max(int(source.config.get("max_items", 30)), 1), 100)
         items = await active_collector.collect(limit)
         run.fetched_count = len(items)
@@ -104,6 +109,26 @@ async def sync_source(db: AsyncSession, source: DataSource, collector=None) -> S
     return run
 
 
+def collector_for(source: DataSource):
+    if source.key == HACKER_NEWS_KEY:
+        return HackerNewsCollector()
+    if source.key == "github":
+        return GitHubCollector(token=get_settings().GITHUB_TOKEN)
+    if source.key == "devto":
+        return DevToCollector()
+    if source.key == "arxiv":
+        return ArxivCollector()
+    if source.source_type == "rss":
+        return RssCollector(str(source.config.get("feed_url") or source.base_url))
+    raise AppError("SOURCE_NOT_SUPPORTED", "该数据源尚未配置采集器", 409)
+
+
+async def test_source_connection(source: DataSource) -> int:
+    collector = collector_for(source)
+    items = await collector.collect(1)
+    return len(items)
+
+
 def _new_content(source_id: str, item: NormalizedContent, digest: str) -> ContentItem:
     content = ContentItem(source_id=source_id, external_id=item.external_id, content_hash=digest)
     _update_content(content, item, digest)
@@ -119,4 +144,3 @@ def _update_content(content: ContentItem, item: NormalizedContent, digest: str) 
         setattr(content, field, getattr(item, field))
     content.content_hash = digest
     content.fetched_at = utc_now()
-

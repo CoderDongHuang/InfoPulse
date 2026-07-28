@@ -24,6 +24,9 @@ const navGroups = [
     { path: '/watchlist', label: '关注话题', icon: 'CollectionTag' },
     { path: '/history', label: '历史报告', icon: 'Files' },
   ] },
+  { label: '平台管理', items: [
+    { path: '/sources', label: '数据源中心', icon: 'Connection' },
+  ] },
 ]
 const navItems = navGroups.flatMap(group => group.items)
 

@@ -4,13 +4,10 @@ import asyncio
 import json
 import logging
 import re
-import time
-import urllib.parse
 from collections import Counter
 from datetime import datetime, timezone
 from typing import Any
 
-import httpx
 
 from app.core.llm import complete_json, llm_is_configured
 from app.services.cleaner import clean_posts
@@ -21,9 +18,6 @@ logger = logging.getLogger(__name__)
 
 POSITIVE_WORDS = ("支持", "喜欢", "优秀", "期待", "好评", "感动", "厉害", "值得")
 NEGATIVE_WORDS = ("质疑", "失望", "反对", "翻车", "争议", "离谱", "愤怒", "投诉", "造假")
-HOT_RANKING_CACHE_TTL_SECONDS = 300
-_hot_ranking_cache: tuple[float, dict[str, Any]] | None = None
-_hot_ranking_lock = asyncio.Lock()
 
 
 async def collect_posts(
@@ -190,68 +184,6 @@ async def build_timeline(topic: str, posts: list[RawPost], sources: list[dict]) 
     except Exception as exc:
         logger.warning("Timeline LLM fallback: %s", exc)
         return fallback
-
-
-async def fetch_hot_rankings() -> list[dict]:
-    """Return Weibo's current hot-search list for dashboard consumers."""
-    return (await fetch_hot_ranking_payload())["items"]
-
-
-async def fetch_hot_ranking_payload() -> dict[str, Any]:
-    """Fetch Weibo's public hot band and expose its real availability state."""
-    global _hot_ranking_cache
-    now = time.monotonic()
-    if _hot_ranking_cache and now - _hot_ranking_cache[0] < HOT_RANKING_CACHE_TTL_SECONDS:
-        return _hot_ranking_cache[1]
-
-    async with _hot_ranking_lock:
-        now = time.monotonic()
-        if _hot_ranking_cache and now - _hot_ranking_cache[0] < HOT_RANKING_CACHE_TTL_SECONDS:
-            return _hot_ranking_cache[1]
-
-        payload = await _request_hot_rankings()
-        _hot_ranking_cache = (time.monotonic(), payload)
-        return payload
-
-
-async def _request_hot_rankings() -> dict[str, Any]:
-    items: list[dict] = []
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
-        "Referer": "https://weibo.com/hot/search",
-    }
-    try:
-        async with httpx.AsyncClient(timeout=8, headers=headers, follow_redirects=True) as client:
-            response = await client.get("https://weibo.com/ajax/statuses/hot_band")
-            response.raise_for_status()
-            band = response.json().get("data", {}).get("band_list", [])
-            for entry in band:
-                title = str(entry.get("note") or entry.get("word") or "").strip()
-                if not title or entry.get("is_ad"):
-                    continue
-                items.append({
-                    "rank": len(items) + 1,
-                    "platform": "微博",
-                    "title": title,
-                    "heat": int(entry.get("num") or 0),
-                    "url": f"https://s.weibo.com/weibo?q={urllib.parse.quote('#' + title + '#')}",
-                    "category": entry.get("category") or "热搜",
-                    "label": entry.get("label_name") or entry.get("icon_desc") or "",
-                })
-                if len(items) >= 30:
-                    break
-    except Exception as exc:
-        logger.warning("Weibo hot ranking unavailable: %s", exc)
-
-    return {
-        "items": items,
-        "source": "微博热搜榜",
-        "source_url": "https://s.weibo.com/top/summary",
-        "status": "live" if items else "unavailable",
-        "message": "数据来自微博公开热搜榜" if items else "微博热搜暂时无法访问，请稍后刷新",
-        "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-    }
 
 
 async def explain_hot_item(item: dict) -> str:

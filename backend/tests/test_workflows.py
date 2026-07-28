@@ -1,7 +1,7 @@
 """Focused tests for deterministic workflow behavior."""
 
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from pydantic import ValidationError
 
@@ -14,7 +14,6 @@ from app.schemas.workflows import (
 from app.services.crawler.base import RawPost
 from app.services.crawler import get_crawler
 from app.services.workflows import fallback_insight
-from app.services.workflows import _request_hot_rankings
 
 
 class WorkflowTests(unittest.TestCase):
@@ -56,33 +55,6 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(result["volume"], 1)
         self.assertEqual(result["representative_opinions"][0]["url"], post.url)
         self.assertEqual(sum(result["sentiment"].values()), 100)
-
-
-class HotRankingTests(unittest.IsolatedAsyncioTestCase):
-    async def test_weibo_hot_ranking_is_mapped_without_ads(self):
-        response = AsyncMock()
-        response.raise_for_status = lambda: None
-        response.json = lambda: {"data": {"band_list": [
-            {"note": "测试热搜", "num": 12345, "category": "社会", "label_name": "热"},
-            {"note": "广告内容", "num": 99999, "is_ad": 1},
-        ]}}
-        client = AsyncMock()
-        client.get.return_value = response
-        context = AsyncMock()
-        context.__aenter__.return_value = client
-        with patch("app.services.workflows.httpx.AsyncClient", return_value=context):
-            payload = await _request_hot_rankings()
-        self.assertEqual(payload["status"], "live")
-        self.assertEqual(payload["items"][0]["platform"], "微博")
-        self.assertEqual(len(payload["items"]), 1)
-
-    async def test_weibo_failure_is_visible_and_has_no_fake_items(self):
-        context = AsyncMock()
-        context.__aenter__.side_effect = RuntimeError("offline")
-        with patch("app.services.workflows.httpx.AsyncClient", return_value=context):
-            payload = await _request_hot_rankings()
-        self.assertEqual(payload["status"], "unavailable")
-        self.assertEqual(payload["items"], [])
 
 
 if __name__ == "__main__":

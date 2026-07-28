@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
     path: '/hot-search',
     name: 'HotSearch',
     component: () => import('@/views/HotSearchView.vue'),
-    meta: { title: '微博实时热搜' },
+    meta: { title: '真实情报信号榜' },
   },
   {
     path: '/history',
@@ -56,6 +56,12 @@ const routes: RouteRecordRaw[] = [
     name: 'Watchlist',
     component: () => import('@/views/WatchlistView.vue'),
     meta: { title: '关注话题' },
+  },
+  {
+    path: '/sources',
+    name: 'Sources',
+    component: () => import('@/views/SourcesView.vue'),
+    meta: { title: '数据源中心', requiresAuth: true },
   },
   {
     path: '/:pathMatch(.*)*',

@@ -17,6 +17,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/dashboard', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { title: 'Dashboard', requiresAuth: true } },
   { path: '/discover', name: 'Discover', component: () => import('@/views/DiscoverView.vue'), meta: { title: 'Discover', requiresAuth: true } },
   { path: '/analysis', name: 'Analysis', component: () => import('@/views/AnalysisView.vue'), meta: { title: 'AI 分析', requiresAuth: true } },
+  { path: '/agent', name: 'Agent', component: () => import('@/views/AgentView.vue'), meta: { title: 'AI Agent', requiresAuth: true } },
   {
     path: '/auth',
     name: 'Auth',

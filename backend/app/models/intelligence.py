@@ -260,3 +260,46 @@ class AnalysisCitation(Base):
     quote: Mapped[str] = mapped_column(Text, nullable=False)
     locator: Mapped[dict] = mapped_column(JSON, default=dict)
     claim_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+class Conversation(Base):
+    __tablename__="conversations"
+    id: Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string)
+    user_id: Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True)
+    title: Mapped[str]=mapped_column(String(200),default="新会话")
+    event_id: Mapped[str|None]=mapped_column(ForeignKey("events.id",ondelete="SET NULL"),index=True)
+    context_config: Mapped[dict]=mapped_column(JSON,default=dict)
+    model_name: Mapped[str]=mapped_column(String(120),default="")
+    created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
+    updated_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,onupdate=utc_now)
+    deleted_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
+
+class AgentMessage(Base):
+    __tablename__="agent_messages"
+    id: Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string)
+    conversation_id: Mapped[str]=mapped_column(ForeignKey("conversations.id",ondelete="CASCADE"),index=True)
+    role: Mapped[str]=mapped_column(String(20),nullable=False)
+    content: Mapped[str]=mapped_column(Text,default="")
+    status: Mapped[str]=mapped_column(String(20),default="completed")
+    tool_name: Mapped[str]=mapped_column(String(60),default="")
+    tool_payload: Mapped[dict]=mapped_column(JSON,default=dict)
+    model_name: Mapped[str]=mapped_column(String(120),default="")
+    created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
+
+class MessageCitation(Base):
+    __tablename__="message_citations"
+    id: Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string)
+    message_id: Mapped[str]=mapped_column(ForeignKey("agent_messages.id",ondelete="CASCADE"),index=True)
+    content_item_id: Mapped[str]=mapped_column(ForeignKey("content_items.id",ondelete="RESTRICT"),index=True)
+    quote: Mapped[str]=mapped_column(Text,nullable=False)
+    locator: Mapped[dict]=mapped_column(JSON,default=dict)
+    claim_index: Mapped[int]=mapped_column(Integer,default=0)
+
+class MessageFeedback(Base):
+    __tablename__="message_feedback"
+    __table_args__=(UniqueConstraint("message_id","user_id",name="uq_message_feedback"),)
+    id: Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string)
+    message_id: Mapped[str]=mapped_column(ForeignKey("agent_messages.id",ondelete="CASCADE"),index=True)
+    user_id: Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True)
+    rating: Mapped[str]=mapped_column(String(10),nullable=False)
+    reason: Mapped[str]=mapped_column(String(500),default="")
+    created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)

@@ -22,7 +22,7 @@ function search() {
     </form>
     <div class="tools">
       <button class="source-state" type="button" title="查看当前数据源状态" @click="router.push('/hot-search')"><i></i><span>兼容数据源</span></button>
-      <button class="ai-button" type="button" title="使用现有洞察能力快速分析" @click="router.push('/insight')"><el-icon><MagicStick /></el-icon><span>询问 AI</span></button>
+      <button class="ai-button" type="button" title="询问 AI Agent" @click="router.push('/agent')"><el-icon><MagicStick /></el-icon><span>询问 AI</span></button>
     </div>
   </header>
 </template>

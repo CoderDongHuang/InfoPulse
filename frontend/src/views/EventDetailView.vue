@@ -80,6 +80,9 @@ onMounted(load);
             <button class="edit" @click="router.push({ path: '/analysis', query: { event_id: id } })">
               <el-icon><MagicStick /></el-icon>AI 分析
             </button>
+            <button class="edit" @click="router.push({ path: '/agent', query: { event_id: id } })">
+              <el-icon><ChatDotRound /></el-icon>询问 Agent
+            </button>
             <button class="edit" @click="editOpen = true">
               <el-icon><EditPen /></el-icon>编辑事件
             </button>

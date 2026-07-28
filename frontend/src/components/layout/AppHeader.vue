@@ -25,6 +25,7 @@ const navGroups = [
     { path: '/search', label: '搜索中心', icon: 'Search' },
     { path: '/events', label: '事件中心', icon: 'Collection' },
     { path: '/analysis', label: 'AI 分析', icon: 'MagicStick' },
+    { path: '/agent', label: 'AI Agent', icon: 'ChatDotRound' },
   ] },
   { label: '个人空间', items: [
     { path: '/watchlist', label: '关注话题', icon: 'CollectionTag' },

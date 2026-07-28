@@ -26,6 +26,7 @@ const navGroups = [
     { path: '/events', label: '事件中心', icon: 'Collection' },
     { path: '/analysis', label: 'AI 分析', icon: 'MagicStick' },
     { path: '/agent', label: 'AI Agent', icon: 'ChatDotRound' },
+    { path: '/reports', label: '报告中心', icon: 'Document' },
   ] },
   { label: '个人空间', items: [
     { path: '/watchlist', label: '关注话题', icon: 'CollectionTag' },
@@ -37,7 +38,7 @@ const navGroups = [
 ]
 const navItems = navGroups.flatMap(group => group.items)
 
-const active = (path: string) => route.path === path || (path === '/insight' && route.path === '/anti-scam') || (path === '/events' && route.path.startsWith('/events/'))
+const active = (path: string) => route.path === path || (path === '/insight' && route.path === '/anti-scam') || (path === '/events' && route.path.startsWith('/events/')) || (path === '/reports' && route.path.startsWith('/reports/'))
 
 function navigate(path: string) {
   mobileOpen.value = false

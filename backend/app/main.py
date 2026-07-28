@@ -17,6 +17,7 @@ from app.middleware.cors import setup_cors
 from app.services.crawler.browser_manager import BrowserManager
 from app.services.automation import scheduler_loop
 from app.services.knowledge import knowledge_worker_loop
+from app.core.observability import setup_observability
 
 # Ensure all models are imported before table creation
 import app.models  # noqa: F401
@@ -28,6 +29,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application startup and shutdown events."""
     # --- Startup ---
+    settings.assert_production_ready()
     print("[InfoPulse] Starting up...")
     await init_db()
     print("[InfoPulse] Database connected")
@@ -71,9 +73,10 @@ app = FastAPI(
 # --- Middleware ---
 setup_cors(app)
 setup_error_handlers(app)
+setup_observability(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, automation, contents, events, graph, history, hot_search, insights, knowledge, mouthpiece, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -94,6 +97,7 @@ app.include_router(automation.router)
 app.include_router(knowledge.router)
 app.include_router(graph.router)
 app.include_router(stage10.router)
+app.include_router(operations.router)
 
 
 @app.get("/api/v1/health")

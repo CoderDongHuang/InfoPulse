@@ -5,7 +5,9 @@ SQLAlchemy async engine + session factory.
 Engine is created lazily so the app can import without a running database.
 """
 
-from sqlalchemy import text
+from sqlalchemy import event, text
+import logging
+import time
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -20,6 +22,22 @@ class Base(DeclarativeBase):
 # Lazy-initialized engine and session factory
 _engine = None
 _async_session = None
+logger = logging.getLogger("infopulse.database")
+
+
+def _install_slow_query_logging(engine) -> None:
+    @event.listens_for(engine.sync_engine, "before_cursor_execute")
+    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        conn.info.setdefault("query_started_at", []).append(time.perf_counter())
+
+    @event.listens_for(engine.sync_engine, "after_cursor_execute")
+    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        started = conn.info["query_started_at"].pop()
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        threshold = get_settings().SLOW_QUERY_MS
+        if elapsed_ms >= threshold:
+            operation = statement.lstrip().split(None, 1)[0].upper() if statement.strip() else "UNKNOWN"
+            logger.warning("slow query operation=%s duration_ms=%.2f", operation, elapsed_ms)
 
 
 def _get_engine():
@@ -38,7 +56,10 @@ def _get_engine():
                 echo=False,
                 pool_size=10,
                 max_overflow=20,
+                pool_pre_ping=True,
+                pool_recycle=1800,
             )
+        _install_slow_query_logging(_engine)
     return _engine
 
 

@@ -11,6 +11,10 @@ from app.core.database import Base
 from app.models.intelligence import ContentItem, DataSource
 from app.services.collectors.base import NormalizedContent
 from app.services.collectors.hacker_news import HackerNewsCollector
+from app.services.collectors.github import GitHubCollector
+from app.services.collectors.devto import DevToCollector
+from app.services.collectors.arxiv import ArxivCollector
+from app.services.collectors.rss import RssCollector, validate_public_feed_url
 from app.services.source_sync import ensure_builtin_sources, sync_source
 
 
@@ -45,6 +49,56 @@ class HackerNewsCollectorTests(unittest.IsolatedAsyncioTestCase):
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             item = (await HackerNewsCollector(client).collect(1))[0]
         self.assertEqual(item.canonical_url, "https://news.ycombinator.com/item?id=7")
+
+
+class OfficialCollectorContractTests(unittest.IsolatedAsyncioTestCase):
+    async def test_github_maps_repository_metrics(self):
+        payload = {"items": [{
+            "id": 9, "html_url": "https://github.com/acme/agent", "full_name": "acme/agent",
+            "description": "Agent toolkit", "owner": {"login": "acme", "id": 2},
+            "created_at": "2026-07-28T01:02:03Z", "stargazers_count": 44,
+            "forks_count": 5, "open_issues_count": 3,
+        }]}
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload))) as client:
+            item = (await GitHubCollector(client).collect(1))[0]
+        self.assertEqual(item.content_type, "repository")
+        self.assertEqual((item.like_count, item.share_count, item.comment_count), (44, 5, 3))
+
+    async def test_devto_maps_article(self):
+        payload = [{
+            "id": 8, "canonical_url": "https://dev.to/ada/post", "title": "Build an agent",
+            "description": "A practical guide", "published_at": "2026-07-28T01:02:03Z",
+            "comments_count": 4, "positive_reactions_count": 20,
+            "user": {"name": "Ada", "username": "ada", "user_id": 1},
+        }]
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload))) as client:
+            item = (await DevToCollector(client).collect(1))[0]
+        self.assertEqual(item.author_name, "Ada")
+        self.assertEqual(item.like_count, 20)
+
+    async def test_arxiv_maps_atom_entry(self):
+        atom = b'''<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">
+        <entry><id>https://arxiv.org/abs/2607.12345v1</id><title> Useful AI Paper </title>
+        <summary> Research summary </summary><published>2026-07-28T01:02:03Z</published>
+        <author><name>Ada Lovelace</name></author><category term="cs.AI"/></entry></feed>'''
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, content=atom))) as client:
+            item = (await ArxivCollector(client).collect(1))[0]
+        self.assertEqual(item.external_id, "2607.12345v1")
+        self.assertEqual(item.content_type, "paper")
+
+    async def test_rss_maps_rss_and_atom(self):
+        rss = b'''<rss version="2.0"><channel><item><guid>post-1</guid><title>Feed item</title>
+        <link>https://example.com/post-1</link><description>Summary</description>
+        <pubDate>Tue, 28 Jul 2026 10:00:00 GMT</pubDate></item></channel></rss>'''
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, content=rss))) as client:
+            item = (await RssCollector("https://example.com/feed.xml", client).collect(1))[0]
+        self.assertEqual(item.external_id, "post-1")
+        self.assertEqual(item.title, "Feed item")
+
+    def test_rss_rejects_private_networks(self):
+        for url in ("http://127.0.0.1/feed", "http://localhost/rss", "http://10.0.0.4/feed"):
+            with self.assertRaises(ValueError):
+                validate_public_feed_url(url, resolve_dns=False)
 
 
 class StubCollector:

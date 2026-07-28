@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     LLM_API_BASE: str = "https://api.openai.com/v1"
     LLM_MODEL: str = "gpt-4o-mini"
 
+    # --- Third-party APIs ---
+    GITHUB_TOKEN: str = ""
+
     # --- Crawler ---
     CRAWLER_HEADLESS: bool = True
     CRAWLER_REQUEST_INTERVAL_MIN: float = 2.0

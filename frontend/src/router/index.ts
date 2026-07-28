@@ -84,6 +84,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/AuthView.vue"),
     meta: { title: "登录", guest: true },
   },
+  { path: "/alerts", name: "Alerts", component: () => import("@/views/AlertsView.vue"), meta: { title: "预警中心", requiresAuth: true } },
+  { path: "/bi", name: "ControlledBI", component: () => import("@/views/BIView.vue"), meta: { title: "自然语言 BI", requiresAuth: true } },
+  { path: "/admin", name: "AdminOperations", component: () => import("@/views/AdminView.vue"), meta: { title: "运行管理", requiresAuth: true } },
   {
     path: "/insight",
     name: "Insight",

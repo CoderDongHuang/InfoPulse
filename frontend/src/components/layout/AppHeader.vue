@@ -33,6 +33,8 @@ const navGroups = [
       { path: "/search", label: "搜索中心", icon: "Search" },
       { path: "/events", label: "事件中心", icon: "Collection" },
       { path: "/analysis", label: "AI 分析", icon: "MagicStick" },
+      { path: "/alerts", label: "预警中心", icon: "Warning" },
+      { path: "/bi", label: "自然语言 BI", icon: "TrendCharts" },
       { path: "/agent", label: "AI Agent", icon: "ChatDotRound" },
       { path: "/reports", label: "报告中心", icon: "Document" },
       { path: "/subscriptions", label: "订阅中心", icon: "Bell" },
@@ -50,7 +52,7 @@ const navGroups = [
   },
   {
     label: "平台管理",
-    items: [{ path: "/sources", label: "数据源中心", icon: "Connection" }],
+    items: [{ path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting" }],
   },
 ];
 const navItems = navGroups.flatMap((group) => group.items);

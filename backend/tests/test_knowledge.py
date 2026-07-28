@@ -6,7 +6,7 @@ from app.core.database import Base
 import app.models
 from app.models.user import User
 from app.models.intelligence import KnowledgeBase,KnowledgeDocument
-from app.services.knowledge import delete_document,process_document,search,validate_public_url,validate_upload,storage
+from app.services.knowledge import delete_document,process_document,process_knowledge_once,search,validate_public_url,validate_upload,storage
 from app.models.intelligence import Conversation
 from app.services.agent_service import gather
 
@@ -30,6 +30,10 @@ class KnowledgeTests(unittest.IsolatedAsyncioTestCase):
  async def test_reindex_creates_version_and_keeps_active_filter(self):
   async with self.sessions() as db:
    owner,_,base,doc=await self.seed(db);first=doc.active_version_id;await process_document(db,doc);self.assertNotEqual(first,doc.active_version_id);result=await search(db,owner.id,[base.id],"Agent",10);self.assertTrue(result);self.assertEqual(len({x["chunk_id"] for x in result}),len(result))
+ async def test_separate_worker_recovers_staged_upload_without_memory_queue(self):
+  async with self.sessions() as db:
+   user=User(username="worker",email="worker@x.test",password_hash="x");db.add(user);await db.flush();base=KnowledgeBase(user_id=user.id,name="Worker test");db.add(base);await db.flush();doc=KnowledgeDocument(knowledge_base_id=base.id,user_id=user.id,filename="queued.md",source_type="upload",mime_type="text/markdown",byte_size=14,status="queued");db.add(doc);await db.commit();storage.put(f"staging/{doc.id}",b"durable upload")
+   self.assertTrue(await process_knowledge_once(doc.id,self.sessions));await db.refresh(doc);self.assertEqual(doc.status,"ready");self.assertFalse(storage.exists(f"staging/{doc.id}"))
  async def test_agent_accepts_only_owned_private_context(self):
   async with self.sessions() as db:
    owner,other,base,_=await self.seed(db);conversation=Conversation(user_id=owner.id);db.add(conversation);await db.flush();rows,tools=await gather(db,owner.id,conversation,"Agent SDK",[],[base.id]);self.assertTrue(any(isinstance(x[0],dict) for x in rows));self.assertEqual(tools[-1][0],"knowledge_base")

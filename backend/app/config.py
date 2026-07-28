@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     TASK_SCHEDULER_ENABLED: bool = True
     TASK_SCHEDULER_POLL_SECONDS: int = 30
     TASK_WORKER_CONCURRENCY: int = 4
+    RUN_BACKGROUND_WORKERS_IN_API: bool = True
+    KNOWLEDGE_WORKER_POLL_SECONDS: int = 2
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = ""
@@ -80,6 +82,8 @@ class Settings(BaseSettings):
             errors.append("production DATABASE_URL must use PostgreSQL")
         if self.AUTO_CREATE_TABLES:
             errors.append("AUTO_CREATE_TABLES must be false in production")
+        if self.RUN_BACKGROUND_WORKERS_IN_API:
+            errors.append("RUN_BACKGROUND_WORKERS_IN_API must be false in production")
         if not self.CORS_ORIGINS or "*" in self.CORS_ORIGINS:
             errors.append("CORS_ORIGINS must contain explicit origins")
         if not self.TRUSTED_HOSTS or "*" in self.TRUSTED_HOSTS:

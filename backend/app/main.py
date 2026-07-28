@@ -61,7 +61,7 @@ setup_cors(app)
 setup_error_handlers(app)
 
 # --- Routes ---
-from app.api import auth, contents, events, history, hot_search, insights, mouthpiece, personalization, search, sources, stage3, timeline  # noqa: E402
+from app.api import analyses, auth, contents, events, history, hot_search, insights, mouthpiece, personalization, search, sources, stage3, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -75,6 +75,7 @@ app.include_router(contents.router)
 app.include_router(events.router)
 app.include_router(personalization.router)
 app.include_router(stage3.router)
+app.include_router(analyses.router)
 
 
 @app.get("/api/v1/health")

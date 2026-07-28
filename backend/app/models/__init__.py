@@ -13,6 +13,7 @@ from app.models.intelligence import (
     Report, ReportExport, ReportVersion, SavedSearch, Subscription, SyncRun, TaskRun, WatchTopic,
     KnowledgeBase, KnowledgeDocument, KnowledgeDocumentVersion, KnowledgeChunk, KnowledgeProcessingRun, KnowledgeCitation,
     Entity, EntityAlias, EventEntityLink, EntityRelation, PropagationNode, PropagationEdge, GraphQualitySnapshot,
+    AlertRule, AlertIncident, AlertAction, AlertReplayRun, BIQueryHistory, ModelUsage,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "Subscription", "AgentTask", "TaskRun", "Notification", "NotificationPreference", "DeliveryAttempt",
     "KnowledgeBase", "KnowledgeDocument", "KnowledgeDocumentVersion", "KnowledgeChunk", "KnowledgeProcessingRun", "KnowledgeCitation",
     "Entity", "EntityAlias", "EventEntityLink", "EntityRelation", "PropagationNode", "PropagationEdge", "GraphQualitySnapshot",
+    "AlertRule", "AlertIncident", "AlertAction", "AlertReplayRun", "BIQueryHistory", "ModelUsage",
 ]

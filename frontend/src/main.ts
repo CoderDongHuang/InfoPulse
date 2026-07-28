@@ -20,7 +20,7 @@ import {
 import 'element-plus/dist/index.css'
 import {
   ArrowDown, ArrowLeft, ArrowRight, Clock, Collection, CollectionTag,
-  CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
+  Connection, CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
   MagicStick, Menu, Plus, QuestionFilled, Refresh, Right, Search, SwitchButton,
   TopRight, TrendCharts, Warning,
 } from '@element-plus/icons-vue'
@@ -41,7 +41,7 @@ app.use(ElLoading)
 const elementComponents = { ElDrawer, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElInput, ElProgress, ElSlider }
 const icons = {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight: TopRight, Clock, Collection, CollectionTag,
-  CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
+  Connection, CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
   MagicStick, Menu, Plus, QuestionFilled, Refresh, Right, Search, SwitchButton,
   TopRight, TrendCharts, Warning,
 }

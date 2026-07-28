@@ -58,6 +58,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '关注话题' },
   },
   {
+    path: '/sources',
+    name: 'Sources',
+    component: () => import('@/views/SourcesView.vue'),
+    meta: { title: '数据源中心', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

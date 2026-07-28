@@ -41,6 +41,18 @@ class Settings(BaseSettings):
     SMTP_FROM: str = ""
     WEBHOOK_TIMEOUT_SECONDS: int = 10
 
+    # --- Private knowledge storage ---
+    KNOWLEDGE_STORAGE_BACKEND: str = "local"
+    KNOWLEDGE_STORAGE_PATH: str = "./data/knowledge"
+    S3_ENDPOINT_URL: str = ""
+    S3_BUCKET: str = "infopulse-knowledge"
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_KEY: str = ""
+    S3_REGION: str = "us-east-1"
+    KNOWLEDGE_MAX_FILE_MB: int = 25
+    KNOWLEDGE_MAX_FILES_PER_UPLOAD: int = 10
+    KNOWLEDGE_WEB_MAX_BYTES: int = 5_000_000
+
     # --- Third-party APIs ---
     GITHUB_TOKEN: str = ""
 

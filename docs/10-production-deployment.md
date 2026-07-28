@@ -2,8 +2,8 @@
 
 ## Environments
 
-- Staging is reproducible with `deploy/staging.compose.yml`: PostgreSQL 16, Redis 7, MinIO, a two-process API, scheduler worker, knowledge worker and web gateway.
-- Production uses `deploy/k8s/production.yaml` with managed PostgreSQL, Redis and S3-compatible storage supplied through `infopulse-secrets`.
+- Staging is reproducible with `deploy/staging.compose.yml`: PostgreSQL 16 with pgvector, Redis 7, MinIO, a two-process API, scheduler worker, knowledge worker and web gateway.
+- Production uses `deploy/k8s/production.yaml` with managed PostgreSQL 16 (the `vector` extension must be available), Redis and S3-compatible storage supplied through `infopulse-secrets`.
 - Staging and production must use different clusters or accounts, databases, buckets, Redis instances, mail senders, model keys and source tokens.
 
 ## Release flow
@@ -42,4 +42,3 @@ Never place real values in `.env.production.example`, Kubernetes YAML, image lay
 6. Attach RTO, RPO, provider event ID and count comparison to the release record.
 
 The repository provides the executable drill. A real production drill cannot be claimed until cloud resources and an approved maintenance window exist.
-

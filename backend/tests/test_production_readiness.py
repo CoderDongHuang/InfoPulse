@@ -46,7 +46,13 @@ class ProductionConfigurationTests(unittest.TestCase):
         self.assertGreaterEqual(value.count("[REDACTED]"), 2)
 
     def test_deployment_preflight_rejects_missing_integrations(self):
-        settings = Settings(ENVIRONMENT="production", RUN_BACKGROUND_WORKERS_IN_API=False)
+        settings = Settings(
+            ENVIRONMENT="production",
+            RUN_BACKGROUND_WORKERS_IN_API=False,
+            LLM_API_KEY="",
+            SMTP_HOST="",
+            S3_ACCESS_KEY="",
+        )
         errors = " ".join(integration_errors(settings))
         self.assertIn("LLM_API_KEY", errors)
         self.assertIn("S3_ACCESS_KEY", errors)

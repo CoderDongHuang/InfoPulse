@@ -93,12 +93,12 @@ metadata:
   name: backend
   namespace: infopulse
   labels: {app: infopulse-api-metrics}
-spec: {selector: {app: infopulse-api, track: stable}, ports: [{port: 80, targetPort: http}]}
+spec: {selector: {app: infopulse-api, track: stable}, ports: [{port: 8000, targetPort: http}]}
 ---
 apiVersion: v1
 kind: Service
 metadata: {name: api-canary, namespace: infopulse}
-spec: {selector: {app: infopulse-api, track: canary}, ports: [{port: 80, targetPort: http}]}
+spec: {selector: {app: infopulse-api, track: canary}, ports: [{port: 8000, targetPort: http}]}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -194,7 +194,7 @@ metadata:
 spec:
   ingressClassName: nginx
   tls: [{hosts: [api.example.com], secretName: infopulse-api-tls}]
-  rules: [{host: api.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: backend, port: {number: 80}}}}]}}]
+  rules: [{host: api.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: backend, port: {number: 8000}}}}]}}]
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -206,7 +206,7 @@ metadata:
     nginx.ingress.kubernetes.io/canary-weight: "10"
 spec:
   ingressClassName: nginx
-  rules: [{host: api.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: api-canary, port: {number: 80}}}}]}}]
+  rules: [{host: api.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: api-canary, port: {number: 8000}}}}]}}]
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

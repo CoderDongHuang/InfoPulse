@@ -1,4 +1,5 @@
 from collections import Counter
+import re
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,11 @@ RANGES = {"day": 1, "week": 7, "month": 30}
 
 def dt(value): return value.isoformat() if value else None
 def content_heat(item): return int(item.view_count or 0) + int(item.comment_count or 0) * 3 + int(item.like_count or 0) * 2 + int(item.share_count or 0) * 4
+def keyword_matches(keyword, text):
+    term = keyword.lower().strip()
+    text = text.lower()
+    if not term: return False
+    return bool(re.search(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])", text)) if term.isascii() else term in text
 def content_dict(item, source, score=0, reasons=None):
     return {"id": item.id, "title": item.title, "summary": item.body[:240], "source": {"id": source.id, "key": source.key, "name": source.name}, "canonical_url": item.canonical_url, "published_at": dt(item.published_at), "heat": content_heat(item), "score": round(score, 2), "recommendation_reasons": reasons or []}
 
@@ -49,13 +55,13 @@ async def discover_data(db: AsyncSession, user_id: str, channel="ai", range_name
     ranked = []
     for item, source in rows:
         text = f"{item.title} {item.body} {' '.join(item.tags or [])}".lower()
-        matched = [k for k in keywords if k in text]
+        matched = [k for k in keywords if keyword_matches(k, text)]
         if not matched: continue
         if feedback.get(item.id) in {"not_interested", "irrelevant"}: continue
         age_hours = max(0, (datetime.now(timezone.utc) - (item.published_at if item.published_at.tzinfo else item.published_at.replace(tzinfo=timezone.utc))).total_seconds() / 3600)
         score = max(0, 30 - age_hours / 4) + min(40, content_heat(item) / 100) + len(matched) * 8
         reasons = [{"rule": "channel_match", "label": f"匹配 {CHANNELS[channel][0]} 频道", "evidence": matched[:3]}]
-        topic_hits = [t.name for t in topics if any(k.lower() in text for k in ([t.name] + list(t.keywords or [])))]
+        topic_hits = [t.name for t in topics if any(keyword_matches(k, text) for k in ([t.name] + list(t.keywords or [])))]
         if topic_hits: score += 25; reasons.append({"rule": "watched_topic", "label": "命中你的关注主题", "evidence": topic_hits})
         if content_heat(item) > 0: reasons.append({"rule": "source_engagement", "label": "来源互动信号较强", "evidence": [str(content_heat(item))]})
         if feedback.get(item.id) in {"seen", "low_quality"}: score -= 20

@@ -6,8 +6,12 @@ import app.models  # noqa
 from app.models.intelligence import ContentItem, DataSource, RecommendationFeedback, WatchTopic
 from app.models.user import User
 from app.services.stage3 import dashboard_data, discover_data, workspace_data
+from app.services.stage3 import keyword_matches
 
 class Stage3ServiceTests(unittest.IsolatedAsyncioTestCase):
+    def test_ascii_keywords_use_word_boundaries(self):
+        self.assertTrue(keyword_matches("ai", "new AI model"))
+        self.assertFalse(keyword_matches("ai", "personal details"))
     async def asyncSetUp(self):
         self.engine = create_async_engine("sqlite+aiosqlite:///:memory:")
         async with self.engine.begin() as conn: await conn.run_sync(Base.metadata.create_all)

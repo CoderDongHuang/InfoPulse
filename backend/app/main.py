@@ -4,6 +4,7 @@ InfoPulse — FastAPI Application Entry Point
 Start with: uvicorn app.main:app --reload --port 8000
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from app.core.errors import setup_error_handlers
 from app.core.redis import close_redis, init_redis
 from app.middleware.cors import setup_cors
 from app.services.crawler.browser_manager import BrowserManager
+from app.services.automation import scheduler_loop
 
 # Ensure all models are imported before table creation
 import app.models  # noqa: F401
@@ -37,12 +39,17 @@ async def lifespan(app: FastAPI):
 
     print(f"[InfoPulse] Demo mode: {settings.DEMO_MODE}")
     print(f"[InfoPulse] Crawler enabled: {settings.CRAWLER_ENABLED}")
+    scheduler_stop = asyncio.Event()
+    scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if settings.TASK_SCHEDULER_ENABLED else None
     print("[InfoPulse] Ready to serve requests")
 
     yield
 
     # --- Shutdown ---
     print("[InfoPulse] Shutting down...")
+    scheduler_stop.set()
+    if scheduler_task:
+        await scheduler_task
     await BrowserManager().close()
     await close_redis()
     await close_db()
@@ -61,7 +68,7 @@ setup_cors(app)
 setup_error_handlers(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, contents, events, history, hot_search, insights, mouthpiece, personalization, reports, search, sources, stage3, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, events, history, hot_search, insights, mouthpiece, personalization, reports, search, sources, stage3, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -78,6 +85,7 @@ app.include_router(stage3.router)
 app.include_router(analyses.router)
 app.include_router(agent.router)
 app.include_router(reports.router)
+app.include_router(automation.router)
 
 
 @app.get("/api/v1/health")

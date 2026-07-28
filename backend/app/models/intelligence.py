@@ -313,3 +313,114 @@ class ReportVersion(Base):
 class ReportExport(Base):
  __tablename__="report_exports"
  id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);report_id:Mapped[str]=mapped_column(ForeignKey("reports.id",ondelete="CASCADE"),index=True);version_id:Mapped[str]=mapped_column(ForeignKey("report_versions.id",ondelete="CASCADE"));format:Mapped[str]=mapped_column(String(20));status:Mapped[str]=mapped_column(String(20),default="queued");storage_key:Mapped[str]=mapped_column(String(1000),default="");file_size:Mapped[int]=mapped_column(BigInteger,default=0);error_message:Mapped[str]=mapped_column(Text,default="");created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    target_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    target_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    query: Mapped[str] = mapped_column(String(500), default="")
+    filters: Mapped[dict] = mapped_column(JSON, default=dict)
+    schedule: Mapped[dict] = mapped_column(JSON, default=dict)
+    timezone: Mapped[str] = mapped_column(String(64), default="Asia/Shanghai")
+    channels: Mapped[list] = mapped_column(JSON, default=lambda: ["in_app"])
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    task_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class AgentTask(Base):
+    __tablename__ = "agent_tasks"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    subscription_id: Mapped[str | None] = mapped_column(ForeignKey("subscriptions.id", ondelete="SET NULL"), index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    task_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    config: Mapped[dict] = mapped_column(JSON, default=dict)
+    schedule: Mapped[dict] = mapped_column(JSON, default=dict)
+    timezone: Mapped[str] = mapped_column(String(64), default="Asia/Shanghai")
+    status: Mapped[str] = mapped_column(String(20), default="active", index=True)
+    max_retries: Mapped[int] = mapped_column(Integer, default=3)
+    max_concurrency: Mapped[int] = mapped_column(Integer, default=1)
+    cost_limit: Mapped[float] = mapped_column(Float, default=1.0)
+    estimated_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    high_risk: Mapped[bool] = mapped_column(Boolean, default=False)
+    confirmation_status: Mapped[str] = mapped_column(String(20), default="not_required")
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class TaskRun(Base):
+    __tablename__ = "task_runs"
+    __table_args__ = (UniqueConstraint("idempotency_key", name="uq_task_run_idempotency"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    task_id: Mapped[str] = mapped_column(ForeignKey("agent_tasks.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="queued", index=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    trigger: Mapped[str] = mapped_column(String(20), default="schedule")
+    scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    output: Mapped[dict] = mapped_column(JSON, default=dict)
+    logs: Mapped[list] = mapped_column(JSON, default=list)
+    error_message: Mapped[str] = mapped_column(Text, default="")
+    diagnostic_id: Mapped[str] = mapped_column(String(36), default="")
+    cost: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    notification_type: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    body: Mapped[str] = mapped_column(Text, default="")
+    severity: Mapped[str] = mapped_column(String(20), default="info")
+    status: Mapped[str] = mapped_column(String(20), default="unread", index=True)
+    group_key: Mapped[str] = mapped_column(String(200), default="", index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    scheduled_delivery_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)
+
+
+class NotificationPreference(Base):
+    __tablename__ = "notification_preferences"
+    __table_args__ = (UniqueConstraint("user_id", name="uq_notification_preference_user"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    timezone: Mapped[str] = mapped_column(String(64), default="Asia/Shanghai")
+    quiet_hours_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    quiet_start: Mapped[str] = mapped_column(String(5), default="22:00")
+    quiet_end: Mapped[str] = mapped_column(String(5), default="08:00")
+    digest_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    email_address: Mapped[str] = mapped_column(String(320), default="")
+    webhook_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    webhook_url: Mapped[str] = mapped_column(String(1000), default="")
+    webhook_secret: Mapped[str] = mapped_column(String(300), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class DeliveryAttempt(Base):
+    __tablename__ = "delivery_attempts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    notification_id: Mapped[str] = mapped_column(ForeignKey("notifications.id", ondelete="CASCADE"), index=True)
+    channel: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    response_code: Mapped[int | None] = mapped_column(Integer)
+    error_message: Mapped[str] = mapped_column(Text, default="")
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

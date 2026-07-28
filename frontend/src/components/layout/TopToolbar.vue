@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { automationApi } from '@/api/automation'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const query = ref('')
+const unread = ref(0)
+let unreadTimer: ReturnType<typeof setInterval> | undefined
+async function loadUnread() { if (!useUserStore().isLoggedIn) return; try { unread.value = (await automationApi.unreadCount()).count } catch { unread.value = 0 } }
+onMounted(() => { void loadUnread(); unreadTimer = setInterval(loadUnread, 30000) })
+onBeforeUnmount(() => clearInterval(unreadTimer))
 
 function search() {
   const value = query.value.trim()
@@ -21,6 +28,7 @@ function search() {
       <button type="submit" title="执行全局搜索" aria-label="执行全局搜索"><el-icon><Right /></el-icon></button>
     </form>
     <div class="tools">
+      <button class="notification-button" type="button" title="通知中心" @click="router.push('/notifications')"><el-icon><Bell /></el-icon><span v-if="unread">{{unread>99?'99+':unread}}</span></button>
       <button class="source-state" type="button" title="查看当前数据源状态" @click="router.push('/hot-search')"><i></i><span>兼容数据源</span></button>
       <button class="ai-button" type="button" title="询问 AI Agent" @click="router.push('/agent')"><el-icon><MagicStick /></el-icon><span>询问 AI</span></button>
     </div>
@@ -32,3 +40,4 @@ function search() {
 @media (max-width: 980px) { .toolbar { left: 72px; grid-template-columns: 1fr minmax(260px, 480px) auto; }.context small, .source-state span { display: none; } }
 @media (max-width: 720px) { .toolbar { position: fixed; left: 0; top: 64px; height: 52px; padding: 0 12px; grid-template-columns: 1fr auto; }.context, .source-state { display: none !important; }.global-search { height: 36px; }.ai-button span { display: none; } }
 </style>
+<style scoped>.notification-button{position:relative;border:1px solid var(--border-color);color:var(--text-regular);background:#fff}.notification-button>span{position:absolute;right:-5px;top:-6px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;display:grid;place-items:center;color:#fff;background:#d44e49;font-size:8px}</style>

@@ -30,6 +30,17 @@ class Settings(BaseSettings):
     LLM_API_BASE: str = "https://api.openai.com/v1"
     LLM_MODEL: str = "gpt-4o-mini"
 
+    # --- Task scheduler and delivery ---
+    TASK_SCHEDULER_ENABLED: bool = True
+    TASK_SCHEDULER_POLL_SECONDS: int = 30
+    TASK_WORKER_CONCURRENCY: int = 4
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    WEBHOOK_TIMEOUT_SECONDS: int = 10
+
     # --- Third-party APIs ---
     GITHUB_TOKEN: str = ""
 

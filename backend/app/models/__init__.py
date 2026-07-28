@@ -12,6 +12,7 @@ from app.models.intelligence import (
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
     Report, ReportExport, ReportVersion, SavedSearch, Subscription, SyncRun, TaskRun, WatchTopic,
     KnowledgeBase, KnowledgeDocument, KnowledgeDocumentVersion, KnowledgeChunk, KnowledgeProcessingRun, KnowledgeCitation,
+    Entity, EntityAlias, EventEntityLink, EntityRelation, PropagationNode, PropagationEdge, GraphQualitySnapshot,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "ChannelFollow", "RecommendationFeedback", "Analysis", "AnalysisCitation", "Conversation", "AgentMessage", "MessageCitation", "MessageFeedback", "Report", "ReportVersion", "ReportExport",
     "Subscription", "AgentTask", "TaskRun", "Notification", "NotificationPreference", "DeliveryAttempt",
     "KnowledgeBase", "KnowledgeDocument", "KnowledgeDocumentVersion", "KnowledgeChunk", "KnowledgeProcessingRun", "KnowledgeCitation",
+    "Entity", "EntityAlias", "EventEntityLink", "EntityRelation", "PropagationNode", "PropagationEdge", "GraphQualitySnapshot",
 ]

@@ -139,6 +139,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/EventDetailView.vue"),
     meta: { title: "事件详情", requiresAuth: true },
   },
+  { path: "/events/:id/graph", name: "EventGraph", component: () => import("@/views/GraphView.vue"), meta: { title: "知识图谱与传播路径", requiresAuth: true } },
   {
     path: "/sources",
     name: "Sources",

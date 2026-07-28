@@ -520,3 +520,96 @@ class KnowledgeCitation(Base):
     chunk_id: Mapped[str] = mapped_column(ForeignKey("knowledge_chunks.id", ondelete="RESTRICT"), index=True)
     quote: Mapped[str] = mapped_column(Text, nullable=False)
     claim_index: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class Entity(Base):
+    __tablename__ = "entities"
+    __table_args__ = (UniqueConstraint("entity_type", "normalized_name", name="uq_entity_type_name"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    name: Mapped[str] = mapped_column(String(300), nullable=False)
+    normalized_name: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
+    entity_type: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    description: Mapped[str] = mapped_column(Text, default="")
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class EntityAlias(Base):
+    __tablename__ = "entity_aliases"
+    __table_args__ = (UniqueConstraint("entity_id", "normalized_alias", name="uq_entity_alias"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    entity_id: Mapped[str] = mapped_column(ForeignKey("entities.id", ondelete="CASCADE"), index=True)
+    alias: Mapped[str] = mapped_column(String(300), nullable=False)
+    normalized_alias: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
+    language: Mapped[str] = mapped_column(String(16), default="und")
+
+
+class EventEntityLink(Base):
+    __tablename__ = "event_entity_links"
+    __table_args__ = (UniqueConstraint("event_id", "entity_id", "role", name="uq_event_entity_link"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    entity_id: Mapped[str] = mapped_column(ForeignKey("entities.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(40), default="mentioned")
+    mention_count: Mapped[int] = mapped_column(Integer, default=1)
+    confidence: Mapped[float] = mapped_column(Float, default=0)
+    evidence_content_ids: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class EntityRelation(Base):
+    __tablename__ = "entity_relations"
+    __table_args__ = (UniqueConstraint("event_id", "from_entity_id", "to_entity_id", "relation_type", name="uq_entity_relation"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    from_entity_id: Mapped[str] = mapped_column(ForeignKey("entities.id", ondelete="CASCADE"), index=True)
+    to_entity_id: Mapped[str] = mapped_column(ForeignKey("entities.id", ondelete="CASCADE"), index=True)
+    relation_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, default=0)
+    evidence_content_ids: Mapped[list] = mapped_column(JSON, default=list)
+    created_by: Mapped[str] = mapped_column(String(20), default="system")
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class PropagationNode(Base):
+    __tablename__ = "propagation_nodes"
+    __table_args__ = (UniqueConstraint("event_id", "content_item_id", name="uq_propagation_event_content"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    content_item_id: Mapped[str] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"), index=True)
+    platform: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    node_type: Mapped[str] = mapped_column(String(30), default="media")
+    occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    influence_score: Mapped[float] = mapped_column(Float, default=0)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class PropagationEdge(Base):
+    __tablename__ = "propagation_edges"
+    __table_args__ = (UniqueConstraint("from_node_id", "to_node_id", "relation_type", name="uq_propagation_edge"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    from_node_id: Mapped[str] = mapped_column(ForeignKey("propagation_nodes.id", ondelete="CASCADE"), index=True)
+    to_node_id: Mapped[str] = mapped_column(ForeignKey("propagation_nodes.id", ondelete="CASCADE"), index=True)
+    relation_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, default=0)
+    evidence_content_id: Mapped[str] = mapped_column(ForeignKey("content_items.id", ondelete="RESTRICT"), index=True)
+    evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(20), default="system")
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class GraphQualitySnapshot(Base):
+    __tablename__ = "graph_quality_snapshots"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    entity_precision: Mapped[float] = mapped_column(Float, default=0)
+    evidence_coverage: Mapped[float] = mapped_column(Float, default=0)
+    verified_ratio: Mapped[float] = mapped_column(Float, default=0)
+    unresolved_count: Mapped[int] = mapped_column(Integer, default=0)
+    metrics: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

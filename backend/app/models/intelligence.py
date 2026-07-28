@@ -303,3 +303,13 @@ class MessageFeedback(Base):
     rating: Mapped[str]=mapped_column(String(10),nullable=False)
     reason: Mapped[str]=mapped_column(String(500),default="")
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
+
+class Report(Base):
+ __tablename__="reports"
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True);title:Mapped[str]=mapped_column(String(300));report_type:Mapped[str]=mapped_column(String(30));status:Mapped[str]=mapped_column(String(20),default="draft");source_config:Mapped[dict]=mapped_column(JSON,default=dict);current_version_id:Mapped[str|None]=mapped_column(String(36));created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now);updated_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,onupdate=utc_now);deleted_at:Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
+class ReportVersion(Base):
+ __tablename__="report_versions";__table_args__=(UniqueConstraint("report_id","version_number",name="uq_report_version"),)
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);report_id:Mapped[str]=mapped_column(ForeignKey("reports.id",ondelete="CASCADE"),index=True);version_number:Mapped[int]=mapped_column(Integer);content_markdown:Mapped[str]=mapped_column(Text,default="");structured_content:Mapped[dict]=mapped_column(JSON,default=dict);citations:Mapped[list]=mapped_column(JSON,default=list);created_by:Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"));created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
+class ReportExport(Base):
+ __tablename__="report_exports"
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);report_id:Mapped[str]=mapped_column(ForeignKey("reports.id",ondelete="CASCADE"),index=True);version_id:Mapped[str]=mapped_column(ForeignKey("report_versions.id",ondelete="CASCADE"));format:Mapped[str]=mapped_column(String(20));status:Mapped[str]=mapped_column(String(20),default="queued");storage_key:Mapped[str]=mapped_column(String(1000),default="");file_size:Mapped[int]=mapped_column(BigInteger,default=0);error_message:Mapped[str]=mapped_column(Text,default="");created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)

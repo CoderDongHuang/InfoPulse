@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: {name: infopulse-api, namespace: infopulse}
+spec:
+  selector: {matchLabels: {app: infopulse-api-metrics}}
+  endpoints:
+    - port: http
+      path: /api/v1/metrics
+      interval: 30s
+      authorization:
+        credentials: {name: infopulse-secrets, key: METRICS_TOKEN}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: {name: infopulse-slo, namespace: infopulse}
+spec:
+  groups:
+    - name: infopulse.slo
+      rules:
+        - record: job:infopulse_http_success:ratio5m
+          expr: 1 - (sum(rate(infopulse_http_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(infopulse_http_requests_total[5m])), 1))
+        - alert: InfoPulseHighErrorRate
+          expr: job:infopulse_http_success:ratio5m < 0.98
+          for: 5m
+          labels: {severity: page}
+          annotations: {summary: "InfoPulse 5xx error budget is burning"}
+        - alert: InfoPulseHighLatency
+          expr: histogram_quantile(0.95, sum by (le) (rate(infopulse_http_request_duration_seconds_bucket[10m]))) > 0.5
+          for: 10m
+          labels: {severity: ticket}
+          annotations: {summary: "InfoPulse API p95 exceeds 500 ms"}
+        - alert: InfoPulseApiUnavailable
+          expr: sum(kube_deployment_status_replicas_available{namespace="infopulse",deployment="api-stable"}) < 2
+          for: 2m
+          labels: {severity: page}
+          annotations: {summary: "Fewer than two stable API replicas are available"}
+        - alert: InfoPulseWorkerUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="infopulse",deployment=~"scheduler|knowledge-worker"} < 1
+          for: 5m
+          labels: {severity: page}
+          annotations: {summary: "A required InfoPulse worker has no available replica"}

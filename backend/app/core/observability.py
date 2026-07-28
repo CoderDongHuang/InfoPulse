@@ -36,10 +36,12 @@ class JsonFormatter(logging.Formatter):
 
 
 class Metrics:
+    BUCKETS = (.05, .1, .25, .5, 1, 2, 5)
     def __init__(self):
         self.lock = Lock()
         self.requests = defaultdict(int)
         self.duration = defaultdict(float)
+        self.duration_buckets = defaultdict(int)
         self.in_flight = 0
 
     def begin(self):
@@ -52,6 +54,9 @@ class Metrics:
             self.in_flight -= 1
             self.requests[key] += 1
             self.duration[key] += elapsed
+            for bound in self.BUCKETS:
+                if elapsed <= bound:
+                    self.duration_buckets[(*key, bound)] += 1
 
     def render(self) -> str:
         lines = [
@@ -71,6 +76,19 @@ class Metrics:
                 method, route, status = key
                 labels = f'method="{method}",route="{route}",status="{status}"'
                 lines.append(f"infopulse_http_request_duration_seconds_total{{{labels}}} {self.duration[key]:.6f}")
+            lines.extend([
+                "# HELP infopulse_http_request_duration_seconds Request duration distribution.",
+                "# TYPE infopulse_http_request_duration_seconds histogram",
+            ])
+            for key in sorted(self.requests):
+                method, route, status = key
+                labels = f'method="{method}",route="{route}",status="{status}"'
+                for bound in self.BUCKETS:
+                    count = self.duration_buckets[(*key, bound)]
+                    lines.append(f'infopulse_http_request_duration_seconds_bucket{{{labels},le="{bound}"}} {count}')
+                lines.append(f'infopulse_http_request_duration_seconds_bucket{{{labels},le="+Inf"}} {self.requests[key]}')
+                lines.append(f"infopulse_http_request_duration_seconds_sum{{{labels}}} {self.duration[key]:.6f}")
+                lines.append(f"infopulse_http_request_duration_seconds_count{{{labels}}} {self.requests[key]}")
             lines.extend([
                 "# HELP infopulse_http_requests_in_flight Current HTTP requests.",
                 "# TYPE infopulse_http_requests_in_flight gauge",

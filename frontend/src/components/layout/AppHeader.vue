@@ -13,7 +13,8 @@ const mobileOpen = ref(false)
 const navGroups = [
   { label: '开始工作', items: [
     { path: '/', label: 'Workspace', icon: 'House' },
-    { path: '/hot-search', label: '数据看板', icon: 'TrendCharts' },
+    { path: '/dashboard', label: 'Dashboard', icon: 'TrendCharts' },
+    { path: '/discover', label: 'Discover', icon: 'Compass' },
   ] },
   { label: '兼容工具', items: [
     { path: '/insight', label: '热点洞察', icon: 'DataAnalysis' },

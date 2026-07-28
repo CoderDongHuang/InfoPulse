@@ -3,10 +3,11 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { intelligenceApi, type IntelligenceEvent } from '@/api/intelligence'
+import { stage3Api } from '@/api/stage3'
 import LoadingState from '@/components/common/LoadingState.vue'
 const route=useRoute(),router=useRouter(),id=String(route.params.id),event=ref<IntelligenceEvent|null>(null),loading=ref(true),tab=ref('overview'),timeline=ref<any[]>([]),sources=ref<any[]>([]),audits=ref<any[]>([]),editOpen=ref(false)
 const edit=reactive({title:'',category:'',status:'detected',risk_notes:''})
-async function load(){loading.value=true;try{event.value=await intelligenceApi.event(id);Object.assign(edit,{title:event.value.title,category:event.value.category,status:event.value.status,risk_notes:event.value.risk_notes||''});const [t,s,a]=await Promise.all([intelligenceApi.timeline(id),intelligenceApi.eventSources(id),intelligenceApi.audits(id)]);timeline.value=t.items;sources.value=s.items;audits.value=a}finally{loading.value=false}}
+async function load(){loading.value=true;try{event.value=await intelligenceApi.event(id);void stage3Api.recordView('event',id,event.value.title);Object.assign(edit,{title:event.value.title,category:event.value.category,status:event.value.status,risk_notes:event.value.risk_notes||''});const [t,s,a]=await Promise.all([intelligenceApi.timeline(id),intelligenceApi.eventSources(id),intelligenceApi.audits(id)]);timeline.value=t.items;sources.value=s.items;audits.value=a}finally{loading.value=false}}
 async function save(){event.value=await intelligenceApi.updateEvent(id,{...edit});editOpen.value=false;ElMessage.success('事件已更新并写入审计日志');await load()}
 function date(value:string|null){return value?new Intl.DateTimeFormat('zh-CN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)):'未知'}
 onMounted(load)

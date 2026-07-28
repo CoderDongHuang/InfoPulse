@@ -7,6 +7,8 @@ import app.models
 from app.models.user import User
 from app.models.intelligence import KnowledgeBase,KnowledgeDocument
 from app.services.knowledge import delete_document,process_document,search,validate_public_url,validate_upload,storage
+from app.models.intelligence import Conversation
+from app.services.agent_service import gather
 
 class KnowledgeTests(unittest.IsolatedAsyncioTestCase):
  async def asyncSetUp(self):
@@ -28,6 +30,10 @@ class KnowledgeTests(unittest.IsolatedAsyncioTestCase):
  async def test_reindex_creates_version_and_keeps_active_filter(self):
   async with self.sessions() as db:
    owner,_,base,doc=await self.seed(db);first=doc.active_version_id;await process_document(db,doc);self.assertNotEqual(first,doc.active_version_id);result=await search(db,owner.id,[base.id],"Agent",10);self.assertTrue(result);self.assertEqual(len({x["chunk_id"] for x in result}),len(result))
+ async def test_agent_accepts_only_owned_private_context(self):
+  async with self.sessions() as db:
+   owner,other,base,_=await self.seed(db);conversation=Conversation(user_id=owner.id);db.add(conversation);await db.flush();rows,tools=await gather(db,owner.id,conversation,"Agent SDK",[],[base.id]);self.assertTrue(any(isinstance(x[0],dict) for x in rows));self.assertEqual(tools[-1][0],"knowledge_base")
+   foreign=Conversation(user_id=other.id);rows,_=await gather(db,other.id,foreign,"Agent SDK",[],[base.id]);self.assertFalse(any(isinstance(x[0],dict) for x in rows))
  def test_upload_security_rejects_spoofed_and_binary_text(self):
   with self.assertRaises(ValueError):validate_upload("fake.pdf",b"not a pdf")
   with self.assertRaises(ValueError):validate_upload("bad.txt",b"a\x00b")

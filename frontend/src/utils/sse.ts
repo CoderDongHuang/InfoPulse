@@ -1,20 +1,3 @@
-/**
- * InfoPulse — SSE (Server-Sent Events) Utility
- * ==============================================
- * Creates an SSE connection with heartbeat detection and timeout.
- *
- * Usage:
- *   const conn = createSSEConnection('/anti-scam/analyze', {
- *     body: { keyword: 'test', platforms: ['zhihu'], max_items: 50 },
- *     onProgress: (data) => console.log(data),
- *     onChunk: (text) => appendToDisplay(text),
- *     onResult: (data) => showResult(data),
- *     onWarning: (data) => showWarning(data),
- *     onError: (err) => showError(err),
- *   })
- *   // Later: conn.close()
- */
-
 export interface SSECallbacks {
   onProgress?: (data: any) => void
   onChunk?: (text: string) => void
@@ -25,132 +8,74 @@ export interface SSECallbacks {
   onTimeout?: () => void
 }
 
-export interface SSEConnection {
-  close: () => void
-}
-
-const DEFAULT_TIMEOUT_MS = 30000   // 30s without any event = dead
+export interface SSEConnection { close: () => void }
 
 export function createSSEConnection(
   url: string,
-  options: {
-    body?: Record<string, any>
-    headers?: Record<string, string>
-    callbacks: SSECallbacks
-  }
+  options: { body?: Record<string, any>; headers?: Record<string, string>; callbacks: SSECallbacks },
 ): SSEConnection {
-  const { body, headers, callbacks } = options
-  let lastEventTime = Date.now()
-  let timeoutTimer: ReturnType<typeof setInterval> | null = null
-  let aborted = false
-
-  // Build the POST-based SSE request using fetch + ReadableStream
   const controller = new AbortController()
+  let closed = false
+  let lastEventAt = Date.now()
 
-  async function connect() {
+  const dispatch = (type: string, raw: string) => {
+    lastEventAt = Date.now()
+    let parsed: any = raw
+    try { parsed = JSON.parse(raw) } catch { /* text event */ }
+    if (type === 'progress') options.callbacks.onProgress?.(parsed)
+    else if (type === 'chunk') options.callbacks.onChunk?.(typeof parsed === 'string' ? parsed : raw)
+    else if (type === 'result') options.callbacks.onResult?.(parsed)
+    else if (type === 'warning') options.callbacks.onWarning?.(parsed)
+    else if (type === 'error') options.callbacks.onError?.(parsed?.message || raw)
+    else if (type === 'ping') options.callbacks.onPing?.()
+  }
+
+  const connect = async () => {
     try {
-      // Get token from Pinia store
-      const { useUserStore } = await import('@/stores/user')
-      const userStore = useUserStore()
-
-      const res = await fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userStore.token}`,
-          ...headers,
-        },
-        body: body ? JSON.stringify(body) : undefined,
+        headers: { 'Content-Type': 'application/json', ...options.headers },
+        body: options.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       })
-
-      if (!res.ok) {
-        const errText = await res.text()
-        callbacks.onError?.(`请求失败 (${res.status}): ${errText}`)
+      if (!response.ok) {
+        let message = `请求失败（${response.status}）`
+        try { message = (await response.json()).detail || message } catch { /* no body */ }
+        options.callbacks.onError?.(message)
         return
       }
-
-      const reader = res.body?.getReader()
-      if (!reader) {
-        callbacks.onError?.('无法读取响应流')
-        return
-      }
-
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('浏览器无法读取流式响应')
       const decoder = new TextDecoder()
       let buffer = ''
-
-      while (!aborted) {
-        const { done, value } = await reader.read()
+      while (!closed) {
+        const { value, done } = await reader.read()
         if (done) break
-
         buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''  // Keep incomplete line in buffer
-
-        let eventType = ''
-        let eventData = ''
-
-        for (const line of lines) {
-          if (line.startsWith('event: ')) {
-            eventType = line.slice(7).trim()
-          } else if (line.startsWith('data: ')) {
-            eventData = line.slice(6)
-          } else if (line === '' && eventType) {
-            // End of event — process it
-            lastEventTime = Date.now()
-            processEvent(eventType, eventData)
-            eventType = ''
-            eventData = ''
+        const blocks = buffer.split('\n\n')
+        buffer = blocks.pop() || ''
+        for (const block of blocks) {
+          let type = 'message'
+          const data: string[] = []
+          for (const line of block.split('\n')) {
+            if (line.startsWith('event:')) type = line.slice(6).trim()
+            if (line.startsWith('data:')) data.push(line.slice(5).trim())
           }
+          if (data.length) dispatch(type, data.join('\n'))
         }
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        callbacks.onError?.(`连接异常: ${err.message}`)
-      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') options.callbacks.onError?.(`连接异常：${error.message}`)
     }
   }
 
-  function processEvent(type: string, data: string) {
-    switch (type) {
-      case 'progress':
-        try { callbacks.onProgress?.(JSON.parse(data)) } catch {}
-        break
-      case 'chunk':
-        callbacks.onChunk?.(data)
-        break
-      case 'result':
-        try { callbacks.onResult?.(JSON.parse(data)) } catch {}
-        break
-      case 'warning':
-        try { callbacks.onWarning?.(JSON.parse(data)) } catch {}
-        break
-      case 'error':
-        callbacks.onError?.(data)
-        break
-      case 'ping':
-        callbacks.onPing?.()
-        break
-    }
-  }
-
-  // --- Timeout Detection ---
-  timeoutTimer = setInterval(() => {
-    if (Date.now() - lastEventTime > DEFAULT_TIMEOUT_MS) {
+  const timer = window.setInterval(() => {
+    if (Date.now() - lastEventAt > 70000) {
+      options.callbacks.onTimeout?.()
       controller.abort()
-      callbacks.onTimeout?.()
-      if (timeoutTimer) clearInterval(timeoutTimer)
     }
   }, 5000)
+  void connect()
 
-  // Start connection
-  connect()
-
-  return {
-    close() {
-      aborted = true
-      controller.abort()
-      if (timeoutTimer) clearInterval(timeoutTimer)
-    },
-  }
+  return { close: () => { closed = true; controller.abort(); window.clearInterval(timer) } }
 }

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class DataSourceResponse(BaseModel):
@@ -39,3 +39,24 @@ class SyncRunResponse(BaseModel):
     diagnostic_id: str | None
     created_at: datetime
 
+
+class SourceUpdateRequest(BaseModel):
+    enabled: bool | None = None
+    sync_interval_minutes: int | None = Field(None, ge=5, le=10080)
+
+
+class RssSourceRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    feed_url: HttpUrl
+    sync_interval_minutes: int = Field(60, ge=15, le=10080)
+
+
+class RssValidateRequest(BaseModel):
+    feed_url: HttpUrl
+
+
+class ConnectionTestResponse(BaseModel):
+    status: str
+    item_count: int = 0
+    message: str
+    checked_at: datetime

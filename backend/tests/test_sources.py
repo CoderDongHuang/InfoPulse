@@ -3,6 +3,7 @@
 import unittest
 
 import httpx
+from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -16,6 +17,8 @@ from app.services.collectors.devto import DevToCollector
 from app.services.collectors.arxiv import ArxivCollector
 from app.services.collectors.rss import RssCollector, validate_public_feed_url
 from app.services.source_sync import ensure_builtin_sources, sync_source
+from app.main import app
+from app.schemas.sources import RssSourceRequest
 
 
 class HackerNewsCollectorTests(unittest.IsolatedAsyncioTestCase):
@@ -162,6 +165,25 @@ class SourceSyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn("upstream offline", run.error_summary)
             self.assertEqual(source.health_status, "error")
             self.assertEqual(await session.scalar(select(func.count(ContentItem.id))), 0)
+
+
+class SourceApiContractTests(unittest.TestCase):
+    def test_management_routes_are_registered_and_protected(self):
+        routes = {(route.path, method) for route in app.routes for method in (route.methods or set())}
+        expected = {
+            ("/api/v1/sources", "GET"), ("/api/v1/sources/{source_id}", "GET"),
+            ("/api/v1/sources/{source_id}", "PATCH"), ("/api/v1/sources/{source_id}/test", "POST"),
+            ("/api/v1/sources/{source_id}/sync", "POST"),
+            ("/api/v1/sources/{source_id}/sync-runs", "GET"),
+            ("/api/v1/sources/rss/validate", "POST"), ("/api/v1/sources/rss", "POST"),
+        }
+        self.assertTrue(expected.issubset(routes))
+        response = TestClient(app).get("/api/v1/sources")
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_rss_request_normalizes_url(self):
+        payload = RssSourceRequest(name="Python", feed_url="https://example.com/feed.xml")
+        self.assertEqual(str(payload.feed_url), "https://example.com/feed.xml")
 
 
 if __name__ == "__main__":

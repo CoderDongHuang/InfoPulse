@@ -19,10 +19,10 @@ import {
 } from 'element-plus'
 import 'element-plus/dist/index.css'
 import {
-  ArrowDown, ArrowLeft, ArrowRight, Clock, Collection, CollectionTag,
-  Connection, CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
-  MagicStick, Menu, Plus, QuestionFilled, Refresh, Right, Search, SwitchButton,
-  TopRight, TrendCharts, Warning,
+  Aim, ArrowDown, ArrowLeft, ArrowRight, Bell, Check, Clock, Close, Collection, CollectionTag,
+  Connection, CopyDocument, DataAnalysis, Delete, Document, Download, EditPen, Files, House, InfoFilled,
+  List, MagicStick, Menu, Message, Plus, QuestionFilled, Refresh, RefreshRight, Right, Search, Setting, SwitchButton,
+  Timer, TopRight, TrendCharts, VideoPause, VideoPlay, Warning,
 } from '@element-plus/icons-vue'
 
 import App from './App.vue'
@@ -40,10 +40,10 @@ app.use(ElLoading)
 
 const elementComponents = { ElDrawer, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElInput, ElProgress, ElSlider }
 const icons = {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight: TopRight, Clock, Collection, CollectionTag,
-  Connection, CopyDocument, DataAnalysis, Delete, Download, EditPen, Files, House, InfoFilled,
-  MagicStick, Menu, Plus, QuestionFilled, Refresh, Right, Search, SwitchButton,
-  TopRight, TrendCharts, Warning,
+  Aim, ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight: TopRight, Bell, Check, Clock, Close, Collection, CollectionTag,
+  Connection, CopyDocument, DataAnalysis, Delete, Document, Download, EditPen, Files, House, InfoFilled,
+  List, MagicStick, Menu, Message, Plus, QuestionFilled, Refresh, RefreshRight, Right, Search, Setting, SwitchButton,
+  Timer, TopRight, TrendCharts, VideoPause, VideoPlay, Warning,
 }
 
 for (const [key, component] of Object.entries({ ...elementComponents, ...icons })) {

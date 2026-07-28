@@ -27,8 +27,11 @@ const navGroups = [
     { path: '/analysis', label: 'AI 分析', icon: 'MagicStick' },
     { path: '/agent', label: 'AI Agent', icon: 'ChatDotRound' },
     { path: '/reports', label: '报告中心', icon: 'Document' },
+    { path: '/subscriptions', label: '订阅中心', icon: 'Bell' },
+    { path: '/tasks', label: '任务中心', icon: 'Timer' },
   ] },
   { label: '个人空间', items: [
+    { path: '/notifications', label: '通知中心', icon: 'Message' },
     { path: '/watchlist', label: '关注话题', icon: 'CollectionTag' },
     { path: '/history', label: '历史报告', icon: 'Files' },
   ] },

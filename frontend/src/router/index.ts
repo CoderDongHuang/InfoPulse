@@ -20,6 +20,9 @@ const routes: RouteRecordRaw[] = [
   { path: '/agent', name: 'Agent', component: () => import('@/views/AgentView.vue'), meta: { title: 'AI Agent', requiresAuth: true } },
   { path: '/reports', name: 'Reports', component: () => import('@/views/ReportsView.vue'), meta: { title: '报告中心', requiresAuth: true } },
   { path: '/reports/:id', name: 'ReportEditor', component: () => import('@/views/ReportEditorView.vue'), meta: { title: '报告编辑器', requiresAuth: true } },
+  { path: '/subscriptions', name: 'Subscriptions', component: () => import('@/views/SubscriptionsView.vue'), meta: { title: '订阅中心', requiresAuth: true } },
+  { path: '/tasks', name: 'Tasks', component: () => import('@/views/TasksView.vue'), meta: { title: '任务中心', requiresAuth: true } },
+  { path: '/notifications', name: 'Notifications', component: () => import('@/views/NotificationsView.vue'), meta: { title: '通知中心', requiresAuth: true } },
   {
     path: '/auth',
     name: 'Auth',

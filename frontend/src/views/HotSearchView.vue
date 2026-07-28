@@ -11,8 +11,8 @@ const items = ref<any[]>([])
 const selected = ref<any>(null)
 const explanation = ref('')
 const updatedAt = ref('')
-const source = ref('微博热搜榜')
-const sourceUrl = ref('https://s.weibo.com/top/summary')
+const source = ref('统一情报数据中心')
+const sourceUrl = ref('/sources')
 const status = ref<'live' | 'unavailable'>('live')
 const statusMessage = ref('')
 const maxHeat = computed(() => Math.max(...items.value.map(item => Number(item.heat || 0)), 1))
@@ -23,8 +23,8 @@ async function load() {
     const data = await workflowApi.getHotRanking()
     items.value = data.items || []
     updatedAt.value = data.updated_at
-    source.value = data.source || '微博热搜榜'
-    sourceUrl.value = data.source_url || 'https://s.weibo.com/top/summary'
+    source.value = data.source || '统一情报数据中心'
+    sourceUrl.value = data.source_url || '/sources'
     status.value = data.status || 'unavailable'
     statusMessage.value = data.message || ''
     if (items.value.length) void selectItem(items.value[0])
@@ -55,8 +55,8 @@ onMounted(load)
 <template>
   <div class="monitor-page" :aria-busy="loading">
     <header class="monitor-head">
-      <div class="system-title"><span class="status-light" :class="{ offline: status !== 'live' }"></span><div><p>WEIBO HOT SEARCH / LIVE</p><h1>微博实时热搜榜</h1></div></div>
-      <div class="monitor-meta"><a :href="sourceUrl" target="_blank" rel="noreferrer">{{ source }}</a><strong>{{ updatedAt }}</strong><button type="button" :disabled="loading" title="刷新微博热搜" @click="load"><el-icon><Refresh /></el-icon></button></div>
+      <div class="system-title"><span class="status-light" :class="{ offline: status !== 'live' }"></span><div><p>INTELLIGENCE SIGNALS / LIVE</p><h1>真实情报信号榜</h1></div></div>
+      <div class="monitor-meta"><router-link :to="sourceUrl">{{ source }}</router-link><strong>{{ updatedAt }}</strong><button type="button" :disabled="loading" title="刷新情报榜" @click="load"><el-icon><Refresh /></el-icon></button></div>
     </header>
 
     <main class="monitor-grid">
@@ -68,7 +68,7 @@ onMounted(load)
           <small>页面其余功能仍可使用</small>
         </div>
         <div v-else-if="!items.length" class="signal-loading" role="status">
-          <strong>暂时没有取得微博热搜</strong>
+          <strong>暂时没有已同步的情报内容</strong>
           <small>{{ statusMessage }}</small>
           <button type="button" class="retry-button" @click="load">重新刷新</button>
         </div>

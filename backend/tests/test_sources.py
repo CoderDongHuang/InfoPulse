@@ -17,6 +17,7 @@ from app.services.collectors.devto import DevToCollector
 from app.services.collectors.arxiv import ArxivCollector
 from app.services.collectors.rss import RssCollector, validate_public_feed_url
 from app.services.source_sync import ensure_builtin_sources, sync_source
+from app.services.content_feed import fetch_intelligence_ranking
 from app.main import app
 from app.schemas.sources import RssSourceRequest
 
@@ -165,6 +166,23 @@ class SourceSyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn("upstream offline", run.error_summary)
             self.assertEqual(source.health_status, "error")
             self.assertEqual(await session.scalar(select(func.count(ContentItem.id))), 0)
+
+    async def test_ranking_uses_persisted_sources_and_real_urls(self):
+        async with self.sessions() as session:
+            source = await self._source(session)
+            await sync_source(session, source, StubCollector(score=22))
+            await session.commit()
+            payload = await fetch_intelligence_ranking(session)
+            self.assertEqual(payload["status"], "live")
+            self.assertEqual(payload["items"][0]["platform"], "Hacker News")
+            self.assertEqual(payload["items"][0]["url"], "https://example.com/101")
+            self.assertNotIn("微博", payload["source"])
+
+    async def test_empty_ranking_is_explicit(self):
+        async with self.sessions() as session:
+            payload = await fetch_intelligence_ranking(session)
+            self.assertEqual(payload["status"], "unavailable")
+            self.assertEqual(payload["items"], [])
 
 
 class SourceApiContractTests(unittest.TestCase):

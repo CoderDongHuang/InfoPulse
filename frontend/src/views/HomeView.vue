@@ -7,9 +7,9 @@ const router = useRouter()
 const loading = ref(false)
 const hotItems = ref<any[]>([])
 const updatedAt = ref('')
-const sourceUrl = ref('https://s.weibo.com/top/summary')
+const sourceUrl = ref('/sources')
 const sourceStatus = ref<'live' | 'unavailable'>('live')
-const statusMessage = ref('正在接入微博公开热搜榜')
+const statusMessage = ref('正在读取已同步的真实情报数据')
 
 const lead = computed(() => hotItems.value[0])
 const categoryCount = computed(() => new Set(hotItems.value.map(item => item.category).filter(Boolean)).size)
@@ -35,7 +35,7 @@ async function loadDashboard() {
     updatedAt.value = data.updated_at || ''
     sourceUrl.value = data.source_url || sourceUrl.value
     sourceStatus.value = data.status || 'unavailable'
-    statusMessage.value = data.message || (hotItems.value.length ? '微博公开热搜榜实时数据' : '暂时没有取得榜单数据')
+    statusMessage.value = data.message || (hotItems.value.length ? '来自已同步官方 API 与 RSS 的真实内容' : '请先到数据源中心执行同步')
   } catch {
     hotItems.value = []
     sourceStatus.value = 'unavailable'
@@ -67,7 +67,7 @@ onMounted(loadDashboard)
           <img src="@/assets/images/home-news.jpg" alt="阅读新闻与公开信息" />
           <div class="lead-shade"></div>
           <span class="scan-line"></span>
-          <div class="lead-kicker"><i></i>微博热搜第一位</div>
+          <div class="lead-kicker"><i></i>跨来源信号第一位</div>
           <div class="lead-copy">
             <p>{{ lead?.category || '实时情报' }} · {{ lead ? formatHeat(Number(lead.heat || 0)) : '等待数据' }} 热度</p>
             <h2>{{ lead?.title || '正在接入今天值得关注的公开讨论' }}</h2>
@@ -77,7 +77,7 @@ onMounted(loadDashboard)
 
         <aside class="ranking-panel">
           <header>
-            <div><p>LIVE RANKING</p><h2>微博实时热搜</h2></div>
+            <div><p>LIVE RANKING</p><h2>真实情报信号榜</h2></div>
             <button type="button" title="刷新热搜" :disabled="loading" @click="loadDashboard"><el-icon><Refresh /></el-icon></button>
           </header>
           <ol v-if="hotItems.length">
@@ -93,7 +93,7 @@ onMounted(loadDashboard)
             <strong>{{ loading ? '正在读取公开榜单' : '榜单暂时不可用' }}</strong>
             <p>{{ statusMessage }}</p>
           </div>
-          <footer><a :href="sourceUrl" target="_blank" rel="noreferrer">微博公开榜单<el-icon><TopRight /></el-icon></a><time>{{ updatedAt }}</time></footer>
+          <footer><router-link :to="sourceUrl">统一数据源<el-icon><TopRight /></el-icon></router-link><time>{{ updatedAt }}</time></footer>
         </aside>
       </section>
 
@@ -101,7 +101,7 @@ onMounted(loadDashboard)
         <div><span>实时话题</span><strong>{{ hotItems.length || '—' }}</strong><small>当前公开信号</small></div>
         <div><span>最高热度</span><strong>{{ topHeat ? formatHeat(topHeat) : '—' }}</strong><small>榜首讨论强度</small></div>
         <div><span>话题覆盖</span><strong>{{ categoryCount || '—' }}</strong><small>当前分类数量</small></div>
-        <div class="signal-note"><i></i><p>榜单来自微博公开接口；AI 分析内容会单独标识，不与平台原始数据混排。</p></div>
+        <div class="signal-note"><i></i><p>榜单只使用已同步的官方 API 与 RSS 内容；每条信号保留原始来源链接。</p></div>
       </section>
 
       <section class="workflow-section">

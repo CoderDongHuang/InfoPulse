@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
     path: '/hot-search',
     name: 'HotSearch',
     component: () => import('@/views/HotSearchView.vue'),
-    meta: { title: '微博实时热搜' },
+    meta: { title: '真实情报信号榜' },
   },
   {
     path: '/history',

@@ -5,6 +5,10 @@
 - [生产运行手册](./06-production-runbook.md)
 - [安全、隐私与数据生命周期](./07-security-privacy.md)
 - [发布检查清单](./08-release-checklist.md)
+- [性能基线](./09-performance-baseline.md)
+- [生产部署与运维](./10-production-deployment.md)
+- [SLO、错误预算与值班](./11-slo-oncall.md)
+- [版本发布记录模板](./12-release-notes-template.md)
 
 ## 文档顺序
 

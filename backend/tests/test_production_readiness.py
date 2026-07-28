@@ -15,6 +15,7 @@ from app.models.user import User
 from app.schemas.auth import AccountDeleteRequest
 from app.api.auth import delete_me
 from app.services.retention import apply_retention
+from scripts.deployment_preflight import integration_errors
 
 
 class ProductionConfigurationTests(unittest.TestCase):
@@ -34,6 +35,7 @@ class ProductionConfigurationTests(unittest.TestCase):
             METRICS_TOKEN="m" * 32,
             CORS_ORIGINS=["https://app.example.com"],
             TRUSTED_HOSTS=["api.example.com"],
+            RUN_BACKGROUND_WORKERS_IN_API=False,
         )
         self.assertEqual(settings.production_errors(), [])
 
@@ -43,11 +45,19 @@ class ProductionConfigurationTests(unittest.TestCase):
         self.assertNotIn("open-sesame", value)
         self.assertGreaterEqual(value.count("[REDACTED]"), 2)
 
+    def test_deployment_preflight_rejects_missing_integrations(self):
+        settings = Settings(ENVIRONMENT="production", RUN_BACKGROUND_WORKERS_IN_API=False)
+        errors = " ".join(integration_errors(settings))
+        self.assertIn("LLM_API_KEY", errors)
+        self.assertIn("S3_ACCESS_KEY", errors)
+        self.assertIn("SMTP_HOST", errors)
+
     def test_metrics_never_include_request_values(self):
         metrics.begin()
         metrics.finish("GET", "/api/v1/search", 200, .01)
         rendered = metrics.render()
         self.assertIn('route="/api/v1/search"', rendered)
+        self.assertIn("infopulse_http_request_duration_seconds_bucket", rendered)
         self.assertNotIn("query=", rendered)
 
 

@@ -58,6 +58,24 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '关注话题' },
   },
   {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/SearchView.vue'),
+    meta: { title: '搜索中心', requiresAuth: true },
+  },
+  {
+    path: '/events',
+    name: 'Events',
+    component: () => import('@/views/EventsView.vue'),
+    meta: { title: '事件中心', requiresAuth: true },
+  },
+  {
+    path: '/events/:id',
+    name: 'EventDetail',
+    component: () => import('@/views/EventDetailView.vue'),
+    meta: { title: '事件详情', requiresAuth: true },
+  },
+  {
     path: '/sources',
     name: 'Sources',
     component: () => import('@/views/SourcesView.vue'),

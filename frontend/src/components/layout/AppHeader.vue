@@ -20,6 +20,10 @@ const navGroups = [
     { path: '/timeline', label: '事件脉络', icon: 'Clock' },
     { path: '/mouthpiece', label: '表达工具', icon: 'EditPen' },
   ] },
+  { label: '情报研究', items: [
+    { path: '/search', label: '搜索中心', icon: 'Search' },
+    { path: '/events', label: '事件中心', icon: 'Collection' },
+  ] },
   { label: '个人空间', items: [
     { path: '/watchlist', label: '关注话题', icon: 'CollectionTag' },
     { path: '/history', label: '历史报告', icon: 'Files' },
@@ -30,7 +34,7 @@ const navGroups = [
 ]
 const navItems = navGroups.flatMap(group => group.items)
 
-const active = (path: string) => route.path === path || (path === '/insight' && route.path === '/anti-scam')
+const active = (path: string) => route.path === path || (path === '/insight' && route.path === '/anti-scam') || (path === '/events' && route.path.startsWith('/events/'))
 
 function navigate(path: string) {
   mobileOpen.value = false

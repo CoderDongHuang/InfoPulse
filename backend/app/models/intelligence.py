@@ -98,6 +98,9 @@ class ContentItem(Base):
     is_original: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     raw_payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    sentiment: Mapped[str] = mapped_column(String(20), default="unknown", index=True)
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    entities: Mapped[list] = mapped_column(JSON, default=list)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     source = relationship("DataSource", back_populates="content_items")
@@ -123,6 +126,8 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    manual_locked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    risk_notes: Mapped[str] = mapped_column(Text, default="")
 
     content_links = relationship("EventContent", back_populates="event", cascade="all, delete-orphan")
 
@@ -139,3 +144,40 @@ class EventContent(Base):
 
     event = relationship("Event", back_populates="content_links")
     content = relationship("ContentItem", back_populates="event_links")
+
+
+class SavedSearch(Base):
+    __tablename__ = "saved_searches"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    query: Mapped[str] = mapped_column(String(500), default="")
+    filters: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class EventEntity(Base):
+    __tablename__ = "event_entities"
+    __table_args__ = (UniqueConstraint("event_id", "name", name="uq_event_entity_name"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
+    entity_type: Mapped[str] = mapped_column(String(40), default="keyword")
+    mention_count: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    target_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    target_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    before_data: Mapped[dict] = mapped_column(JSON, default=dict)
+    after_data: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)

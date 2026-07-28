@@ -16,6 +16,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from app.core.database import Base
 
@@ -26,6 +27,17 @@ def utc_now() -> datetime:
 
 def uuid_string() -> str:
     return str(uuid.uuid4())
+
+
+class PortableVector(TypeDecorator):
+    """Use pgvector in PostgreSQL and JSON in SQLite development/tests."""
+    impl = JSON
+    cache_ok = True
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            from pgvector.sqlalchemy import Vector
+            return dialect.type_descriptor(Vector(96))
+        return dialect.type_descriptor(JSON())
 
 
 class DataSource(Base):
@@ -482,7 +494,7 @@ class KnowledgeChunk(Base):
     heading: Mapped[str] = mapped_column(String(500), default="")
     token_count: Mapped[int] = mapped_column(Integer, default=0)
     content_hash: Mapped[str] = mapped_column(String(64), index=True)
-    embedding: Mapped[list] = mapped_column(JSON, default=list)
+    embedding: Mapped[list] = mapped_column(PortableVector(), default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 

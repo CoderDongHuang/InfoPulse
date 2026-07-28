@@ -194,12 +194,12 @@ async def enqueue_run(db, task: AgentTask, trigger="manual", scheduled_for=None)
 async def process_due_once():
     sessions = _get_sessionmaker(); now = now_utc()
     async with sessions() as db:
-        tasks = (await db.scalars(select(AgentTask).where(AgentTask.status == "active", AgentTask.next_run_at <= now).order_by(AgentTask.next_run_at).limit(get_settings().TASK_WORKER_CONCURRENCY))).all()
+        tasks = (await db.scalars(select(AgentTask).where(AgentTask.status == "active", AgentTask.next_run_at <= now).order_by(AgentTask.next_run_at).limit(get_settings().TASK_WORKER_CONCURRENCY).with_for_update(skip_locked=True))).all()
         for task in tasks: await enqueue_run(db, task, "schedule", task.next_run_at)
-        retries = (await db.scalars(select(TaskRun).where(TaskRun.status == "retrying", TaskRun.retry_at <= now).limit(get_settings().TASK_WORKER_CONCURRENCY))).all()
+        retries = (await db.scalars(select(TaskRun).where(TaskRun.status == "retrying", TaskRun.retry_at <= now).limit(get_settings().TASK_WORKER_CONCURRENCY).with_for_update(skip_locked=True))).all()
         for run in retries:
             task = await db.get(AgentTask, run.task_id); run.attempt += 1; await execute_run(db, task, run)
-        attempts = (await db.scalars(select(DeliveryAttempt).where(DeliveryAttempt.status.in_(["pending", "retrying"]), DeliveryAttempt.next_retry_at <= now).limit(20))).all()
+        attempts = (await db.scalars(select(DeliveryAttempt).where(DeliveryAttempt.status.in_(["pending", "retrying"]), DeliveryAttempt.next_retry_at <= now).limit(20).with_for_update(skip_locked=True))).all()
         for attempt in attempts: await deliver_attempt(db, attempt)
         await db.commit()
 

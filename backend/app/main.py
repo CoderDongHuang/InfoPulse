@@ -43,9 +43,10 @@ async def lifespan(app: FastAPI):
     print(f"[InfoPulse] Demo mode: {settings.DEMO_MODE}")
     print(f"[InfoPulse] Crawler enabled: {settings.CRAWLER_ENABLED}")
     scheduler_stop = asyncio.Event()
-    scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if settings.TASK_SCHEDULER_ENABLED else None
+    run_embedded = settings.RUN_BACKGROUND_WORKERS_IN_API
+    scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if run_embedded and settings.TASK_SCHEDULER_ENABLED else None
     knowledge_stop = asyncio.Event()
-    knowledge_task = asyncio.create_task(knowledge_worker_loop(knowledge_stop))
+    knowledge_task = asyncio.create_task(knowledge_worker_loop(knowledge_stop)) if run_embedded else None
     print("[InfoPulse] Ready to serve requests")
 
     yield
@@ -56,7 +57,8 @@ async def lifespan(app: FastAPI):
     if scheduler_task:
         await scheduler_task
     knowledge_stop.set()
-    await knowledge_task
+    if knowledge_task:
+        await knowledge_task
     await BrowserManager().close()
     await close_redis()
     await close_db()
@@ -76,7 +78,7 @@ setup_error_handlers(app)
 setup_observability(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, automation, contents, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, operations_center, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -98,6 +100,7 @@ app.include_router(knowledge.router)
 app.include_router(graph.router)
 app.include_router(stage10.router)
 app.include_router(operations.router)
+app.include_router(operations_center.router)
 
 
 @app.get("/api/v1/health")

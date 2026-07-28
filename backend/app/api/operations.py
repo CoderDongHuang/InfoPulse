@@ -35,8 +35,10 @@ async def ready():
 
 
 @router.get("/metrics", response_class=PlainTextResponse, include_in_schema=False)
-async def prometheus_metrics(x_metrics_token: str = Header(default="")):
+async def prometheus_metrics(x_metrics_token: str = Header(default=""), authorization: str = Header(default="")):
     expected = get_settings().METRICS_TOKEN
-    if expected and not hmac.compare_digest(x_metrics_token, expected):
+    bearer = authorization.removeprefix("Bearer ") if authorization.startswith("Bearer ") else ""
+    supplied = x_metrics_token or bearer
+    if expected and not hmac.compare_digest(supplied, expected):
         raise HTTPException(status_code=403, detail="Invalid metrics token")
     return metrics.render()

@@ -1,0 +1,76 @@
+name: Deploy Staging or Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [staging, production]
+        required: true
+      version:
+        description: Immutable image tag or commit SHA
+        required: true
+      canary_weight:
+        type: choice
+        options: [0, 5, 10, 25]
+        default: 10
+
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    permissions: {contents: read, packages: write}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - uses: azure/setup-kubectl@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push immutable images
+        run: |
+          docker build -t ghcr.io/${GITHUB_REPOSITORY,,}:${{ inputs.version }} backend
+          docker build -t ghcr.io/${GITHUB_REPOSITORY,,}-web:${{ inputs.version }} frontend
+          docker push ghcr.io/${GITHUB_REPOSITORY,,}:${{ inputs.version }}
+          docker push ghcr.io/${GITHUB_REPOSITORY,,}-web:${{ inputs.version }}
+      - name: Configure cluster access
+        run: |
+          mkdir -p ~/.kube
+          echo '${{ secrets.KUBE_CONFIG }}' | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Verify required secret exists
+        run: kubectl -n infopulse get secret infopulse-secrets
+      - name: Render release
+        run: python deploy/scripts/render_manifests.py --source deploy/k8s/production.yaml --output /tmp/release.yaml --version "${{ inputs.version }}" --canary-version "${{ inputs.version }}" --api-host "${{ vars.API_HOST }}" --app-host "${{ vars.APP_HOST }}"
+      - name: Run migration before traffic shift
+        run: |
+          kubectl apply -f /tmp/release.yaml
+          kubectl -n infopulse wait --for=condition=complete --timeout=180s job/preflight-${{ inputs.version }}
+          kubectl -n infopulse wait --for=condition=complete --timeout=300s job/migrate-${{ inputs.version }}
+      - name: Set canary traffic
+        run: kubectl -n infopulse annotate ingress api-canary nginx.ingress.kubernetes.io/canary-weight="${{ inputs.canary_weight }}" --overwrite
+      - name: Verify canary and promote stable
+        id: verify
+        run: |
+          kubectl -n infopulse rollout status deployment/api-canary --timeout=300s
+          for i in $(seq 1 20); do curl --fail --silent --show-error "https://${{ vars.API_HOST }}/api/v1/health/ready" && exit 0; sleep 5; done
+          exit 1
+      - name: Promote immutable image
+        if: success()
+        run: |
+          kubectl -n infopulse set image deployment/api-stable api=ghcr.io/${GITHUB_REPOSITORY,,}:${{ inputs.version }}
+          kubectl -n infopulse rollout status deployment/api-stable --timeout=300s
+          kubectl -n infopulse annotate ingress api-canary nginx.ingress.kubernetes.io/canary-weight="0" --overwrite
+      - name: Automatic rollback
+        if: failure()
+        run: |
+          kubectl -n infopulse annotate ingress api-canary nginx.ingress.kubernetes.io/canary-weight="0" --overwrite || true
+          kubectl -n infopulse rollout undo deployment/api-canary || true
+          kubectl -n infopulse rollout undo deployment/api-stable || true

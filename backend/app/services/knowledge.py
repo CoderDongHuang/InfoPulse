@@ -36,25 +36,46 @@ class Storage:
             boto3.client("s3",endpoint_url=settings.S3_ENDPOINT_URL or None,aws_access_key_id=settings.S3_ACCESS_KEY or None,aws_secret_access_key=settings.S3_SECRET_KEY or None,region_name=settings.S3_REGION).delete_object(Bucket=settings.S3_BUCKET,Key=key);return
         path=(self.local/key).resolve()
         if self.local in path.parents: path.unlink(missing_ok=True)
+    def exists(self,key:str)->bool:
+        if settings.KNOWLEDGE_STORAGE_BACKEND=="s3":
+            import boto3
+            try:boto3.client("s3",endpoint_url=settings.S3_ENDPOINT_URL or None,aws_access_key_id=settings.S3_ACCESS_KEY or None,aws_secret_access_key=settings.S3_SECRET_KEY or None,region_name=settings.S3_REGION).head_object(Bucket=settings.S3_BUCKET,Key=key);return True
+            except Exception:return False
+        path=(self.local/key).resolve()
+        return self.local in path.parents and path.is_file()
 
 storage=Storage()
 processing_queue: asyncio.Queue[tuple[str,bytes|None]] = asyncio.Queue()
 
 async def enqueue_document(document_id:str,data:bytes|None=None):
+    if data is not None: storage.put(f"staging/{document_id}",data)
     await processing_queue.put((document_id,data))
+
+async def process_knowledge_once(document_id:str|None=None,sessions=None)->bool:
+    from app.core.database import _get_sessionmaker
+    async with (sessions or _get_sessionmaker())() as db:
+        query=select(KnowledgeDocument).where(KnowledgeDocument.status=="queued",KnowledgeDocument.deleted_at.is_(None))
+        if document_id: query=query.where(KnowledgeDocument.id==document_id)
+        doc=await db.scalar(query.order_by(KnowledgeDocument.updated_at).limit(1).with_for_update(skip_locked=True))
+        if not doc:return False
+        doc.status="processing";await db.commit()
+        staging=f"staging/{doc.id}";data=storage.get(staging) if storage.exists(staging) else None
+        await process_document(db,doc,data)
+        storage.remove(staging)
+        return True
 
 async def knowledge_worker_loop(stop:asyncio.Event):
     from app.core.database import _get_sessionmaker
     while not stop.is_set():
-        try: document_id,data=await asyncio.wait_for(processing_queue.get(),timeout=1)
-        except asyncio.TimeoutError: continue
+        queued=False
+        try: document_id,_data=await asyncio.wait_for(processing_queue.get(),timeout=max(1,settings.KNOWLEDGE_WORKER_POLL_SECONDS));queued=True
+        except asyncio.TimeoutError: document_id=None
         try:
-            async with _get_sessionmaker()() as db:
-                doc=await db.get(KnowledgeDocument,document_id)
-                if doc and doc.deleted_at is None: await process_document(db,doc,data)
+            await process_knowledge_once(document_id)
         except Exception:
             pass
-        finally: processing_queue.task_done()
+        finally:
+            if queued: processing_queue.task_done()
 
 def safe_filename(name:str)->str:
     name=Path(name or "document").name

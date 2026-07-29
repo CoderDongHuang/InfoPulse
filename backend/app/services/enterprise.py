@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enterprise import CustomRole, LegalHold, Organization, OrganizationMember, TenantPolicy, TenantQuota, Workspace, WorkspaceMember
 from app.models.user import User
 
-OWNER_PERMISSIONS = {"org.read", "org.manage", "members.manage", "roles.manage", "sso.manage", "approvals.request", "approvals.decide", "audit.export", "legal_hold.manage", "policy.manage", "billing.read", "billing.manage", "sla.read"}
+OWNER_PERMISSIONS = {"org.read", "org.manage", "members.manage", "roles.manage", "sso.manage", "approvals.request", "approvals.decide", "audit.export", "legal_hold.manage", "policy.manage", "billing.read", "billing.manage", "sla.read", "developer.read", "developer.manage", "integrations.install", "integrations.approve"}
 ADMIN_PERMISSIONS = OWNER_PERMISSIONS - {"org.manage"}
 MEMBER_PERMISSIONS = {"org.read", "approvals.request", "billing.read", "sla.read"}
 

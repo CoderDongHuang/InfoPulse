@@ -8,7 +8,11 @@ GET  /api/v1/auth/me        — Get current user profile
 PUT  /api/v1/auth/me        — Update current user profile
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import hmac
+import re
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from sqlalchemy import func, select, text
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -26,6 +30,50 @@ from app.schemas.workflows import RefreshTokenRequest
 from app.services import auth_service
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+
+
+@router.post("/sso/exchange", response_model=TokenResponse)
+async def sso_exchange(
+    x_sso_proxy_secret: str = Header(alias="X-SSO-Proxy-Secret"),
+    x_sso_organization: str = Header(alias="X-SSO-Organization"),
+    x_sso_email: str = Header(alias="X-SSO-Email"),
+    x_sso_subject: str = Header(alias="X-SSO-Subject"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Exchange identity headers asserted by a trusted OIDC/SAML broker."""
+    from app.config import get_settings
+    from app.models.enterprise import IdentityProvider, Organization, OrganizationMember, TenantPolicy
+    from app.core.security import hash_password
+    from app.services.enterprise import new_scim_token, set_db_context
+
+    expected = get_settings().SSO_PROXY_SECRET
+    if len(expected) < 32 or not hmac.compare_digest(x_sso_proxy_secret, expected):
+        raise HTTPException(status_code=401, detail="Invalid SSO proxy credential")
+    if not x_sso_subject.strip() or len(x_sso_subject) > 500:
+        raise HTTPException(status_code=422, detail="Invalid SSO subject")
+    email = x_sso_email.strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        raise HTTPException(status_code=422, detail="Invalid verified email")
+    if db.bind and db.bind.dialect.name == "postgresql": await db.execute(text("SELECT set_config('app.sso_org_slug', :slug, true)"), {"slug": x_sso_organization})
+    org = await db.scalar(select(Organization).where(Organization.slug == x_sso_organization, Organization.status == "active"))
+    if not org: raise HTTPException(status_code=404, detail="SSO organization not found")
+    await set_db_context(db, "sso-service", org.id)
+    provider = await db.scalar(select(IdentityProvider.id).where(IdentityProvider.organization_id == org.id, IdentityProvider.provider_type.in_(["oidc", "saml"]), IdentityProvider.enabled.is_(True)))
+    if not provider: raise HTTPException(status_code=403, detail="No enabled SSO provider for organization")
+    policy = await db.get(TenantPolicy, org.id)
+    if policy.allowed_email_domains and email.rsplit("@", 1)[-1] not in policy.allowed_email_domains:
+        raise HTTPException(status_code=403, detail="Email domain is not allowed by tenant policy")
+    user = await db.scalar(select(User).where(func.lower(User.email) == email))
+    if not user:
+        base = re.sub(r"[^a-zA-Z0-9_.-]", "-", email.split("@", 1)[0])[:40] or "sso-user"
+        username = base if not await db.scalar(select(User.id).where(func.lower(User.username) == base.lower())) else f"{base}-{org.id[:6]}"
+        user = User(username=username, email=email, password_hash=await run_in_threadpool(hash_password, new_scim_token()[0]), is_active=True)
+        db.add(user); await db.flush()
+    membership = await db.scalar(select(OrganizationMember).where(OrganizationMember.organization_id == org.id, OrganizationMember.user_id == user.id))
+    if not membership:
+        membership = OrganizationMember(organization_id=org.id, user_id=user.id, role_key="member"); db.add(membership)
+    elif membership.status != "active": raise HTTPException(status_code=403, detail="Organization membership is inactive")
+    return auth_service._generate_tokens(user)
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -97,9 +145,11 @@ async def delete_me(
     from app.core.security import verify_password
     from app.models.intelligence import KnowledgeDocument
     from app.services.knowledge import delete_document
+    from app.services.enterprise import ensure_not_held
 
     if not await run_in_threadpool(verify_password, data.password, current_user.password_hash):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Password verification failed")
+    await ensure_not_held(db, current_user.id)
     documents = (await db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.user_id == current_user.id))).all()
     for document in documents:
         await delete_document(db, document, strict_storage=True)

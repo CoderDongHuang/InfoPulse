@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.intelligence import KnowledgeBase,KnowledgeChunk,KnowledgeDocument,KnowledgeDocumentVersion,KnowledgeProcessingRun
 from app.schemas.knowledge import KnowledgeBaseCreate,KnowledgeBaseUpdate,SearchTest,WebImportCreate
 from app.services.knowledge import ALLOWED,delete_document,enqueue_document,fetch_web,safe_filename,search,settings,validate_upload
+from app.services.enterprise import ensure_not_held
 
 router=APIRouter(prefix="/api/v1",tags=["Knowledge RAG"])
 def fail(message,status=400): raise HTTPException(status,message)
@@ -37,7 +38,7 @@ async def update_base(kid:str,p:KnowledgeBaseUpdate,user:User=Depends(get_curren
     await db.commit();return {"id":x.id,"name":x.name,"description":x.description}
 @router.delete("/knowledge-bases/{kid}",status_code=204)
 async def remove_base(kid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
-    x=await owned_base(db,kid,user.id);docs=(await db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.knowledge_base_id==kid,KnowledgeDocument.deleted_at.is_(None)))).all()
+    await ensure_not_held(db,user.id);x=await owned_base(db,kid,user.id);docs=(await db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.knowledge_base_id==kid,KnowledgeDocument.deleted_at.is_(None)))).all()
     for doc in docs:await delete_document(db,doc)
     x.deleted_at=datetime.now(timezone.utc);await db.commit()
 @router.get("/knowledge-bases/{kid}/documents")
@@ -73,7 +74,7 @@ async def reindex(did:str,user:User=Depends(get_current_user),db=Depends(get_db)
     doc.status="queued";doc.error_message="";await db.commit();await enqueue_document(doc.id)
     return doc_json(doc)
 @router.delete("/knowledge-documents/{did}",status_code=204)
-async def remove_document(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):await delete_document(db,await owned_doc(db,did,user.id))
+async def remove_document(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):await ensure_not_held(db,user.id);await delete_document(db,await owned_doc(db,did,user.id))
 @router.post("/knowledge-bases/{kid}/search-test")
 async def search_test(kid:str,p:SearchTest,user:User=Depends(get_current_user),db=Depends(get_db)):
     await owned_base(db,kid,user.id);return {"query":p.query,"results":await search(db,user.id,[kid],p.query,p.limit)}

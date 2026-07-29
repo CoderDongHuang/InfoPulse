@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    SSO_PROXY_SECRET: str = ""
 
     # --- LLM ---
     LLM_API_KEY: str = ""
@@ -92,6 +93,8 @@ class Settings(BaseSettings):
             errors.append("ADMIN_EMAILS must contain at least one administrator")
         if len(self.METRICS_TOKEN) < 24:
             errors.append("METRICS_TOKEN must contain at least 24 characters")
+        if len(self.SSO_PROXY_SECRET) < 32:
+            errors.append("SSO_PROXY_SECRET must contain at least 32 characters")
         return errors
 
     def assert_production_ready(self) -> None:

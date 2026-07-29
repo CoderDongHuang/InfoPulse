@@ -33,12 +33,19 @@ def upgrade():
     with op.batch_alter_table("audit_logs") as batch:
         batch.add_column(sa.Column("organization_id", sa.String(36), nullable=True))
         batch.create_foreign_key("fk_audit_logs_organization_id", "organizations", ["organization_id"], ["id"], ondelete="SET NULL")
+    with op.batch_alter_table("model_usage") as batch:
+        batch.add_column(sa.Column("organization_id", sa.String(36), nullable=True))
+        batch.add_column(sa.Column("workspace_id", sa.String(36), nullable=True))
+        batch.create_foreign_key("fk_model_usage_organization_id", "organizations", ["organization_id"], ["id"], ondelete="SET NULL")
+        batch.create_foreign_key("fk_model_usage_workspace_id", "enterprise_workspaces", ["workspace_id"], ["id"], ondelete="SET NULL")
+    op.create_index("ix_model_usage_organization_id", "model_usage", ["organization_id"])
+    op.create_index("ix_model_usage_workspace_id", "model_usage", ["workspace_id"])
     op.create_index("ix_audit_logs_organization_id", "audit_logs", ["organization_id"])
     for table in ("enterprise_workspaces", "organization_members", "workspace_members", "enterprise_teams", "enterprise_team_members", "enterprise_roles", "identity_providers", "approval_requests", "legal_holds", "tenant_sla_snapshots"):
         op.create_index(f"ix_{table}_organization_id", table, ["organization_id"])
     if op.get_bind().dialect.name == "postgresql":
         op.execute("ALTER TABLE organizations ENABLE ROW LEVEL SECURITY")
-        op.execute("CREATE POLICY organizations_tenant_policy ON organizations USING (created_by = current_setting('app.user_id', true) OR id = current_setting('app.organization_id', true))")
+        op.execute("CREATE POLICY organizations_tenant_policy ON organizations USING (created_by = current_setting('app.user_id', true) OR id = current_setting('app.organization_id', true) OR slug = current_setting('app.sso_org_slug', true))")
         for table in ("enterprise_workspaces", "workspace_members", "enterprise_teams", "enterprise_team_members", "enterprise_roles", "approval_requests", "legal_holds", "tenant_policies", "tenant_quotas", "tenant_sla_snapshots"):
             op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")
             op.execute(f"CREATE POLICY {table}_tenant_policy ON {table} USING (organization_id = current_setting('app.organization_id', true)) WITH CHECK (organization_id = current_setting('app.organization_id', true))")
@@ -49,6 +56,13 @@ def upgrade():
 
 
 def downgrade():
+    op.drop_index("ix_model_usage_workspace_id", table_name="model_usage")
+    op.drop_index("ix_model_usage_organization_id", table_name="model_usage")
+    with op.batch_alter_table("model_usage") as batch:
+        batch.drop_constraint("fk_model_usage_workspace_id", type_="foreignkey")
+        batch.drop_constraint("fk_model_usage_organization_id", type_="foreignkey")
+        batch.drop_column("workspace_id")
+        batch.drop_column("organization_id")
     op.drop_index("ix_audit_logs_organization_id", table_name="audit_logs")
     with op.batch_alter_table("audit_logs") as batch:
         batch.drop_constraint("fk_audit_logs_organization_id", type_="foreignkey")

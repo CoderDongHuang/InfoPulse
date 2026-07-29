@@ -1,4 +1,6 @@
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -6,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import app.models
 from app.api.enterprise import create_role, decide_approval
+from app.api.auth import sso_exchange
 from app.core.database import Base
 from app.models.enterprise import ApprovalRequest, IdentityProvider, OrganizationMember
 from app.models.user import User
@@ -69,3 +72,15 @@ class EnterpriseGovernanceTests(unittest.IsolatedAsyncioTestCase):
             stored = await db.scalar(select(IdentityProvider.scim_token_hash).where(IdentityProvider.id == provider.id))
             self.assertEqual(stored, hash_scim_token(token))
             self.assertNotEqual(stored, token)
+
+    async def test_verified_sso_proxy_can_provision_member(self):
+        async with self.sessions() as db:
+            owner, _member, _outsider, org = await self.users(db)
+            db.add(IdentityProvider(organization_id=org.id, provider_type="oidc", name="Corporate OIDC", enabled=True))
+            await db.flush()
+            with patch("app.config.get_settings", return_value=SimpleNamespace(SSO_PROXY_SECRET="s" * 48)):
+                tokens = await sso_exchange("s" * 48, org.slug, "new.user@example.com", "oidc-subject-1", db)
+            self.assertTrue(tokens.access_token)
+            new_user = await db.scalar(select(User).where(User.email == "new.user@example.com"))
+            membership = await db.scalar(select(OrganizationMember).where(OrganizationMember.organization_id == org.id, OrganizationMember.user_id == new_user.id))
+            self.assertEqual(membership.role_key, "member")

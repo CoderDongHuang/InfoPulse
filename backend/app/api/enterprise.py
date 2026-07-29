@@ -13,7 +13,7 @@ from app.dependencies import get_current_user, get_tenant_context
 from app.models.enterprise import ApprovalRequest, CustomRole, IdentityProvider, LegalHold, Organization, OrganizationMember, Team, TeamMember, TenantPolicy, TenantQuota, TenantSLA, Workspace, WorkspaceMember
 from app.models.intelligence import AuditLog, KnowledgeDocument, ModelUsage
 from app.models.user import User
-from app.schemas.enterprise import ApprovalCreate, ApprovalDecision, IdentityProviderCreate, LegalHoldCreate, MemberCreate, OrganizationCreate, PolicyUpdate, QuotaUpdate, RoleCreate, ScimUserCreate, TeamCreate, WorkspaceCreate
+from app.schemas.enterprise import ApprovalCreate, ApprovalDecision, IdentityProviderCreate, LegalHoldCreate, MemberCreate, OrganizationCreate, PolicyUpdate, QuotaUpdate, RoleCreate, ScimUserCreate, SLASnapshotCreate, TeamCreate, WorkspaceCreate
 from app.services.enterprise import TenantContext, hash_scim_token, new_scim_token, require_permission, set_db_context
 from app.core.security import hash_password
 from starlette.concurrency import run_in_threadpool
@@ -219,7 +219,6 @@ async def create_legal_hold(payload: LegalHoldCreate, ctx: TenantContext = Depen
 @router.get("/audit-export")
 async def export_audit(ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
     require_permission(ctx, "audit.export")
-    user_ids = select(OrganizationMember.user_id).where(OrganizationMember.organization_id == ctx.organization.id)
     rows = (await db.scalars(select(AuditLog).where(AuditLog.organization_id == ctx.organization.id).order_by(AuditLog.created_at.desc()).limit(5000))).all()
     payload = [{"id": x.id, "actor_id": x.user_id, "action": x.action, "target_type": x.target_type, "target_id": x.target_id, "before": x.before_data, "after": x.after_data, "created_at": x.created_at.isoformat()} for x in rows]
     return JSONResponse(payload, headers={"Content-Disposition": "attachment; filename=tenant-audit.json", "Cache-Control": "no-store"})
@@ -228,13 +227,25 @@ async def export_audit(ctx: TenantContext = Depends(get_tenant_context), db: Asy
 @router.get("/operations")
 async def tenant_operations(ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
     require_permission(ctx, "billing.read")
-    user_ids = select(OrganizationMember.user_id).where(OrganizationMember.organization_id == ctx.organization.id)
     members_count = await db.scalar(select(func.count()).select_from(OrganizationMember).where(OrganizationMember.organization_id == ctx.organization.id, OrganizationMember.status == "active"))
-    usage = (await db.execute(select(func.coalesce(func.sum(ModelUsage.prompt_tokens + ModelUsage.completion_tokens), 0), func.coalesce(func.sum(ModelUsage.cost), 0)).where(ModelUsage.user_id.in_(user_ids)))).one()
+    user_ids = select(OrganizationMember.user_id).where(OrganizationMember.organization_id == ctx.organization.id)
+    usage = (await db.execute(select(func.coalesce(func.sum(ModelUsage.prompt_tokens + ModelUsage.completion_tokens), 0), func.coalesce(func.sum(ModelUsage.cost), 0)).where(ModelUsage.organization_id == ctx.organization.id))).one()
     documents = await db.scalar(select(func.count()).select_from(KnowledgeDocument).where(KnowledgeDocument.user_id.in_(user_ids), KnowledgeDocument.status != "deleted"))
     quota = await db.get(TenantQuota, ctx.organization.id)
     sla = await db.scalar(select(TenantSLA).where(TenantSLA.organization_id == ctx.organization.id).order_by(TenantSLA.period.desc()))
     return {"members": {"used": int(members_count or 0), "limit": quota.member_limit}, "model_tokens": {"used": int(usage[0]), "limit": quota.monthly_model_tokens}, "model_cost": {"used": round(float(usage[1]), 4), "limit": quota.monthly_cost_limit}, "knowledge_documents": int(documents or 0), "data_region": ctx.organization.data_region, "sla": {"period": sla.period, "availability": sla.availability, "p95_latency_ms": sla.p95_latency_ms, "incidents": sla.incidents, "error_budget_remaining": sla.error_budget_remaining} if sla else None}
+
+
+@router.post("/sla-snapshots", status_code=201)
+async def record_sla(payload: SLASnapshotCreate, ctx: TenantContext = Depends(get_tenant_context), user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    require_permission(ctx, "billing.manage")
+    row = await db.scalar(select(TenantSLA).where(TenantSLA.organization_id == ctx.organization.id, TenantSLA.period == payload.period))
+    if not row:
+        row = TenantSLA(organization_id=ctx.organization.id, **payload.model_dump()); db.add(row)
+    else:
+        for key, value in payload.model_dump().items(): setattr(row, key, value)
+    await db.flush(); audit(db, user, "sla.snapshot", "tenant_sla", row.id, after=payload.model_dump(), organization_id=ctx.organization.id)
+    return {"id": row.id, "period": row.period}
 
 
 async def scim_provider(credentials: HTTPAuthorizationCredentials = Depends(scim_bearer), db: AsyncSession = Depends(get_db)) -> IdentityProvider:

@@ -33,6 +33,7 @@ class ProductionConfigurationTests(unittest.TestCase):
             JWT_SECRET_KEY="x" * 48,
             ADMIN_EMAILS=["admin@example.com"],
             METRICS_TOKEN="m" * 32,
+            SSO_PROXY_SECRET="s" * 48,
             CORS_ORIGINS=["https://app.example.com"],
             TRUSTED_HOSTS=["api.example.com"],
             RUN_BACKGROUND_WORKERS_IN_API=False,

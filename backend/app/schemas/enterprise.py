@@ -88,9 +88,30 @@ class LegalHoldCreate(BaseModel):
     reason: str = Field(min_length=3, max_length=4000)
     scope: dict = Field(default_factory=dict)
 
+    @field_validator("scope")
+    @classmethod
+    def validate_scope(cls, value: dict) -> dict:
+        if set(value) - {"all", "user_ids", "workspace_ids"}:
+            raise ValueError("legal hold scope contains unsupported fields")
+        if value.get("all") not in (None, True, False):
+            raise ValueError("legal hold all must be boolean")
+        for key in ("user_ids", "workspace_ids"):
+            if key in value and (not isinstance(value[key], list) or len(value[key]) > 500 or not all(isinstance(x, str) and len(x) <= 36 for x in value[key])):
+                raise ValueError(f"invalid legal hold {key}")
+        if not value.get("all") and not value.get("user_ids") and not value.get("workspace_ids"):
+            raise ValueError("legal hold scope must select records")
+        return value
+
 
 class ScimUserCreate(BaseModel):
     userName: str = Field(min_length=3, max_length=100)
     active: bool = True
     displayName: str = Field(default="", max_length=100)
 
+
+class SLASnapshotCreate(BaseModel):
+    period: str = Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")
+    availability: float = Field(ge=0, le=100)
+    p95_latency_ms: float = Field(ge=0, le=3_600_000)
+    incidents: int = Field(ge=0, le=1_000_000)
+    error_budget_remaining: float = Field(ge=0, le=100)

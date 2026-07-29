@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.enterprise import CustomRole, Organization, OrganizationMember, TenantPolicy, TenantQuota, Workspace, WorkspaceMember
+from app.models.enterprise import CustomRole, LegalHold, Organization, OrganizationMember, TenantPolicy, TenantQuota, Workspace, WorkspaceMember
 from app.models.user import User
 
 OWNER_PERMISSIONS = {"org.read", "org.manage", "members.manage", "roles.manage", "sso.manage", "approvals.request", "approvals.decide", "audit.export", "legal_hold.manage", "policy.manage", "billing.read", "billing.manage", "sla.read"}
@@ -85,3 +85,10 @@ def new_scim_token() -> tuple[str, str]:
 
 def hash_scim_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+async def ensure_not_held(db: AsyncSession, user_id: str, workspace_id: str | None = None) -> None:
+    organization_ids = (await db.scalars(select(OrganizationMember.organization_id).where(OrganizationMember.user_id == user_id, OrganizationMember.status == "active"))).all()
+    holds = (await db.scalars(select(LegalHold).where(LegalHold.organization_id.in_(organization_ids), LegalHold.status == "active"))).all() if organization_ids else []
+    if any(hold.scope.get("all") or user_id in hold.scope.get("user_ids", []) or (workspace_id and workspace_id in hold.scope.get("workspace_ids", [])) for hold in holds):
+        raise HTTPException(status_code=409, detail="Deletion is blocked by an active legal hold")

@@ -2,6 +2,8 @@
 
 Stage 13: [Enterprise multi-tenancy and governance](./14-enterprise-governance.md)
 
+Stage 14: [Open platform and ecosystem integrations](./15-open-platform.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

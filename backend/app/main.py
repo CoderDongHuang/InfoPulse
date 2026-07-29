@@ -17,6 +17,7 @@ from app.middleware.cors import setup_cors
 from app.services.crawler.browser_manager import BrowserManager
 from app.services.automation import scheduler_loop
 from app.services.knowledge import knowledge_worker_loop
+from app.services.orchestration import orchestration_worker_loop
 from app.core.observability import setup_observability
 
 # Ensure all models are imported before table creation
@@ -47,6 +48,8 @@ async def lifespan(app: FastAPI):
     scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if run_embedded and settings.TASK_SCHEDULER_ENABLED else None
     knowledge_stop = asyncio.Event()
     knowledge_task = asyncio.create_task(knowledge_worker_loop(knowledge_stop)) if run_embedded else None
+    orchestration_stop = asyncio.Event()
+    orchestration_task = asyncio.create_task(orchestration_worker_loop(orchestration_stop)) if run_embedded and settings.ORCHESTRATION_WORKER_ENABLED else None
     print("[InfoPulse] Ready to serve requests")
 
     yield
@@ -59,6 +62,9 @@ async def lifespan(app: FastAPI):
     knowledge_stop.set()
     if knowledge_task:
         await knowledge_task
+    orchestration_stop.set()
+    if orchestration_task:
+        await orchestration_task
     await BrowserManager().close()
     await close_redis()
     await close_db()
@@ -78,7 +84,7 @@ setup_error_handlers(app)
 setup_observability(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, automation, contents, enterprise, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, operations_center, personalization, platform, reports, search, sources, stage3, stage10, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, enterprise, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, operations_center, orchestration, personalization, platform, reports, search, sources, stage3, stage10, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -104,6 +110,7 @@ app.include_router(operations_center.router)
 app.include_router(enterprise.router)
 app.include_router(enterprise.scim_router)
 app.include_router(platform.router)
+app.include_router(orchestration.router)
 
 
 @app.get("/api/v1/health")

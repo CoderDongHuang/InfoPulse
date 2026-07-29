@@ -95,6 +95,14 @@ services:
       minio-init: {condition: service_completed_successfully}
     restart: unless-stopped
 
+  orchestration-worker:
+    build: {context: ../backend, dockerfile: Dockerfile}
+    command: ["python", "-m", "app.worker", "--role", "orchestration"]
+    env_file: [.env.staging]
+    environment: {RUN_BACKGROUND_WORKERS_IN_API: "false", ORCHESTRATION_WORKER_ENABLED: "true"}
+    depends_on: {migrate: {condition: service_completed_successfully}}
+    restart: unless-stopped
+
   web:
     build: {context: ../frontend, dockerfile: Dockerfile}
     ports: ["8080:80"]

@@ -4,6 +4,8 @@ Stage 13: [Enterprise multi-tenancy and governance](./14-enterprise-governance.m
 
 Stage 14: [Open platform and ecosystem integrations](./15-open-platform.md)
 
+Stage 15: [Agent orchestration and governed autonomy](./16-agent-orchestration.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

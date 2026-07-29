@@ -34,6 +34,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://app:password@db/infopulse
           JWT_SECRET_KEY: ${{ secrets.RELEASE_GATE_JWT_SECRET || 'release-gate-only-secret-000000000000' }}
           SSO_PROXY_SECRET: ${{ secrets.RELEASE_GATE_SSO_PROXY_SECRET || 'release-gate-sso-proxy-secret-0000000000' }}
+          PLATFORM_ENCRYPTION_KEY: ${{ secrets.RELEASE_GATE_PLATFORM_ENCRYPTION_KEY || 'release-gate-platform-encryption-000000' }}
           ADMIN_EMAILS: '["admin@example.com"]'
           METRICS_TOKEN: ${{ secrets.RELEASE_GATE_METRICS_TOKEN || 'release-gate-metrics-token-000000' }}
           CORS_ORIGINS: '["https://app.example.com"]'

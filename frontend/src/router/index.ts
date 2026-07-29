@@ -88,6 +88,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/bi", name: "ControlledBI", component: () => import("@/views/BIView.vue"), meta: { title: "自然语言 BI", requiresAuth: true } },
   { path: "/admin", name: "AdminOperations", component: () => import("@/views/AdminView.vue"), meta: { title: "运行管理", requiresAuth: true, adminOnly: true } },
   { path: "/enterprise", name: "EnterpriseGovernance", component: () => import("@/views/EnterpriseView.vue"), meta: { title: "企业治理", requiresAuth: true } },
+  { path: "/developers", name: "DeveloperPlatform", component: () => import("@/views/DeveloperPlatformView.vue"), meta: { title: "开发者平台", requiresAuth: true } },
   { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",

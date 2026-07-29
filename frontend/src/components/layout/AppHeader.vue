@@ -53,7 +53,7 @@ const navGroups = [
   },
   {
     label: "平台管理",
-    items: [{ path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting", adminOnly: true }],
+    items: [{ path: "/enterprise", label: "企业治理", icon: "Lock" }, { path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting", adminOnly: true }],
   },
 ];
 const visibleNavGroups = computed(() => navGroups.map(group => ({

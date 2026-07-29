@@ -187,6 +187,7 @@ class AuditLog(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
     user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    organization_id: Mapped[str | None] = mapped_column(ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True)
     action: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
     target_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     target_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)

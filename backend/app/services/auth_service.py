@@ -51,6 +51,8 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
         await db.rollback()
         raise ValueError("用户名或邮箱已被注册") from exc
     await db.refresh(user)
+    from app.services.enterprise import provision_personal_tenant
+    await provision_personal_tenant(db, user)
 
     return _generate_tokens(user)
 

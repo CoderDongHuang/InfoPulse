@@ -67,6 +67,12 @@ class Settings(BaseSettings):
     KNOWLEDGE_MAX_FILE_MB: int = 25
     KNOWLEDGE_MAX_FILES_PER_UPLOAD: int = 10
     KNOWLEDGE_WEB_MAX_BYTES: int = 5_000_000
+    MEDIA_MAX_FILE_MB: int = 250
+    MEDIA_VISION_MODEL: str = ""
+    MEDIA_TRANSCRIPTION_MODEL: str = ""
+    MEDIA_FRAME_INTERVAL_SECONDS: int = 10
+    MEDIA_MAX_VIDEO_FRAMES: int = 24
+    MEDIA_WORKER_ENABLED: bool = True
 
     @field_validator("CORS_ORIGINS", "TRUSTED_HOSTS", "ADMIN_EMAILS", mode="before")
     @classmethod

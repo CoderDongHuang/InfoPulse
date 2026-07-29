@@ -16,6 +16,8 @@ build/
 
 # Node
 node_modules/
+sdk/typescript/dist/
+sdk/python/**/__pycache__/
 dist/
 .nuxt/
 .output/

@@ -75,9 +75,16 @@ async def model_output(db,run,node):
     if run.spent_cents+estimated>run.budget_cents:raise RuntimeError("workflow cost budget exceeded")
     values={**run.input,**run.output};message=str(cfg.get("message","Execute the workflow step."))
     for key,value in values.items():message=message.replace("{{"+key+"}}",str(value))
-    text=await complete_chat(prompt.system_prompt,message,max_tokens=route.max_tokens) if llm_is_configured() else f"Model route {route.primary_model} accepted the step without a configured LLM."
+    selected=route.primary_model
+    if llm_is_configured():
+        last_error=None
+        for candidate in [route.primary_model,*route.fallback_models]:
+            try:text=await complete_chat(prompt.system_prompt,message,max_tokens=route.max_tokens,model=candidate);selected=candidate;break
+            except Exception as exc:last_error=exc
+        else:raise RuntimeError(f"all approved model routes failed: {last_error}")
+    else:text=f"Model route {route.primary_model} accepted the step without a configured LLM."
     run.spent_cents+=estimated
-    return {"text":text,"model":route.primary_model,"prompt":f"{prompt.key}:v{prompt.version}","cost_cents":estimated}
+    return {"text":text,"model":selected,"prompt":f"{prompt.key}:v{prompt.version}","cost_cents":estimated}
 
 async def tool_guard(db,run,node,step):
     cfg=node.get("config",{});tool=await db.scalar(select(ToolDefinition).where(ToolDefinition.organization_id==run.organization_id,ToolDefinition.key==cfg["tool_key"],ToolDefinition.enabled.is_(True)))

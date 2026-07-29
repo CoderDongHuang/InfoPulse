@@ -64,11 +64,12 @@ async def complete_chat(
     user_message: str,
     temperature: float = 0.5,
     max_tokens: int = 2048,
+    model: str | None = None,
 ) -> str:
     """Return a complete chat response."""
     client = get_llm_client()
     response = await client.chat.completions.create(
-        model=settings.LLM_MODEL,
+        model=model or settings.LLM_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},

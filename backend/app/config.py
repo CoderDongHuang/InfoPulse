@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     TASK_SCHEDULER_POLL_SECONDS: int = 30
     TASK_WORKER_CONCURRENCY: int = 4
     RUN_BACKGROUND_WORKERS_IN_API: bool = True
+    ORCHESTRATION_WORKER_ENABLED: bool = True
     KNOWLEDGE_WORKER_POLL_SECONDS: int = 2
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587

@@ -187,6 +187,7 @@ class AuditLog(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_string)
     user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    organization_id: Mapped[str | None] = mapped_column(ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True)
     action: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
     target_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     target_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
@@ -631,7 +632,7 @@ class BIQueryHistory(Base):
     id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True);question:Mapped[str]=mapped_column(String(1000));query_plan:Mapped[dict]=mapped_column(JSON,default=dict);result:Mapped[dict]=mapped_column(JSON,default=dict);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
 class ModelUsage(Base):
     __tablename__="model_usage"
-    id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str|None]=mapped_column(ForeignKey("users.id",ondelete="SET NULL"),index=True);feature:Mapped[str]=mapped_column(String(40),index=True);model_name:Mapped[str]=mapped_column(String(120),index=True);prompt_tokens:Mapped[int]=mapped_column(Integer,default=0);completion_tokens:Mapped[int]=mapped_column(Integer,default=0);cost:Mapped[float]=mapped_column(Float,default=0);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
+    id:Mapped[str]=mapped_column(String(36),primary_key=True,default=uuid_string);user_id:Mapped[str|None]=mapped_column(ForeignKey("users.id",ondelete="SET NULL"),index=True);organization_id:Mapped[str|None]=mapped_column(ForeignKey("organizations.id",ondelete="SET NULL"),index=True);workspace_id:Mapped[str|None]=mapped_column(ForeignKey("enterprise_workspaces.id",ondelete="SET NULL"),index=True);feature:Mapped[str]=mapped_column(String(40),index=True);model_name:Mapped[str]=mapped_column(String(120),index=True);prompt_tokens:Mapped[int]=mapped_column(Integer,default=0);completion_tokens:Mapped[int]=mapped_column(Integer,default=0);cost:Mapped[float]=mapped_column(Float,default=0);created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now,index=True)
 
 class ProductEvent(Base):
     __tablename__="product_events"

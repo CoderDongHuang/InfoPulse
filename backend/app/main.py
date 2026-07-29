@@ -78,7 +78,7 @@ setup_error_handlers(app)
 setup_observability(app)
 
 # --- Routes ---
-from app.api import agent, analyses, auth, automation, contents, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, operations_center, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
+from app.api import agent, analyses, auth, automation, contents, enterprise, events, graph, history, hot_search, insights, knowledge, mouthpiece, operations, operations_center, personalization, reports, search, sources, stage3, stage10, timeline  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -101,6 +101,8 @@ app.include_router(graph.router)
 app.include_router(stage10.router)
 app.include_router(operations.router)
 app.include_router(operations_center.router)
+app.include_router(enterprise.router)
+app.include_router(enterprise.scim_router)
 
 
 @app.get("/api/v1/health")

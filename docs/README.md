@@ -1,5 +1,7 @@
 # InfoPulse 产品与开发文档
 
+Stage 13: [Enterprise multi-tenancy and governance](./14-enterprise-governance.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

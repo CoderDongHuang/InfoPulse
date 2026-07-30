@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxtst6 \
     # Utility
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # --- Install Python dependencies ---

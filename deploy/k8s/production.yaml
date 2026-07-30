@@ -12,6 +12,10 @@ data:
   TASK_SCHEDULER_ENABLED: "true"
   KNOWLEDGE_STORAGE_BACKEND: s3
   ORCHESTRATION_WORKER_ENABLED: "true"
+  MEDIA_WORKER_ENABLED: "true"
+  MEDIA_MAX_FILE_MB: "250"
+  MEDIA_FRAME_INTERVAL_SECONDS: "10"
+  MEDIA_MAX_VIDEO_FRAMES: "24"
   CRAWLER_ENABLED: "true"
 ---
 apiVersion: batch/v1
@@ -168,6 +172,32 @@ spec:
   maxReplicas: 10
   metrics: [{type: Resource, resource: {name: cpu, target: {type: Utilization, averageUtilization: 70}}}]
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: media-worker, namespace: infopulse}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: infopulse-media-worker}}
+  template:
+    metadata: {labels: {app: infopulse-media-worker}}
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          args: ["python","-m","app.worker","--role","media"]
+          envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
+          resources: {requests: {cpu: "1", memory: 1Gi}, limits: {cpu: "4", memory: 4Gi}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: media-worker, namespace: infopulse}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: media-worker}
+  minReplicas: 2
+  maxReplicas: 12
+  metrics: [{type: Resource, resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}}]
+  behavior: {scaleDown: {stabilizationWindowSeconds: 600}}
+---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata: {name: api-stable, namespace: infopulse}
@@ -216,7 +246,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-production
     nginx.ingress.kubernetes.io/limit-rps: "30"
     nginx.ingress.kubernetes.io/limit-burst-multiplier: "3"
-    nginx.ingress.kubernetes.io/proxy-body-size: "30m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "260m"
 spec:
   ingressClassName: nginx
   tls: [{hosts: [api.example.com], secretName: infopulse-api-tls}]

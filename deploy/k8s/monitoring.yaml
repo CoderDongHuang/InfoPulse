@@ -35,7 +35,7 @@ spec:
           labels: {severity: page}
           annotations: {summary: "Fewer than two stable API replicas are available"}
         - alert: InfoPulseWorkerUnavailable
-          expr: kube_deployment_status_replicas_available{namespace="infopulse",deployment=~"scheduler|knowledge-worker|orchestration-worker"} < 1
+          expr: kube_deployment_status_replicas_available{namespace="infopulse",deployment=~"scheduler|knowledge-worker|orchestration-worker|media-worker"} < 1
           for: 5m
           labels: {severity: page}
           annotations: {summary: "A required InfoPulse worker has no available replica"}

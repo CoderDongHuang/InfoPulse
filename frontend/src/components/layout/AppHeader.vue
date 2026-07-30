@@ -37,6 +37,7 @@ const navGroups = [
       { path: "/bi", label: "自然语言 BI", icon: "TrendCharts" },
       { path: "/agent", label: "AI Agent", icon: "ChatDotRound" },
       { path: "/orchestration", label: "Agent 编排", icon: "Share" },
+      { path: "/multimodal", label: "多模态情报", icon: "VideoCamera" },
       { path: "/reports", label: "报告中心", icon: "Document" },
       { path: "/subscriptions", label: "订阅中心", icon: "Bell" },
       { path: "/tasks", label: "任务中心", icon: "Timer" },

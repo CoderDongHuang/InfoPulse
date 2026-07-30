@@ -44,6 +44,11 @@ def evidence_view(x):return {"id":x.id,"ordinal":x.ordinal,"type":x.evidence_typ
 @router.get("/capabilities")
 async def capabilities(ctx:TenantContext=Depends(get_tenant_context)):
  require_permission(ctx,"media.read");return {"formats":sorted(MIME),"max_file_mb":settings.MEDIA_MAX_FILE_MB,"storage_backend":settings.KNOWLEDGE_STORAGE_BACKEND,"vision_configured":bool(settings.MEDIA_VISION_MODEL and settings.LLM_API_KEY),"transcription_configured":bool(settings.MEDIA_TRANSCRIPTION_MODEL and settings.LLM_API_KEY),"video_requires_ffmpeg":True,"fabricated_results":False}
+@router.get("/quality/overview")
+async def quality_overview(ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
+ require_permission(ctx,"media.read");org=ctx.organization.id
+ total=int(await db.scalar(select(func.count()).select_from(MediaProcessingRun).where(MediaProcessingRun.organization_id==org)) or 0);succeeded=int(await db.scalar(select(func.count()).select_from(MediaProcessingRun).where(MediaProcessingRun.organization_id==org,MediaProcessingRun.status=="succeeded")) or 0);failed=int(await db.scalar(select(func.count()).select_from(MediaProcessingRun).where(MediaProcessingRun.organization_id==org,MediaProcessingRun.status=="failed")) or 0);confidence=float(await db.scalar(select(func.avg(MediaEvidence.confidence)).where(MediaEvidence.organization_id==org,MediaEvidence.confidence>0)) or 0);cost=int(await db.scalar(select(func.coalesce(func.sum(MediaProcessingRun.actual_cost_cents),0)).where(MediaProcessingRun.organization_id==org)) or 0)
+ return {"runs":total,"succeeded":succeeded,"failed":failed,"success_rate":round(succeeded/total,4) if total else None,"average_evidence_confidence":round(confidence,4) if confidence else None,"actual_cost_cents":cost,"empty":total==0}
 @router.get("/assets")
 async def assets(media_type:str|None=None,status:str|None=None,ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
  require_permission(ctx,"media.read");q=select(MediaAsset).where(MediaAsset.organization_id==ctx.organization.id,MediaAsset.deleted_at.is_(None));q=q.where(MediaAsset.workspace_id==ctx.workspace.id) if ctx.workspace else q

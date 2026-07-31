@@ -38,6 +38,7 @@ const navGroups = [
       { path: "/agent", label: "AI Agent", icon: "ChatDotRound" },
       { path: "/orchestration", label: "Agent 编排", icon: "Share" },
       { path: "/multimodal", label: "多模态情报", icon: "VideoCamera" },
+      { path: "/global-intelligence", label: "全球情报与决策", icon: "LocationInformation" },
       { path: "/reports", label: "报告中心", icon: "Document" },
       { path: "/subscriptions", label: "订阅中心", icon: "Bell" },
       { path: "/tasks", label: "任务中心", icon: "Timer" },

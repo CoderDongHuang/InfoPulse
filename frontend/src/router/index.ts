@@ -91,6 +91,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/developers", name: "DeveloperPlatform", component: () => import("@/views/DeveloperPlatformView.vue"), meta: { title: "开发者平台", requiresAuth: true } },
   { path: "/orchestration", name: "AgentOrchestration", component: () => import("@/views/OrchestrationView.vue"), meta: { title: "Agent 编排", requiresAuth: true } },
   { path: "/multimodal", name: "MultimodalIntelligence", component: () => import("@/views/MultimodalView.vue"), meta: { title: "多模态情报", requiresAuth: true } },
+  { path: "/global-intelligence", name: "GlobalIntelligence", component: () => import("@/views/GlobalIntelligenceView.vue"), meta: { title: "全球情报与决策", requiresAuth: true } },
   { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",

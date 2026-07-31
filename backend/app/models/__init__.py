@@ -12,7 +12,7 @@ from app.models.platform import APIUsageMeter, BillingAccount, ConnectorDefiniti
 from app.models.orchestration import AgentMemory, EvaluationDataset, EvaluationRun, ModelRoute, OrchestrationAudit, PromptDefinition, ToolDefinition, ToolPolicy, Workflow, WorkflowApproval, WorkflowRun, WorkflowStepRun, WorkflowTemplate, WorkflowVersion
 from app.models.multimodal import CollaborationAudit,CollaborationComment,CollaborationTicket,CollaborativeChange,CollaborativeDocument,LiveStream,LiveUpdate,MediaAsset,MediaCitation,MediaEvidence,MediaProcessingRun
 from app.models.global_intelligence import ContentTranslation,GlobalNarrative,NarrativeSignal,Scenario,DecisionRoom,DecisionOption,DecisionAudit
-from app.models.action_loop import ResponseAction,ActionStep,ActionRun,ActionReceipt,ImpactMetricDefinition,ImpactMeasurement,ActionReview,AnonymousBenchmark,ActionDrill
+from app.models.action_loop import ResponseAction,ActionStep,ActionRun,ActionReceipt,ImpactMetricDefinition,ImpactMeasurement,ActionReview,AnonymousBenchmark,ActionDrill,ActionAudit,ActionTemplate
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -35,5 +35,5 @@ __all__ = [
     "ToolDefinition", "ToolPolicy", "PromptDefinition", "ModelRoute", "Workflow", "WorkflowVersion", "WorkflowRun", "WorkflowStepRun", "WorkflowApproval", "AgentMemory", "EvaluationDataset", "EvaluationRun", "WorkflowTemplate", "OrchestrationAudit",
     "MediaAsset","MediaProcessingRun","MediaEvidence","MediaCitation","LiveStream","LiveUpdate","CollaborativeDocument","CollaborativeChange","CollaborationComment","CollaborationTicket","CollaborationAudit",
     "ContentTranslation","GlobalNarrative","NarrativeSignal","Scenario","DecisionRoom","DecisionOption","DecisionAudit",
-    "ResponseAction","ActionStep","ActionRun","ActionReceipt","ImpactMetricDefinition","ImpactMeasurement","ActionReview","AnonymousBenchmark","ActionDrill",
+    "ResponseAction","ActionStep","ActionRun","ActionReceipt","ImpactMetricDefinition","ImpactMeasurement","ActionReview","AnonymousBenchmark","ActionDrill","ActionAudit","ActionTemplate",
 ]

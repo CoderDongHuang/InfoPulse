@@ -71,3 +71,15 @@ async def metric(p:ImpactMetricCreate,ctx:TenantContext=Depends(get_tenant_conte
 @router.get("/action-dashboard")
 async def dashboard(ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
     require_permission(ctx,"action.read"); rows=(await db.scalars(select(ResponseAction).where(ResponseAction.organization_id==ctx.organization.id))).all(); return {"total":len(rows),"by_status":{s:sum(x.status==s for x in rows) for s in {x.status for x in rows}},"budget_cents":sum(x.budget_cents for x in rows),"spent_cents":sum(x.spent_cents for x in rows),"empty":not rows}
+@router.post("/actions/bulk-approve")
+async def bulk_approve(ids:list[str],ctx:TenantContext=Depends(get_tenant_context),user:User=Depends(get_current_user),db:AsyncSession=Depends(get_db)):
+    require_permission(ctx,"action.approve"); rows=(await db.scalars(select(ResponseAction).where(ResponseAction.organization_id==ctx.organization.id,ResponseAction.id.in_(ids)))).all(); changed=0
+    for a in rows:
+        if a.status=="pending_approval" and a.created_by!=user.id: a.status="approved";a.approved_by=user.id;changed+=1;db.add(ActionAudit(organization_id=ctx.organization.id,action_id=a.id,actor_id=user.id,action="bulk.approved",details={}))
+    return {"approved":changed}
+@router.get("/action-operations")
+async def operations(ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
+    require_permission(ctx,"action.read"); rows=(await db.scalars(select(ResponseAction).where(ResponseAction.organization_id==ctx.organization.id))).all(); now=datetime.now(timezone.utc); overdue=[a.id for a in rows if a.due_at and a.due_at<now and a.status not in ("completed","cancelled")]; dead=(await db.scalars(select(ActionRun).where(ActionRun.organization_id==ctx.organization.id,ActionRun.status=="dead_letter"))).all(); return {"overdue_action_ids":overdue,"dead_letter_runs":len(dead),"success_rate":(sum(a.status=="completed" for a in rows)/len(rows) if rows else None),"empty":not rows}
+@router.get("/action-templates")
+async def templates(ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
+    require_permission(ctx,"action.read"); return [{"id":x.id,"name":x.name,"version":x.version,"status":x.status,"definition":x.definition} for x in (await db.scalars(select(ActionTemplate).where(ActionTemplate.organization_id==ctx.organization.id,ActionTemplate.status=="active"))).all()]

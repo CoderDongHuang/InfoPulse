@@ -59,3 +59,11 @@ class AnonymousBenchmark(Base):
 class ActionDrill(Base):
     __tablename__ = "action_drills"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid); organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True); action_id: Mapped[str|None] = mapped_column(ForeignKey("response_actions.id", ondelete="SET NULL")); drill_type: Mapped[str] = mapped_column(String(50)); input_snapshot: Mapped[dict] = mapped_column(JSON, default=dict); expected_result: Mapped[dict] = mapped_column(JSON, default=dict); actual_result: Mapped[dict] = mapped_column(JSON, default=dict); status: Mapped[str] = mapped_column(String(20), default="planned"); created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+class ActionAudit(Base):
+    __tablename__ = "action_audits"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid); organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True); action_id: Mapped[str|None] = mapped_column(ForeignKey("response_actions.id", ondelete="SET NULL")); actor_id: Mapped[str|None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL")); action: Mapped[str] = mapped_column(String(80)); details: Mapped[dict] = mapped_column(JSON, default=dict); created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+class ActionTemplate(Base):
+    __tablename__ = "action_templates"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid); organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True); name: Mapped[str] = mapped_column(String(200)); version: Mapped[int] = mapped_column(Integer, default=1); definition: Mapped[dict] = mapped_column(JSON, default=dict); status: Mapped[str] = mapped_column(String(20), default="active"); created_by: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT")); created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

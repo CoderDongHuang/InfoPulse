@@ -8,6 +8,7 @@ from app.core.observability import configure_logging
 from app.services.automation import scheduler_loop
 from app.services.knowledge import knowledge_worker_loop
 from app.services.orchestration import orchestration_worker_loop
+from app.services.multimodal import media_worker_loop
 
 
 async def run(role: str):
@@ -18,6 +19,7 @@ async def run(role: str):
     if role in {"scheduler", "all"}: tasks.append(asyncio.create_task(scheduler_loop(stop)))
     if role in {"knowledge", "all"}: tasks.append(asyncio.create_task(knowledge_worker_loop(stop)))
     if role in {"orchestration", "all"}: tasks.append(asyncio.create_task(orchestration_worker_loop(stop)))
+    if role in {"media", "all"}: tasks.append(asyncio.create_task(media_worker_loop(stop)))
     try:
         await asyncio.gather(*tasks)
     finally:
@@ -27,7 +29,7 @@ async def run(role: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--role", choices=["scheduler", "knowledge", "orchestration", "all"], required=True)
+    parser.add_argument("--role", choices=["scheduler", "knowledge", "orchestration", "media", "all"], required=True)
     args = parser.parse_args()
     try: asyncio.run(run(args.role))
     except KeyboardInterrupt: pass

@@ -10,6 +10,7 @@ from app.models.analysis_history import AnalysisHistory
 from app.models.enterprise import ApprovalRequest, CustomRole, IdentityProvider, LegalHold, Organization, OrganizationMember, Team, TeamMember, TenantPolicy, TenantQuota, TenantSLA, Workspace, WorkspaceMember
 from app.models.platform import APIUsageMeter, BillingAccount, ConnectorDefinition, ConnectorInstallation, DeveloperAPIKey, OAuthAccessGrant, OAuthApplication, OAuthAuthorizationCode, SecurityReview, SubscriptionPlan, WebhookDelivery, WebhookEndpoint
 from app.models.orchestration import AgentMemory, EvaluationDataset, EvaluationRun, ModelRoute, OrchestrationAudit, PromptDefinition, ToolDefinition, ToolPolicy, Workflow, WorkflowApproval, WorkflowRun, WorkflowStepRun, WorkflowTemplate, WorkflowVersion
+from app.models.multimodal import CollaborationAudit,CollaborationComment,CollaborationTicket,CollaborativeChange,CollaborativeDocument,LiveStream,LiveUpdate,MediaAsset,MediaCitation,MediaEvidence,MediaProcessingRun
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -30,4 +31,5 @@ __all__ = [
     "Organization", "Workspace", "OrganizationMember", "WorkspaceMember", "Team", "TeamMember", "CustomRole", "IdentityProvider", "ApprovalRequest", "LegalHold", "TenantPolicy", "TenantQuota", "TenantSLA",
     "DeveloperAPIKey", "OAuthApplication", "OAuthAuthorizationCode", "OAuthAccessGrant", "WebhookEndpoint", "WebhookDelivery", "ConnectorDefinition", "ConnectorInstallation", "SecurityReview", "SubscriptionPlan", "BillingAccount", "APIUsageMeter",
     "ToolDefinition", "ToolPolicy", "PromptDefinition", "ModelRoute", "Workflow", "WorkflowVersion", "WorkflowRun", "WorkflowStepRun", "WorkflowApproval", "AgentMemory", "EvaluationDataset", "EvaluationRun", "WorkflowTemplate", "OrchestrationAudit",
+    "MediaAsset","MediaProcessingRun","MediaEvidence","MediaCitation","LiveStream","LiveUpdate","CollaborativeDocument","CollaborativeChange","CollaborationComment","CollaborationTicket","CollaborationAudit",
 ]

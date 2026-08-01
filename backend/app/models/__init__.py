@@ -15,6 +15,7 @@ from app.models.global_intelligence import ContentTranslation,GlobalNarrative,Na
 from app.models.action_loop import ResponseAction,ActionStep,ActionRun,ActionReceipt,ImpactMetricDefinition,ImpactMeasurement,ActionReview,AnonymousBenchmark,ActionDrill,ActionAudit,ActionTemplate
 from app.models.commercialization import ApprovalFlow,AttributionAudit,ConnectorExecution,MetricCollector,ProductUsage,SLAPolicy,TemplatePackage,TemplatePackageVersion,UsageEntitlement
 from app.models.autonomous_enterprise import ApprovalNodeRun,ApprovalRun,BillingDocument,CausalExperiment,ComplianceControl,ComplianceEvidence,ConnectorCredentialLease,FinancialLedger,PolicyBundle,PolicyVersion,PrivacyBudget,PrivacyQueryAudit,RecoveryDrill,SafetyEvaluation
+from app.models.trusted_ecosystem import AbuseReport,DataContract,EcosystemDrill,ExchangeEnvelope,FederatedComputation,FederationAgreement,IntelligenceProduct,MarketplaceDispute,MarketplaceOrder,ProvenanceEdge,ProvenanceNode,RegulatoryPack,ResponsibilityEvent,SupplyArtifact,TrustScore
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -40,4 +41,5 @@ __all__ = [
     "ResponseAction","ActionStep","ActionRun","ActionReceipt","ImpactMetricDefinition","ImpactMeasurement","ActionReview","AnonymousBenchmark","ActionDrill","ActionAudit","ActionTemplate",
     "TemplatePackage","TemplatePackageVersion","ApprovalFlow","MetricCollector","AttributionAudit","SLAPolicy","UsageEntitlement","ProductUsage","ConnectorExecution",
     "ConnectorCredentialLease","ApprovalRun","ApprovalNodeRun","CausalExperiment","FinancialLedger","BillingDocument","PrivacyBudget","PrivacyQueryAudit","PolicyBundle","PolicyVersion","RecoveryDrill","ComplianceControl","ComplianceEvidence","SafetyEvaluation",
+    "FederationAgreement","ExchangeEnvelope","ProvenanceNode","ProvenanceEdge","DataContract","SupplyArtifact","IntelligenceProduct","MarketplaceOrder","MarketplaceDispute","FederatedComputation","ResponsibilityEvent","RegulatoryPack","TrustScore","AbuseReport","EcosystemDrill",
 ]

@@ -1,0 +1,2 @@
+import request from './request'
+export const trustNetworkApi={overview:async()=>(await request.get('/trust-network/overview')).data,agreement:async(data:any)=>(await request.post('/trust-network/agreements',data)).data,product:async(data:any)=>(await request.post('/trust-network/products',data)).data,regulatory:async(data:any)=>(await request.post('/trust-network/regulatory-packs',data)).data,drill:async(data:any)=>(await request.post('/trust-network/drills',data)).data,inbox:async()=>(await request.get('/trust-network/inbox')).data}

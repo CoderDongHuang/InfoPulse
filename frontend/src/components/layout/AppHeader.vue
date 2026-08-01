@@ -56,7 +56,7 @@ const navGroups = [
   },
   {
     label: "平台管理",
-    items: [{ path: "/enterprise", label: "企业治理", icon: "Lock" }, { path: "/developers", label: "开发者平台", icon: "Monitor" }, { path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting", adminOnly: true }],
+    items: [{ path: "/enterprise", label: "企业治理", icon: "Lock" }, { path: "/commercial-operations", label: "商业运营", icon: "DataAnalysis" }, { path: "/autonomy", label: "自治与合规", icon: "CircleCheck" }, { path: "/developers", label: "开发者平台", icon: "Monitor" }, { path: "/sources", label: "数据源中心", icon: "Connection" }, { path: "/admin", label: "运行管理", icon: "Setting", adminOnly: true }],
   },
 ];
 const visibleNavGroups = computed(() => navGroups.map(group => ({

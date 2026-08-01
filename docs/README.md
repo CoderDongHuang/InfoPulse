@@ -6,6 +6,12 @@ Stage 14: [Open platform and ecosystem integrations](./15-open-platform.md)
 
 Stage 15: [Agent orchestration and governed autonomy](./16-agent-orchestration.md)
 
+Stage 20: [智能决策产品化与商业化](./20-decision-productization-commercialization.md)
+
+Stage 21: [自治型企业情报与合规规模化](./21-autonomous-enterprise-intelligence.md)
+
+Stage 22: [可信情报网络与生态交易规模化](./22-intelligence-network-and-trust-marketplace.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

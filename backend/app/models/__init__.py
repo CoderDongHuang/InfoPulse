@@ -13,6 +13,8 @@ from app.models.orchestration import AgentMemory, EvaluationDataset, EvaluationR
 from app.models.multimodal import CollaborationAudit,CollaborationComment,CollaborationTicket,CollaborativeChange,CollaborativeDocument,LiveStream,LiveUpdate,MediaAsset,MediaCitation,MediaEvidence,MediaProcessingRun
 from app.models.global_intelligence import ContentTranslation,GlobalNarrative,NarrativeSignal,Scenario,DecisionRoom,DecisionOption,DecisionAudit
 from app.models.action_loop import ResponseAction,ActionStep,ActionRun,ActionReceipt,ImpactMetricDefinition,ImpactMeasurement,ActionReview,AnonymousBenchmark,ActionDrill,ActionAudit,ActionTemplate
+from app.models.commercialization import ApprovalFlow,AttributionAudit,ConnectorExecution,MetricCollector,ProductUsage,SLAPolicy,TemplatePackage,TemplatePackageVersion,UsageEntitlement
+from app.models.autonomous_enterprise import ApprovalNodeRun,ApprovalRun,BillingDocument,CausalExperiment,ComplianceControl,ComplianceEvidence,ConnectorCredentialLease,FinancialLedger,PolicyBundle,PolicyVersion,PrivacyBudget,PrivacyQueryAudit,RecoveryDrill,SafetyEvaluation
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -36,4 +38,6 @@ __all__ = [
     "MediaAsset","MediaProcessingRun","MediaEvidence","MediaCitation","LiveStream","LiveUpdate","CollaborativeDocument","CollaborativeChange","CollaborationComment","CollaborationTicket","CollaborationAudit",
     "ContentTranslation","GlobalNarrative","NarrativeSignal","Scenario","DecisionRoom","DecisionOption","DecisionAudit",
     "ResponseAction","ActionStep","ActionRun","ActionReceipt","ImpactMetricDefinition","ImpactMeasurement","ActionReview","AnonymousBenchmark","ActionDrill","ActionAudit","ActionTemplate",
+    "TemplatePackage","TemplatePackageVersion","ApprovalFlow","MetricCollector","AttributionAudit","SLAPolicy","UsageEntitlement","ProductUsage","ConnectorExecution",
+    "ConnectorCredentialLease","ApprovalRun","ApprovalNodeRun","CausalExperiment","FinancialLedger","BillingDocument","PrivacyBudget","PrivacyQueryAudit","PolicyBundle","PolicyVersion","RecoveryDrill","ComplianceControl","ComplianceEvidence","SafetyEvaluation",
 ]

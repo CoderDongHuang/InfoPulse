@@ -93,6 +93,8 @@ const routes: RouteRecordRaw[] = [
   { path: "/multimodal", name: "MultimodalIntelligence", component: () => import("@/views/MultimodalView.vue"), meta: { title: "多模态情报", requiresAuth: true } },
   { path: "/global-intelligence", name: "GlobalIntelligence", component: () => import("@/views/GlobalIntelligenceView.vue"), meta: { title: "全球情报与决策", requiresAuth: true } },
   { path: "/action-loop", name: "ActionLoop", component: () => import("@/views/ActionLoopView.vue"), meta: { title: "行动闭环", requiresAuth: true } },
+  { path: "/commercial-operations", name: "CommercialOperations", component: () => import("@/views/CommercialOperationsView.vue"), meta: { title: "智能决策商业运营", requiresAuth: true } },
+  { path: "/autonomy", name: "AutonomousEnterprise", component: () => import("@/views/AutonomousEnterpriseView.vue"), meta: { title: "自治与合规控制中心", requiresAuth: true } },
   { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",

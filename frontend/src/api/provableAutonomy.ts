@@ -1,0 +1,2 @@
+import request from './request'
+export const provableAutonomyApi={overview:async()=>(await request.get('/provable-autonomy/overview')).data,compileProof:async(data:any)=>(await request.post('/provable-autonomy/decision-proofs',data)).data,modelCheck:async(data:any)=>(await request.post('/provable-autonomy/model-checks',data)).data,testKernel:async(data:any)=>(await request.post('/provable-autonomy/disaster-kernel/tests',data)).data,scheduleGreen:async(data:any)=>(await request.post('/provable-autonomy/green-schedules',data)).data}

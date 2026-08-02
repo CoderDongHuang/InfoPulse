@@ -18,6 +18,7 @@ from app.models.autonomous_enterprise import ApprovalNodeRun,ApprovalRun,Billing
 from app.models.trusted_ecosystem import AbuseReport,DataContract,EcosystemDrill,ExchangeEnvelope,FederatedComputation,FederationAgreement,IntelligenceProduct,MarketplaceDispute,MarketplaceOrder,ProvenanceEdge,ProvenanceNode,RegulatoryPack,ResponsibilityEvent,SupplyArtifact,TrustScore
 from app.models.global_coordination import ArbitrationCase,CapabilityNegotiation,ContractNegotiation,ControlObservation,CrisisCommand,CrisisRoom,FederatedEvaluation,FederationNode,GlobalSettlement,ProofVerification,RegulatorySubscription,RegulatoryUpdate,SystemicRiskSignal
 from app.models.adaptive_intelligence import AssuranceSnapshot,GovernanceProposal,GovernanceVote,IncidentOrchestration,MarketRiskControl,PolicySynthesis,ProtocolRollout,SovereignRoute,SustainabilityLedger,TransparencyLog,TwinSimulation
+from app.models.provable_autonomy import AgentCollectiveRun,DecisionProof,DisasterKernelSnapshot,ForecastPosition,GreenSchedule,LiabilitySettlement,MemoryGovernanceRecord,PolicyModelCheck,PredictionMarket,RegionReplica,RegulatoryPartition
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -46,4 +47,5 @@ __all__ = [
     "FederationAgreement","ExchangeEnvelope","ProvenanceNode","ProvenanceEdge","DataContract","SupplyArtifact","IntelligenceProduct","MarketplaceOrder","MarketplaceDispute","FederatedComputation","ResponsibilityEvent","RegulatoryPack","TrustScore","AbuseReport","EcosystemDrill",
     "FederationNode","CapabilityNegotiation","ProofVerification","ContractNegotiation","RegulatorySubscription","RegulatoryUpdate","SystemicRiskSignal","ControlObservation","ArbitrationCase","FederatedEvaluation","GlobalSettlement","CrisisRoom","CrisisCommand",
     "ProtocolRollout","PolicySynthesis","TransparencyLog","TwinSimulation","MarketRiskControl","SovereignRoute","IncidentOrchestration","AssuranceSnapshot","SustainabilityLedger","GovernanceProposal","GovernanceVote",
+    "DecisionProof","PolicyModelCheck","RegionReplica","RegulatoryPartition","MemoryGovernanceRecord","AgentCollectiveRun","PredictionMarket","ForecastPosition","DisasterKernelSnapshot","GreenSchedule","LiabilitySettlement",
 ]

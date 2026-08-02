@@ -18,6 +18,8 @@ Stage 24: [自适应全球情报操作系统](./24-adaptive-global-intelligence-
 
 Stage 25: [可证明自治与全球连续智能](./25-provable-autonomy-global-continuous-intelligence.md)
 
+Stage 26: [行星级情报韧性与可信自治经济](./26-planetary-intelligence-resilience.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

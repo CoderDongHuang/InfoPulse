@@ -98,6 +98,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/trust-network", name: "TrustNetwork", component: () => import("@/views/TrustNetworkView.vue"), meta: { title: "可信情报网络", requiresAuth: true } },
   { path: "/global-coordination", name: "GlobalCoordination", component: () => import("@/views/GlobalCoordinationView.vue"), meta: { title: "全球情报协同", requiresAuth: true } },
   { path: "/adaptive-os", name: "AdaptiveOS", component: () => import("@/views/AdaptiveOsView.vue"), meta: { title: "自适应情报操作系统", requiresAuth: true } },
+  { path: "/provable-autonomy", name: "ProvableAutonomy", component: () => import("@/views/ProvableAutonomyView.vue"), meta: { title: "可证明自治", requiresAuth: true } },
   { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",

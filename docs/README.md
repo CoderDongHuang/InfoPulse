@@ -14,6 +14,8 @@ Stage 22: [可信情报网络与生态交易规模化](./22-intelligence-network
 
 Stage 23: [全球情报协同与持续验证](./23-global-intelligence-coordination.md)
 
+Stage 24: [自适应全球情报操作系统](./24-adaptive-global-intelligence-os.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

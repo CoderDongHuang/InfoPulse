@@ -16,6 +16,8 @@ Stage 23: [全球情报协同与持续验证](./23-global-intelligence-coordinat
 
 Stage 24: [自适应全球情报操作系统](./24-adaptive-global-intelligence-os.md)
 
+Stage 25: [可证明自治与全球连续智能](./25-provable-autonomy-global-continuous-intelligence.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

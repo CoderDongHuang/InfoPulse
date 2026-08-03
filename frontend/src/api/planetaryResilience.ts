@@ -1,0 +1,2 @@
+import request from './request'
+export const planetaryResilienceApi={overview:async()=>(await request.get('/planetary-resilience/overview')).data,runTwin:async(data:any)=>(await request.post('/planetary-resilience/planetary-twins',data)).data,migratePq:async(data:any)=>(await request.post('/planetary-resilience/pq-migrations',data)).data,checkConstitution:async(data:any)=>(await request.post('/planetary-resilience/constitutions',data)).data,publishAudit:async(data:any)=>(await request.post('/planetary-resilience/public-audits',data)).data}

@@ -20,6 +20,8 @@ Stage 25: [可证明自治与全球连续智能](./25-provable-autonomy-global-c
 
 Stage 26: [行星级情报韧性与可信自治经济](./26-planetary-intelligence-resilience.md)
 
+Stage 27: [全球认知基础设施与长期自治治理](./27-global-cognitive-infrastructure.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

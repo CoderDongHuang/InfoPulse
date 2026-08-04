@@ -20,6 +20,7 @@ from app.models.global_coordination import ArbitrationCase,CapabilityNegotiation
 from app.models.adaptive_intelligence import AssuranceSnapshot,GovernanceProposal,GovernanceVote,IncidentOrchestration,MarketRiskControl,PolicySynthesis,ProtocolRollout,SovereignRoute,SustainabilityLedger,TransparencyLog,TwinSimulation
 from app.models.provable_autonomy import AgentCollectiveRun,DecisionProof,DisasterKernelSnapshot,ForecastPosition,GreenSchedule,LiabilitySettlement,MemoryGovernanceRecord,PolicyModelCheck,PredictionMarket,RegionReplica,RegulatoryPartition
 from app.models.planetary_resilience import AgentConstitutionRun,AutonomousInsurancePolicy,CrisisResourceListing,CrisisResourceTrade,EdgeMeshMessage,PlanetaryTwinRun,PolicyProofRegistry,PostQuantumMigration,ProofMeshEnvelope,PublicInterestAudit,VerifiableMemoryTransfer
+from app.models.cognitive_infrastructure import AutonomousClearingBatch,ConstitutionUpgrade,EpistemicAssessment,FairResourceAllocation,IntergenerationalCommitment,LongHorizonScenario,ProofCertification,PublicIntelligenceSignal,QuantumTransparencyArchive,SovereignStackBuild,SovereignStackUpgrade
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -50,4 +51,5 @@ __all__ = [
     "ProtocolRollout","PolicySynthesis","TransparencyLog","TwinSimulation","MarketRiskControl","SovereignRoute","IncidentOrchestration","AssuranceSnapshot","SustainabilityLedger","GovernanceProposal","GovernanceVote",
     "DecisionProof","PolicyModelCheck","RegionReplica","RegulatoryPartition","MemoryGovernanceRecord","AgentCollectiveRun","PredictionMarket","ForecastPosition","DisasterKernelSnapshot","GreenSchedule","LiabilitySettlement",
     "ProofMeshEnvelope","PolicyProofRegistry","PostQuantumMigration","PlanetaryTwinRun","AgentConstitutionRun","CrisisResourceListing","CrisisResourceTrade","AutonomousInsurancePolicy","VerifiableMemoryTransfer","EdgeMeshMessage","PublicInterestAudit",
+    "ProofCertification","ConstitutionUpgrade","QuantumTransparencyArchive","PublicIntelligenceSignal","EpistemicAssessment","AutonomousClearingBatch","FairResourceAllocation","LongHorizonScenario","IntergenerationalCommitment","SovereignStackBuild","SovereignStackUpgrade",
 ]

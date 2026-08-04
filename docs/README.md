@@ -22,6 +22,8 @@ Stage 26: [行星级情报韧性与可信自治经济](./26-planetary-intelligen
 
 Stage 27: [全球认知基础设施与长期自治治理](./27-global-cognitive-infrastructure.md)
 
+Stage 28: [全球认知公地与自演进治理](./28-global-cognitive-commons.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

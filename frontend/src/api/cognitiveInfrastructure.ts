@@ -1,0 +1,2 @@
+import request from './request'
+export const cognitiveInfrastructureApi={overview:async()=>(await request.get('/cognitive-infrastructure/overview')).data,certify:async(data:any)=>(await request.post('/cognitive-infrastructure/certifications',data)).data,assess:async(data:any)=>(await request.post('/cognitive-infrastructure/epistemic-assessments',data)).data,clear:async(data:any)=>(await request.post('/cognitive-infrastructure/clearing',data)).data,build:async(data:any)=>(await request.post('/cognitive-infrastructure/sovereign-builds',data)).data}

@@ -1,0 +1,2 @@
+import request from './request'
+export const cognitiveCommonsApi={overview:async()=>(await request.get('/cognitive-commons/overview')).data,consensus:async(data:any)=>(await request.post('/cognitive-commons/consensus',data)).data,causal:async(data:any)=>(await request.post('/cognitive-commons/causal-validations',data)).data,treasury:async(data:any)=>(await request.post('/cognitive-commons/treasuries',data)).data,safety:async(data:any)=>(await request.post('/cognitive-commons/safety-valves',data)).data}

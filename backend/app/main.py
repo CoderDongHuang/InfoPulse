@@ -96,7 +96,7 @@ setup_error_handlers(app)
 setup_observability(app)
 
 # --- Routes ---
-from app.api import action_loop, adaptive_intelligence, agent, analyses, auth, automation, autonomous_enterprise, cognitive_infrastructure, commercialization, contents, enterprise, events, global_coordination, global_intelligence, graph, history, hot_search, insights, knowledge, mouthpiece, multimodal, operations, operations_center, orchestration, personalization, planetary_resilience, platform, provable_autonomy, reports, search, sources, stage3, stage10, timeline, trusted_ecosystem  # noqa: E402
+from app.api import action_loop, adaptive_intelligence, agent, analyses, auth, automation, autonomous_enterprise, cognitive_commons, cognitive_infrastructure, commercialization, contents, enterprise, events, global_coordination, global_intelligence, graph, history, hot_search, insights, knowledge, mouthpiece, multimodal, operations, operations_center, orchestration, personalization, planetary_resilience, platform, provable_autonomy, reports, search, sources, stage3, stage10, timeline, trusted_ecosystem  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(insights.router)
@@ -134,6 +134,7 @@ app.include_router(adaptive_intelligence.router)
 app.include_router(provable_autonomy.router)
 app.include_router(planetary_resilience.router)
 app.include_router(cognitive_infrastructure.router)
+app.include_router(cognitive_commons.router)
 
 
 @app.get("/api/v1/health")

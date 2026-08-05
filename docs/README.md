@@ -24,6 +24,8 @@ Stage 27: [全球认知基础设施与长期自治治理](./27-global-cognitive-
 
 Stage 28: [全球认知公地与自演进治理](./28-global-cognitive-commons.md)
 
+Stage 29: [全球生产收敛与正式发布认证](./29-global-production-convergence.md)
+
 上线相关文档：
 
 - [生产运行手册](./06-production-runbook.md)

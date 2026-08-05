@@ -21,6 +21,7 @@ from app.models.adaptive_intelligence import AssuranceSnapshot,GovernanceProposa
 from app.models.provable_autonomy import AgentCollectiveRun,DecisionProof,DisasterKernelSnapshot,ForecastPosition,GreenSchedule,LiabilitySettlement,MemoryGovernanceRecord,PolicyModelCheck,PredictionMarket,RegionReplica,RegulatoryPartition
 from app.models.planetary_resilience import AgentConstitutionRun,AutonomousInsurancePolicy,CrisisResourceListing,CrisisResourceTrade,EdgeMeshMessage,PlanetaryTwinRun,PolicyProofRegistry,PostQuantumMigration,ProofMeshEnvelope,PublicInterestAudit,VerifiableMemoryTransfer
 from app.models.cognitive_infrastructure import AutonomousClearingBatch,ConstitutionUpgrade,EpistemicAssessment,FairResourceAllocation,IntergenerationalCommitment,LongHorizonScenario,ProofCertification,PublicIntelligenceSignal,QuantumTransparencyArchive,SovereignStackBuild,SovereignStackUpgrade
+from app.models.cognitive_commons import AllocationAppeal,CausalSignalValidation,CenturyRiskScenario,CivilizationSafetyValve,DissentMarket,EvidencePreservation,FederatedConstitutionProtocol,ProofConsensusRound,PublicTreasury,SovereignFederatedRelease
 from app.models.intelligence import (
     AgentMessage, Analysis, AnalysisCitation, AuditLog, ChannelFollow, ContentItem, Conversation, DataSource, Event, EventContent, EventEntity, Favorite, MessageCitation, MessageFeedback,
     AgentTask, DeliveryAttempt, Notification, NotificationPreference, RecentView, RecommendationFeedback,
@@ -52,4 +53,5 @@ __all__ = [
     "DecisionProof","PolicyModelCheck","RegionReplica","RegulatoryPartition","MemoryGovernanceRecord","AgentCollectiveRun","PredictionMarket","ForecastPosition","DisasterKernelSnapshot","GreenSchedule","LiabilitySettlement",
     "ProofMeshEnvelope","PolicyProofRegistry","PostQuantumMigration","PlanetaryTwinRun","AgentConstitutionRun","CrisisResourceListing","CrisisResourceTrade","AutonomousInsurancePolicy","VerifiableMemoryTransfer","EdgeMeshMessage","PublicInterestAudit",
     "ProofCertification","ConstitutionUpgrade","QuantumTransparencyArchive","PublicIntelligenceSignal","EpistemicAssessment","AutonomousClearingBatch","FairResourceAllocation","LongHorizonScenario","IntergenerationalCommitment","SovereignStackBuild","SovereignStackUpgrade",
+    "ProofConsensusRound","FederatedConstitutionProtocol","EvidencePreservation","CausalSignalValidation","DissentMarket","PublicTreasury","AllocationAppeal","CenturyRiskScenario","CivilizationSafetyValve","SovereignFederatedRelease",
 ]

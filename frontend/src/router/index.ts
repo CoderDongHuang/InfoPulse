@@ -101,6 +101,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/provable-autonomy", name: "ProvableAutonomy", component: () => import("@/views/ProvableAutonomyView.vue"), meta: { title: "可证明自治", requiresAuth: true } },
   { path: "/planetary-resilience", name: "PlanetaryResilience", component: () => import("@/views/PlanetaryResilienceView.vue"), meta: { title: "行星级情报韧性", requiresAuth: true } },
   { path: "/cognitive-infrastructure", name: "CognitiveInfrastructure", component: () => import("@/views/CognitiveInfrastructureView.vue"), meta: { title: "全球认知基础设施", requiresAuth: true } },
+  { path: "/cognitive-commons", name: "CognitiveCommons", component: () => import("@/views/CognitiveCommonsView.vue"), meta: { title: "全球认知公地", requiresAuth: true } },
   { path: "/help", name: "Help", component: () => import("@/views/HelpView.vue"), meta: { title: "帮助中心", requiresAuth: true } },
   {
     path: "/insight",

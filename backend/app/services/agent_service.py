@@ -24,6 +24,7 @@ async def answer(query,rows):
   if isinstance(x,dict):return {"index":i,"title":x["filename"],"text":x["quote"]}
   return {"index":i,"title":x.title,"text":x.body[:1000]}
  result={"answer":f"根据 {len(rows)} 条可访问来源，以下是与“{query}”相关的事实。","claims":[{"text":f"{evidence_row(i,row)['title']}：{evidence_row(i,row)['text'][:240]}","citation_indexes":[i]} for i,row in enumerate(rows[:5])]};model="evidence-rules-v1"
+ if not rows:return {"answer":"当前上下文没有足够的可引用证据，无法给出事实性回答。","claims":[]},"evidence-rules-v1"
  if llm_is_configured():
   evidence=[evidence_row(i,row) for i,row in enumerate(rows)];result=await complete_json("只依据证据回答JSON：answer和claims；claims含text、citation_indexes，每条事实必须引用。",f"问题:{query}\n证据:{evidence}",temperature=.1,max_tokens=2200);model=get_settings().LLM_MODEL
  valid=[]

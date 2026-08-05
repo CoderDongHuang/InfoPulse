@@ -1,0 +1,3990 @@
+{
+  "version": 1,
+  "policy": "docs/api-deprecation-policy.md",
+  "paths": {
+    "/api/v1/action-dashboard": {
+      "get": {
+        "operationId": "dashboard_api_v1_action_dashboard_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/action-operations": {
+      "get": {
+        "operationId": "operations_api_v1_action_operations_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/action-templates": {
+      "get": {
+        "operationId": "templates_api_v1_action_templates_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions": {
+      "get": {
+        "operationId": "actions_api_v1_actions_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_actions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/bulk-approve": {
+      "post": {
+        "operationId": "bulk_approve_api_v1_actions_bulk_approve_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}": {
+      "get": {
+        "operationId": "detail_api_v1_actions__aid__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}/approve": {
+      "post": {
+        "operationId": "approve_api_v1_actions__aid__approve_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}/impact": {
+      "get": {
+        "operationId": "impacts_api_v1_actions__aid__impact_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "impact_api_v1_actions__aid__impact_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}/receipts": {
+      "post": {
+        "operationId": "receipt_api_v1_actions__aid__receipts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}/start": {
+      "post": {
+        "operationId": "start_api_v1_actions__aid__start_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/actions/{aid}/steps": {
+      "post": {
+        "operationId": "step_api_v1_actions__aid__steps_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/assurance": {
+      "post": {
+        "operationId": "assurance_api_v1_adaptive_os_assurance_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/digital-twins": {
+      "post": {
+        "operationId": "twin_api_v1_adaptive_os_digital_twins_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/governance/proposals": {
+      "post": {
+        "operationId": "proposal_api_v1_adaptive_os_governance_proposals_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/governance/proposals/{proposal_id}/finalize": {
+      "post": {
+        "operationId": "finalize_api_v1_adaptive_os_governance_proposals__proposal_id__finalize_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/governance/proposals/{proposal_id}/votes": {
+      "post": {
+        "operationId": "vote_api_v1_adaptive_os_governance_proposals__proposal_id__votes_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/incidents": {
+      "post": {
+        "operationId": "incident_api_v1_adaptive_os_incidents_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/market-controls": {
+      "post": {
+        "operationId": "market_api_v1_adaptive_os_market_controls_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/overview": {
+      "get": {
+        "operationId": "overview_api_v1_adaptive_os_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/policy-syntheses": {
+      "post": {
+        "operationId": "synthesize_api_v1_adaptive_os_policy_syntheses_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/protocol-rollouts": {
+      "post": {
+        "operationId": "rollout_api_v1_adaptive_os_protocol_rollouts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/sovereign-routes": {
+      "post": {
+        "operationId": "route_api_v1_adaptive_os_sovereign_routes_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/sustainability": {
+      "post": {
+        "operationId": "sustainability_api_v1_adaptive_os_sustainability_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/transparency": {
+      "post": {
+        "operationId": "transparency_api_v1_adaptive_os_transparency_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/adaptive-os/transparency/{entry_id}/verify": {
+      "get": {
+        "operationId": "verify_transparency_api_v1_adaptive_os_transparency__entry_id__verify_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/summary": {
+      "get": {
+        "operationId": "analytics_api_v1_admin_analytics_summary_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "operationId": "admin_audits_api_v1_admin_audit_logs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/admin/feedback": {
+      "get": {
+        "operationId": "feedback_queue_api_v1_admin_feedback_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/admin/feedback/{fid}": {
+      "patch": {
+        "operationId": "update_feedback_api_v1_admin_feedback__fid__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/admin/model-usage": {
+      "get": {
+        "operationId": "model_usage_api_v1_admin_model_usage_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/admin/releases": {
+      "get": {
+        "operationId": "releases_api_v1_admin_releases_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_release_api_v1_admin_releases_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/admin/source-health": {
+      "get": {
+        "operationId": "source_health_api_v1_admin_source_health_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/admin/task-health": {
+      "get": {
+        "operationId": "task_health_api_v1_admin_task_health_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/alert-rules": {
+      "get": {
+        "operationId": "rules_api_v1_alert_rules_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_rule_api_v1_alert_rules_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alert-rules/{rid}": {
+      "delete": {
+        "operationId": "delete_rule_api_v1_alert_rules__rid__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_rule_api_v1_alert_rules__rid__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alert-rules/{rid}/replay": {
+      "post": {
+        "operationId": "replay_rule_api_v1_alert_rules__rid__replay_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alert-rules/{rid}/replays": {
+      "get": {
+        "operationId": "replays_api_v1_alert_rules__rid__replays_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alert-rules/{rid}/run": {
+      "post": {
+        "operationId": "run_rule_api_v1_alert_rules__rid__run_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alerts": {
+      "get": {
+        "operationId": "incidents_api_v1_alerts_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alerts/{iid}": {
+      "get": {
+        "operationId": "incident_api_v1_alerts__iid__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/alerts/{iid}/actions": {
+      "post": {
+        "operationId": "incident_action_api_v1_alerts__iid__actions_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/analyses": {
+      "post": {
+        "operationId": "create_api_v1_analyses_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/analyses/stream": {
+      "post": {
+        "operationId": "stream_api_v1_analyses_stream_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/analyses/{analysis_id}": {
+      "get": {
+        "operationId": "detail_api_v1_analyses__analysis_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/analyses/{analysis_id}/regenerate": {
+      "post": {
+        "operationId": "regenerate_api_v1_analyses__analysis_id__regenerate_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login_api_v1_auth_login_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "delete": {
+        "operationId": "delete_me_api_v1_auth_me_delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "get_me_api_v1_auth_me_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "put": {
+        "operationId": "update_me_api_v1_auth_me_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_api_v1_auth_refresh_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "register_api_v1_auth_register_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/auth/sso/exchange": {
+      "post": {
+        "operationId": "sso_exchange_api_v1_auth_sso_exchange_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/automation/templates": {
+      "get": {
+        "operationId": "templates_api_v1_automation_templates_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/autonomy/approval-runs": {
+      "post": {
+        "operationId": "approval_api_v1_autonomy_approval_runs_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/approval-runs/{rid}/decide": {
+      "post": {
+        "operationId": "decision_api_v1_autonomy_approval_runs__rid__decide_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/billing-documents": {
+      "post": {
+        "operationId": "bill_api_v1_autonomy_billing_documents_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/compliance/audit-pack": {
+      "get": {
+        "operationId": "audit_pack_api_v1_autonomy_compliance_audit_pack_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/compliance/controls": {
+      "post": {
+        "operationId": "control_api_v1_autonomy_compliance_controls_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/compliance/evidence": {
+      "post": {
+        "operationId": "evidence_api_v1_autonomy_compliance_evidence_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/credentials": {
+      "post": {
+        "operationId": "credential_api_v1_autonomy_credentials_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/credentials/{cid}/health": {
+      "post": {
+        "operationId": "health_api_v1_autonomy_credentials__cid__health_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/credentials/{cid}/revoke": {
+      "post": {
+        "operationId": "revoke_api_v1_autonomy_credentials__cid__revoke_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/credentials/{cid}/rotate": {
+      "post": {
+        "operationId": "rotate_api_v1_autonomy_credentials__cid__rotate_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/experiments": {
+      "post": {
+        "operationId": "experiment_api_v1_autonomy_experiments_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/finops/forecast": {
+      "get": {
+        "operationId": "finops_api_v1_autonomy_finops_forecast_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/ledger": {
+      "post": {
+        "operationId": "ledger_api_v1_autonomy_ledger_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/overview": {
+      "get": {
+        "operationId": "overview_api_v1_autonomy_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/payments/reconcile": {
+      "post": {
+        "operationId": "reconcile_api_v1_autonomy_payments_reconcile_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/policies": {
+      "post": {
+        "operationId": "policy_api_v1_autonomy_policies_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/policies/{bid}/publish": {
+      "post": {
+        "operationId": "publish_api_v1_autonomy_policies__bid__publish_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/privacy-budgets": {
+      "post": {
+        "operationId": "budget_api_v1_autonomy_privacy_budgets_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/privacy-queries": {
+      "post": {
+        "operationId": "query_api_v1_autonomy_privacy_queries_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/recovery-drills": {
+      "post": {
+        "operationId": "drill_api_v1_autonomy_recovery_drills_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/autonomy/safety-evaluations": {
+      "post": {
+        "operationId": "safety_api_v1_autonomy_safety_evaluations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/bi/capabilities": {
+      "get": {
+        "operationId": "bi_capabilities_api_v1_bi_capabilities_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/bi/history": {
+      "get": {
+        "operationId": "bi_history_api_v1_bi_history_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/bi/query": {
+      "post": {
+        "operationId": "bi_query_api_v1_bi_query_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/appeals": {
+      "post": {
+        "operationId": "appeal_api_v1_cognitive_commons_appeals_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/causal-validations": {
+      "post": {
+        "operationId": "causal_api_v1_cognitive_commons_causal_validations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/century-scenarios": {
+      "post": {
+        "operationId": "century_api_v1_cognitive_commons_century_scenarios_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/consensus": {
+      "post": {
+        "operationId": "consensus_api_v1_cognitive_commons_consensus_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/constitutions": {
+      "post": {
+        "operationId": "constitution_api_v1_cognitive_commons_constitutions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/dissent-markets": {
+      "post": {
+        "operationId": "dissent_api_v1_cognitive_commons_dissent_markets_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/evidence-preservations": {
+      "post": {
+        "operationId": "preserve_api_v1_cognitive_commons_evidence_preservations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/federated-releases": {
+      "post": {
+        "operationId": "release_api_v1_cognitive_commons_federated_releases_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/overview": {
+      "get": {
+        "operationId": "overview_api_v1_cognitive_commons_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/safety-valves": {
+      "post": {
+        "operationId": "safety_api_v1_cognitive_commons_safety_valves_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-commons/treasuries": {
+      "post": {
+        "operationId": "treasury_api_v1_cognitive_commons_treasuries_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/allocations": {
+      "post": {
+        "operationId": "allocation_api_v1_cognitive_infrastructure_allocations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/archives": {
+      "post": {
+        "operationId": "archive_api_v1_cognitive_infrastructure_archives_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/certifications": {
+      "post": {
+        "operationId": "certification_api_v1_cognitive_infrastructure_certifications_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/clearing": {
+      "post": {
+        "operationId": "clearing_api_v1_cognitive_infrastructure_clearing_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/commitments": {
+      "post": {
+        "operationId": "commitment_api_v1_cognitive_infrastructure_commitments_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/constitution-upgrades": {
+      "post": {
+        "operationId": "constitution_upgrade_api_v1_cognitive_infrastructure_constitution_upgrades_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/epistemic-assessments": {
+      "post": {
+        "operationId": "epistemic_api_v1_cognitive_infrastructure_epistemic_assessments_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/overview": {
+      "get": {
+        "operationId": "overview_api_v1_cognitive_infrastructure_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/public-signals": {
+      "post": {
+        "operationId": "signal_api_v1_cognitive_infrastructure_public_signals_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/scenarios": {
+      "post": {
+        "operationId": "scenario_api_v1_cognitive_infrastructure_scenarios_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/sovereign-builds": {
+      "post": {
+        "operationId": "sovereign_build_api_v1_cognitive_infrastructure_sovereign_builds_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/cognitive-infrastructure/sovereign-upgrades": {
+      "post": {
+        "operationId": "sovereign_upgrade_api_v1_cognitive_infrastructure_sovereign_upgrades_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/approval-flows": {
+      "get": {
+        "operationId": "flows_api_v1_commercial_approval_flows_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_flow_api_v1_commercial_approval_flows_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/attribution-audits": {
+      "post": {
+        "operationId": "attribution_api_v1_commercial_attribution_audits_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/benchmarks": {
+      "post": {
+        "operationId": "benchmark_api_v1_commercial_benchmarks_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/connectors/execute": {
+      "post": {
+        "operationId": "connector_api_v1_commercial_connectors_execute_post",
+        "deprecated": false,
+        "responses": [
+          "202",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/cost-report": {
+      "get": {
+        "operationId": "costs_api_v1_commercial_cost_report_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/entitlement": {
+      "put": {
+        "operationId": "entitlement_api_v1_commercial_entitlement_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/metric-collectors": {
+      "post": {
+        "operationId": "collector_api_v1_commercial_metric_collectors_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/overview": {
+      "get": {
+        "operationId": "overview_api_v1_commercial_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/sla-policies": {
+      "post": {
+        "operationId": "sla_api_v1_commercial_sla_policies_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/templates": {
+      "get": {
+        "operationId": "templates_api_v1_commercial_templates_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_template_api_v1_commercial_templates_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/templates/{pid}/rollback/{version}": {
+      "post": {
+        "operationId": "rollback_api_v1_commercial_templates__pid__rollback__version__post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/templates/{pid}/versions": {
+      "get": {
+        "operationId": "versions_api_v1_commercial_templates__pid__versions_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "new_version_api_v1_commercial_templates__pid__versions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/commercial/usage": {
+      "post": {
+        "operationId": "usage_api_v1_commercial_usage_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/contents/{content_id}": {
+      "get": {
+        "operationId": "content_detail_api_v1_contents__content_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/conversations": {
+      "get": {
+        "operationId": "listing_api_v1_conversations_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_conversations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/conversations/{cid}": {
+      "delete": {
+        "operationId": "remove_api_v1_conversations__cid__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "detail_api_v1_conversations__cid__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_api_v1_conversations__cid__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/conversations/{cid}/messages": {
+      "post": {
+        "operationId": "send_api_v1_conversations__cid__messages_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/conversations/{cid}/messages/{mid}/feedback": {
+      "post": {
+        "operationId": "feedback_api_v1_conversations__cid__messages__mid__feedback_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/conversations/{cid}/messages/{mid}/retry": {
+      "post": {
+        "operationId": "retry_api_v1_conversations__cid__messages__mid__retry_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "operationId": "dashboard_api_v1_dashboard_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/dashboard/trends": {
+      "get": {
+        "operationId": "trends_api_v1_dashboard_trends_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/delivery-attempts": {
+      "get": {
+        "operationId": "deliveries_api_v1_delivery_attempts_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/discover": {
+      "get": {
+        "operationId": "discover_api_v1_discover_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/discover/channels": {
+      "get": {
+        "operationId": "channels_api_v1_discover_channels_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/discover/channels/{channel_id}/follow": {
+      "delete": {
+        "operationId": "unfollow_api_v1_discover_channels__channel_id__follow_delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "follow_api_v1_discover_channels__channel_id__follow_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/discover/items/{item_id}/feedback": {
+      "post": {
+        "operationId": "feedback_api_v1_discover_items__item_id__feedback_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/approvals": {
+      "get": {
+        "operationId": "approvals_api_v1_enterprise_approvals_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "request_approval_api_v1_enterprise_approvals_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/approvals/{approval_id}/decision": {
+      "post": {
+        "operationId": "decide_approval_api_v1_enterprise_approvals__approval_id__decision_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/audit-export": {
+      "get": {
+        "operationId": "export_audit_api_v1_enterprise_audit_export_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/context": {
+      "get": {
+        "operationId": "context_api_v1_enterprise_context_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/identity-providers": {
+      "get": {
+        "operationId": "identity_providers_api_v1_enterprise_identity_providers_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_identity_provider_api_v1_enterprise_identity_providers_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/identity-providers/{provider_id}/scim-token": {
+      "post": {
+        "operationId": "rotate_scim_token_api_v1_enterprise_identity_providers__provider_id__scim_token_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/legal-holds": {
+      "post": {
+        "operationId": "create_legal_hold_api_v1_enterprise_legal_holds_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/members": {
+      "get": {
+        "operationId": "members_api_v1_enterprise_members_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "add_member_api_v1_enterprise_members_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/operations": {
+      "get": {
+        "operationId": "tenant_operations_api_v1_enterprise_operations_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/organizations": {
+      "post": {
+        "operationId": "create_organization_api_v1_enterprise_organizations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/policy": {
+      "get": {
+        "operationId": "get_policy_api_v1_enterprise_policy_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operationId": "update_policy_api_v1_enterprise_policy_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/quota": {
+      "get": {
+        "operationId": "get_quota_api_v1_enterprise_quota_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operationId": "update_quota_api_v1_enterprise_quota_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/roles": {
+      "get": {
+        "operationId": "roles_api_v1_enterprise_roles_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_role_api_v1_enterprise_roles_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/sla-snapshots": {
+      "post": {
+        "operationId": "record_sla_api_v1_enterprise_sla_snapshots_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/teams": {
+      "post": {
+        "operationId": "create_team_api_v1_enterprise_teams_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/enterprise/workspaces": {
+      "post": {
+        "operationId": "create_workspace_api_v1_enterprise_workspaces_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "operationId": "list_events_api_v1_events_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_event_api_v1_events_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/cluster": {
+      "post": {
+        "operationId": "cluster_events_api_v1_events_cluster_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/merge": {
+      "post": {
+        "operationId": "merge_api_v1_events_merge_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}": {
+      "get": {
+        "operationId": "event_detail_api_v1_events__event_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_event_api_v1_events__event_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/audit-logs": {
+      "get": {
+        "operationId": "event_audit_logs_api_v1_events__event_id__audit_logs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/entities": {
+      "post": {
+        "operationId": "correct_entity_api_v1_events__event_id__entities_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/entities/merge": {
+      "post": {
+        "operationId": "merge_entity_api_v1_events__event_id__entities_merge_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/graph": {
+      "get": {
+        "operationId": "get_graph_api_v1_events__event_id__graph_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/graph/audit-logs": {
+      "get": {
+        "operationId": "graph_audits_api_v1_events__event_id__graph_audit_logs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/graph/build": {
+      "post": {
+        "operationId": "build_graph_api_v1_events__event_id__graph_build_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/graph/quality": {
+      "get": {
+        "operationId": "graph_quality_api_v1_events__event_id__graph_quality_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/propagation": {
+      "get": {
+        "operationId": "propagation_get_api_v1_events__event_id__propagation_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/propagation/build": {
+      "post": {
+        "operationId": "propagation_build_api_v1_events__event_id__propagation_build_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/propagation/edges/{edge_id}": {
+      "patch": {
+        "operationId": "correct_edge_api_v1_events__event_id__propagation_edges__edge_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/relations": {
+      "post": {
+        "operationId": "create_relation_api_v1_events__event_id__relations_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/similar": {
+      "get": {
+        "operationId": "get_similar_api_v1_events__event_id__similar_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/sources": {
+      "get": {
+        "operationId": "event_sources_api_v1_events__event_id__sources_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/events/{event_id}/timeline": {
+      "get": {
+        "operationId": "event_timeline_api_v1_events__event_id__timeline_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/favorites": {
+      "get": {
+        "operationId": "list_favorites_api_v1_favorites_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "add_favorite_api_v1_favorites_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/favorites/{target_type}/{target_id}": {
+      "delete": {
+        "operationId": "remove_favorite_api_v1_favorites__target_type___target_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/feedback": {
+      "get": {
+        "operationId": "own_feedback_api_v1_feedback_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "feedback_api_v1_feedback_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/arbitrations": {
+      "post": {
+        "operationId": "arbitration_api_v1_global_coordination_arbitrations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/arbitrations/{case_id}/decide": {
+      "post": {
+        "operationId": "decide_api_v1_global_coordination_arbitrations__case_id__decide_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/contracts": {
+      "post": {
+        "operationId": "contract_api_v1_global_coordination_contracts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/controls/observe": {
+      "post": {
+        "operationId": "observe_api_v1_global_coordination_controls_observe_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/crisis-rooms": {
+      "post": {
+        "operationId": "crisis_room_api_v1_global_coordination_crisis_rooms_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/crisis-rooms/{room_id}/commands": {
+      "post": {
+        "operationId": "crisis_command_api_v1_global_coordination_crisis_rooms__room_id__commands_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/evaluations": {
+      "post": {
+        "operationId": "evaluation_api_v1_global_coordination_evaluations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/negotiations": {
+      "post": {
+        "operationId": "negotiate_api_v1_global_coordination_negotiations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/nodes": {
+      "post": {
+        "operationId": "create_node_api_v1_global_coordination_nodes_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/overview": {
+      "get": {
+        "operationId": "overview_api_v1_global_coordination_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/proofs": {
+      "post": {
+        "operationId": "proof_api_v1_global_coordination_proofs_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/regulatory/subscriptions": {
+      "post": {
+        "operationId": "subscription_api_v1_global_coordination_regulatory_subscriptions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/regulatory/updates": {
+      "post": {
+        "operationId": "regulatory_update_api_v1_global_coordination_regulatory_updates_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/risks": {
+      "post": {
+        "operationId": "risk_api_v1_global_coordination_risks_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-coordination/settlements": {
+      "post": {
+        "operationId": "settlement_api_v1_global_coordination_settlements_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/capabilities": {
+      "get": {
+        "operationId": "capabilities_api_v1_global_intelligence_capabilities_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/contents/{content_id}/translations": {
+      "get": {
+        "operationId": "translations_api_v1_global_intelligence_contents__content_id__translations_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_translation_api_v1_global_intelligence_contents__content_id__translations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/decision-rooms": {
+      "post": {
+        "operationId": "create_room_api_v1_global_intelligence_decision_rooms_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/decision-rooms/{room_id}": {
+      "get": {
+        "operationId": "room_detail_api_v1_global_intelligence_decision_rooms__room_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/decision-rooms/{room_id}/freeze": {
+      "post": {
+        "operationId": "freeze_api_v1_global_intelligence_decision_rooms__room_id__freeze_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/decision-rooms/{room_id}/options": {
+      "post": {
+        "operationId": "add_option_api_v1_global_intelligence_decision_rooms__room_id__options_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/narratives": {
+      "get": {
+        "operationId": "narratives_api_v1_global_intelligence_narratives_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/narratives/build": {
+      "post": {
+        "operationId": "create_narratives_api_v1_global_intelligence_narratives_build_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/global-intelligence/scenarios": {
+      "get": {
+        "operationId": "scenarios_api_v1_global_intelligence_scenarios_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_scenario_api_v1_global_intelligence_scenarios_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_check_api_v1_health_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "live_api_v1_health_live_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "ready_api_v1_health_ready_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/history": {
+      "get": {
+        "operationId": "list_history_api_v1_history_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/history/{record_id}": {
+      "delete": {
+        "operationId": "remove_history_api_v1_history__record_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/hot-search/explain": {
+      "post": {
+        "operationId": "explain_api_v1_hot_search_explain_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/hot-search/ranking": {
+      "get": {
+        "operationId": "ranking_api_v1_hot_search_ranking_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/impact/metrics": {
+      "post": {
+        "operationId": "metric_api_v1_impact_metrics_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/insights/analyze": {
+      "post": {
+        "operationId": "analyze_api_v1_insights_analyze_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/insights/history": {
+      "get": {
+        "operationId": "history_api_v1_insights_history_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/insights/history/{record_id}": {
+      "delete": {
+        "operationId": "remove_history_api_v1_insights_history__record_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-bases": {
+      "get": {
+        "operationId": "bases_api_v1_knowledge_bases_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_base_api_v1_knowledge_bases_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-bases/{kid}": {
+      "delete": {
+        "operationId": "remove_base_api_v1_knowledge_bases__kid__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "base_detail_api_v1_knowledge_bases__kid__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_base_api_v1_knowledge_bases__kid__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-bases/{kid}/documents": {
+      "get": {
+        "operationId": "documents_api_v1_knowledge_bases__kid__documents_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "upload_api_v1_knowledge_bases__kid__documents_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-bases/{kid}/search-test": {
+      "post": {
+        "operationId": "search_test_api_v1_knowledge_bases__kid__search_test_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-bases/{kid}/web-imports": {
+      "post": {
+        "operationId": "web_import_api_v1_knowledge_bases__kid__web_imports_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-documents/{did}": {
+      "delete": {
+        "operationId": "remove_document_api_v1_knowledge_documents__did__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "document_detail_api_v1_knowledge_documents__did__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge-documents/{did}/reindex": {
+      "post": {
+        "operationId": "reindex_api_v1_knowledge_documents__did__reindex_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/knowledge/capabilities": {
+      "get": {
+        "operationId": "capabilities_api_v1_knowledge_capabilities_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/mouthpiece/generate": {
+      "post": {
+        "operationId": "generate_api_v1_mouthpiece_generate_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/assets": {
+      "get": {
+        "operationId": "assets_api_v1_multimodal_assets_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "upload_api_v1_multimodal_assets_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/assets/{asset_id}": {
+      "delete": {
+        "operationId": "remove_asset_api_v1_multimodal_assets__asset_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "asset_detail_api_v1_multimodal_assets__asset_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/assets/{asset_id}/content": {
+      "get": {
+        "operationId": "asset_content_api_v1_multimodal_assets__asset_id__content_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/assets/{asset_id}/retry": {
+      "post": {
+        "operationId": "retry_api_v1_multimodal_assets__asset_id__retry_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/assets/{asset_id}/safety": {
+      "post": {
+        "operationId": "safety_api_v1_multimodal_assets__asset_id__safety_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/capabilities": {
+      "get": {
+        "operationId": "capabilities_api_v1_multimodal_capabilities_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/changes/{change_id}/resolve": {
+      "post": {
+        "operationId": "resolve_api_v1_multimodal_collaboration_changes__change_id__resolve_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/documents": {
+      "post": {
+        "operationId": "open_document_api_v1_multimodal_collaboration_documents_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/documents/{document_id}": {
+      "get": {
+        "operationId": "document_api_v1_multimodal_collaboration_documents__document_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/documents/{document_id}/changes": {
+      "post": {
+        "operationId": "change_api_v1_multimodal_collaboration_documents__document_id__changes_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/documents/{document_id}/comments": {
+      "post": {
+        "operationId": "comment_api_v1_multimodal_collaboration_documents__document_id__comments_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/collaboration/documents/{document_id}/ticket": {
+      "post": {
+        "operationId": "ticket_api_v1_multimodal_collaboration_documents__document_id__ticket_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/evidence/{evidence_id}/citations": {
+      "post": {
+        "operationId": "cite_api_v1_multimodal_evidence__evidence_id__citations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/evidence/{evidence_id}/content": {
+      "get": {
+        "operationId": "evidence_content_api_v1_multimodal_evidence__evidence_id__content_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/live": {
+      "get": {
+        "operationId": "streams_api_v1_multimodal_live_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_stream_api_v1_multimodal_live_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/live/{stream_id}/end": {
+      "post": {
+        "operationId": "end_stream_api_v1_multimodal_live__stream_id__end_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/live/{stream_id}/updates": {
+      "get": {
+        "operationId": "updates_api_v1_multimodal_live__stream_id__updates_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "add_update_api_v1_multimodal_live__stream_id__updates_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/multimodal/quality/overview": {
+      "get": {
+        "operationId": "quality_overview_api_v1_multimodal_quality_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/notification-preferences": {
+      "get": {
+        "operationId": "get_preferences_api_v1_notification_preferences_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "patch": {
+        "operationId": "update_preferences_api_v1_notification_preferences_patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notifications_api_v1_notifications_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "post": {
+        "operationId": "read_all_api_v1_notifications_read_all_post",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "unread_count_api_v1_notifications_unread_count_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notification_id}": {
+      "patch": {
+        "operationId": "update_notification_api_v1_notifications__notification_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/approvals": {
+      "get": {
+        "operationId": "approvals_api_v1_orchestration_approvals_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/approvals/{approval_id}/decision": {
+      "post": {
+        "operationId": "decide_api_v1_orchestration_approvals__approval_id__decision_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/evaluations/datasets": {
+      "get": {
+        "operationId": "datasets_api_v1_orchestration_evaluations_datasets_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_dataset_api_v1_orchestration_evaluations_datasets_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/evaluations/datasets/{dataset_id}/run/{version_id}": {
+      "post": {
+        "operationId": "run_evaluation_api_v1_orchestration_evaluations_datasets__dataset_id__run__version_id__post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/memories": {
+      "get": {
+        "operationId": "memories_api_v1_orchestration_memories_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operationId": "put_memory_api_v1_orchestration_memories_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/memories/{memory_id}": {
+      "delete": {
+        "operationId": "delete_memory_api_v1_orchestration_memories__memory_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/model-routes": {
+      "get": {
+        "operationId": "routes_api_v1_orchestration_model_routes_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operationId": "route_api_v1_orchestration_model_routes_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/overview": {
+      "get": {
+        "operationId": "overview_api_v1_orchestration_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/prompts": {
+      "get": {
+        "operationId": "prompts_api_v1_orchestration_prompts_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_prompt_api_v1_orchestration_prompts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/runs": {
+      "get": {
+        "operationId": "runs_api_v1_orchestration_runs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/runs/{run_id}": {
+      "get": {
+        "operationId": "run_detail_api_v1_orchestration_runs__run_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/runs/{run_id}/advance": {
+      "post": {
+        "operationId": "advance_api_v1_orchestration_runs__run_id__advance_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancel_api_v1_orchestration_runs__run_id__cancel_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/runs/{run_id}/replay": {
+      "post": {
+        "operationId": "replay_api_v1_orchestration_runs__run_id__replay_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/templates": {
+      "get": {
+        "operationId": "templates_api_v1_orchestration_templates_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_template_api_v1_orchestration_templates_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/templates/{template_id}/install": {
+      "post": {
+        "operationId": "install_template_api_v1_orchestration_templates__template_id__install_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/tool-policies": {
+      "put": {
+        "operationId": "policy_api_v1_orchestration_tool_policies_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/tools": {
+      "get": {
+        "operationId": "tools_api_v1_orchestration_tools_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_tool_api_v1_orchestration_tools_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/workflows": {
+      "get": {
+        "operationId": "workflows_api_v1_orchestration_workflows_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_workflow_api_v1_orchestration_workflows_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/workflows/{workflow_id}": {
+      "get": {
+        "operationId": "workflow_detail_api_v1_orchestration_workflows__workflow_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/workflows/{workflow_id}/activate/{version_id}": {
+      "post": {
+        "operationId": "activate_api_v1_orchestration_workflows__workflow_id__activate__version_id__post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/workflows/{workflow_id}/runs": {
+      "post": {
+        "operationId": "start_run_api_v1_orchestration_workflows__workflow_id__runs_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/orchestration/workflows/{workflow_id}/versions": {
+      "post": {
+        "operationId": "version_api_v1_orchestration_workflows__workflow_id__versions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/constitutions": {
+      "post": {
+        "operationId": "constitution_api_v1_planetary_resilience_constitutions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/edge-messages": {
+      "post": {
+        "operationId": "edge_message_api_v1_planetary_resilience_edge_messages_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/edge-messages/converge": {
+      "post": {
+        "operationId": "edge_converge_api_v1_planetary_resilience_edge_messages_converge_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/insurance": {
+      "post": {
+        "operationId": "insurance_api_v1_planetary_resilience_insurance_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/insurance/{policy_id}/claims": {
+      "post": {
+        "operationId": "claim_api_v1_planetary_resilience_insurance__policy_id__claims_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/memory-transfers": {
+      "post": {
+        "operationId": "memory_transfer_api_v1_planetary_resilience_memory_transfers_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/overview": {
+      "get": {
+        "operationId": "overview_api_v1_planetary_resilience_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/planetary-twins": {
+      "post": {
+        "operationId": "twin_api_v1_planetary_resilience_planetary_twins_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/policy-registry": {
+      "post": {
+        "operationId": "register_policy_api_v1_planetary_resilience_policy_registry_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/pq-migrations": {
+      "post": {
+        "operationId": "pq_migrate_api_v1_planetary_resilience_pq_migrations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/proof-mesh": {
+      "post": {
+        "operationId": "proof_mesh_api_v1_planetary_resilience_proof_mesh_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/proof-mesh/{mesh_id}/revoke": {
+      "post": {
+        "operationId": "revoke_api_v1_planetary_resilience_proof_mesh__mesh_id__revoke_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/public-audits": {
+      "post": {
+        "operationId": "public_audit_api_v1_planetary_resilience_public_audits_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/resource-trades": {
+      "post": {
+        "operationId": "trade_api_v1_planetary_resilience_resource_trades_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/resource-trades/{trade_id}/transition": {
+      "post": {
+        "operationId": "trade_transition_api_v1_planetary_resilience_resource_trades__trade_id__transition_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/planetary-resilience/resources": {
+      "post": {
+        "operationId": "resource_api_v1_planetary_resilience_resources_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/api-key/whoami": {
+      "get": {
+        "operationId": "api_key_identity_api_v1_platform_api_key_whoami_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/api-keys": {
+      "get": {
+        "operationId": "list_keys_api_v1_platform_api_keys_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_key_api_v1_platform_api_keys_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/api-keys/{key_id}": {
+      "delete": {
+        "operationId": "revoke_key_api_v1_platform_api_keys__key_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/installations": {
+      "get": {
+        "operationId": "installations_api_v1_platform_installations_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "install_api_v1_platform_installations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/installations/{installation_id}": {
+      "delete": {
+        "operationId": "revoke_installation_api_v1_platform_installations__installation_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/installations/{installation_id}/review": {
+      "post": {
+        "operationId": "review_installation_api_v1_platform_installations__installation_id__review_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/marketplace": {
+      "get": {
+        "operationId": "marketplace_api_v1_platform_marketplace_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/oauth/apps": {
+      "get": {
+        "operationId": "oauth_apps_api_v1_platform_oauth_apps_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_oauth_app_api_v1_platform_oauth_apps_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/oauth/apps/{app_id}": {
+      "delete": {
+        "operationId": "revoke_app_api_v1_platform_oauth_apps__app_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/oauth/apps/{app_id}/review": {
+      "post": {
+        "operationId": "review_app_api_v1_platform_oauth_apps__app_id__review_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/oauth/authorize": {
+      "post": {
+        "operationId": "authorize_api_v1_platform_oauth_authorize_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/oauth/token": {
+      "post": {
+        "operationId": "exchange_token_api_v1_platform_oauth_token_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/overview": {
+      "get": {
+        "operationId": "overview_api_v1_platform_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/sandbox": {
+      "post": {
+        "operationId": "sandbox_api_v1_platform_sandbox_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/usage": {
+      "get": {
+        "operationId": "usage_api_v1_platform_usage_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/webhooks": {
+      "get": {
+        "operationId": "webhooks_api_v1_platform_webhooks_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "create_webhook_api_v1_platform_webhooks_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/webhooks/deliveries": {
+      "get": {
+        "operationId": "deliveries_api_v1_platform_webhooks_deliveries_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/webhooks/deliveries/{delivery_id}/replay": {
+      "post": {
+        "operationId": "replay_api_v1_platform_webhooks_deliveries__delivery_id__replay_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/platform/webhooks/{endpoint_id}/test": {
+      "post": {
+        "operationId": "test_webhook_api_v1_platform_webhooks__endpoint_id__test_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/product-events": {
+      "post": {
+        "operationId": "track_api_v1_product_events_post",
+        "deprecated": false,
+        "responses": [
+          "202",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/collectives": {
+      "post": {
+        "operationId": "collective_api_v1_provable_autonomy_collectives_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/decision-proofs": {
+      "post": {
+        "operationId": "decision_proof_api_v1_provable_autonomy_decision_proofs_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/decision-proofs/{proof_id}/verify": {
+      "get": {
+        "operationId": "verify_proof_api_v1_provable_autonomy_decision_proofs__proof_id__verify_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/disaster-kernel/tests": {
+      "post": {
+        "operationId": "disaster_api_v1_provable_autonomy_disaster_kernel_tests_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/green-schedules": {
+      "post": {
+        "operationId": "schedule_api_v1_provable_autonomy_green_schedules_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/liability-settlements": {
+      "post": {
+        "operationId": "liability_api_v1_provable_autonomy_liability_settlements_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/memories": {
+      "post": {
+        "operationId": "memory_api_v1_provable_autonomy_memories_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/memories/{memory_id}/erase": {
+      "post": {
+        "operationId": "erase_api_v1_provable_autonomy_memories__memory_id__erase_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/model-checks": {
+      "post": {
+        "operationId": "check_policy_api_v1_provable_autonomy_model_checks_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/overview": {
+      "get": {
+        "operationId": "overview_api_v1_provable_autonomy_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/prediction-markets": {
+      "post": {
+        "operationId": "market_api_v1_provable_autonomy_prediction_markets_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/prediction-markets/{market_id}/forecasts": {
+      "post": {
+        "operationId": "forecast_api_v1_provable_autonomy_prediction_markets__market_id__forecasts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/prediction-markets/{market_id}/settle": {
+      "post": {
+        "operationId": "settle_market_api_v1_provable_autonomy_prediction_markets__market_id__settle_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/regulatory-partitions": {
+      "post": {
+        "operationId": "partition_api_v1_provable_autonomy_regulatory_partitions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/replicas": {
+      "post": {
+        "operationId": "replica_api_v1_provable_autonomy_replicas_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/provable-autonomy/replicas/merge": {
+      "post": {
+        "operationId": "merge_api_v1_provable_autonomy_replicas_merge_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/recent-views": {
+      "get": {
+        "operationId": "list_views_api_v1_recent_views_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "record_view_api_v1_recent_views_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/report-exports/{eid}/download": {
+      "get": {
+        "operationId": "download_api_v1_report_exports__eid__download_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/report-exports/{eid}/retry": {
+      "post": {
+        "operationId": "retry_api_v1_report_exports__eid__retry_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/report-templates": {
+      "get": {
+        "operationId": "templates_api_v1_report_templates_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "operationId": "listing_api_v1_reports_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_reports_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/reports/{rid}": {
+      "delete": {
+        "operationId": "remove_api_v1_reports__rid__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "detail_api_v1_reports__rid__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_api_v1_reports__rid__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/reports/{rid}/exports": {
+      "post": {
+        "operationId": "export_api_v1_reports__rid__exports_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/reports/{rid}/rewrite": {
+      "post": {
+        "operationId": "rewrite_api_v1_reports__rid__rewrite_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/reports/{rid}/versions": {
+      "get": {
+        "operationId": "versions_api_v1_reports__rid__versions_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "save_api_v1_reports__rid__versions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/reports/{rid}/versions/{vid}/restore": {
+      "post": {
+        "operationId": "restore_api_v1_reports__rid__versions__vid__restore_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/saved-searches": {
+      "get": {
+        "operationId": "list_saved_searches_api_v1_saved_searches_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_saved_search_api_v1_saved_searches_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/saved-searches/{search_id}": {
+      "delete": {
+        "operationId": "delete_saved_search_api_v1_saved_searches__search_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_saved_search_api_v1_saved_searches__search_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/scim/v2/ServiceProviderConfig": {
+      "get": {
+        "operationId": "scim_config_api_v1_scim_v2_ServiceProviderConfig_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/scim/v2/Users": {
+      "get": {
+        "operationId": "scim_users_api_v1_scim_v2_Users_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operationId": "scim_create_user_api_v1_scim_v2_Users_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "search_api_v1_search_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "operationId": "list_sources_api_v1_sources_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    },
+    "/api/v1/sources/rss": {
+      "post": {
+        "operationId": "add_rss_source_api_v1_sources_rss_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources/rss/validate": {
+      "post": {
+        "operationId": "validate_rss_api_v1_sources_rss_validate_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}": {
+      "delete": {
+        "operationId": "delete_source_api_v1_sources__source_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operationId": "get_source_detail_api_v1_sources__source_id__get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_source_api_v1_sources__source_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/sync": {
+      "post": {
+        "operationId": "trigger_sync_api_v1_sources__source_id__sync_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/sync-runs": {
+      "get": {
+        "operationId": "list_sync_runs_api_v1_sources__source_id__sync_runs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/test": {
+      "post": {
+        "operationId": "test_connection_api_v1_sources__source_id__test_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/subscriptions": {
+      "get": {
+        "operationId": "list_subscriptions_api_v1_subscriptions_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_subscription_api_v1_subscriptions_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}": {
+      "delete": {
+        "operationId": "delete_subscription_api_v1_subscriptions__subscription_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      },
+      "patch": {
+        "operationId": "update_subscription_api_v1_subscriptions__subscription_id__patch",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/task-runs/{run_id}/retry": {
+      "post": {
+        "operationId": "retry_run_api_v1_task_runs__run_id__retry_post",
+        "deprecated": false,
+        "responses": [
+          "202",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "operationId": "list_tasks_api_v1_tasks_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "create_task_api_v1_tasks_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}/run": {
+      "post": {
+        "operationId": "run_now_api_v1_tasks__task_id__run_post",
+        "deprecated": false,
+        "responses": [
+          "202",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}/runs": {
+      "get": {
+        "operationId": "runs_api_v1_tasks__task_id__runs_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}/{action}": {
+      "post": {
+        "operationId": "task_action_api_v1_tasks__task_id___action__post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/timeline/build": {
+      "post": {
+        "operationId": "build_api_v1_timeline_build_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/abuse-reports": {
+      "post": {
+        "operationId": "abuse_api_v1_trust_network_abuse_reports_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/agreements": {
+      "post": {
+        "operationId": "agreement_api_v1_trust_network_agreements_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/data-contracts": {
+      "post": {
+        "operationId": "contract_api_v1_trust_network_data_contracts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/data-contracts/{cid}/withdraw": {
+      "post": {
+        "operationId": "withdraw_api_v1_trust_network_data_contracts__cid__withdraw_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/drills": {
+      "post": {
+        "operationId": "drill_api_v1_trust_network_drills_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/envelopes": {
+      "post": {
+        "operationId": "envelope_api_v1_trust_network_envelopes_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/federated-computations": {
+      "post": {
+        "operationId": "compute_api_v1_trust_network_federated_computations_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/inbox": {
+      "get": {
+        "operationId": "inbox_api_v1_trust_network_inbox_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/orders": {
+      "post": {
+        "operationId": "order_api_v1_trust_network_orders_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/orders/{oid}/transition": {
+      "post": {
+        "operationId": "order_transition_api_v1_trust_network_orders__oid__transition_post",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/overview": {
+      "get": {
+        "operationId": "overview_api_v1_trust_network_overview_get",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/products": {
+      "post": {
+        "operationId": "product_api_v1_trust_network_products_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/provenance": {
+      "post": {
+        "operationId": "provenance_api_v1_trust_network_provenance_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/regulatory-packs": {
+      "post": {
+        "operationId": "regulatory_api_v1_trust_network_regulatory_packs_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/responsibility": {
+      "post": {
+        "operationId": "responsibility_api_v1_trust_network_responsibility_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/supply-artifacts": {
+      "post": {
+        "operationId": "artifact_api_v1_trust_network_supply_artifacts_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/trust-network/trust-score": {
+      "put": {
+        "operationId": "score_api_v1_trust_network_trust_score_put",
+        "deprecated": false,
+        "responses": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/watch-topics": {
+      "get": {
+        "operationId": "list_topics_api_v1_watch_topics_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      },
+      "post": {
+        "operationId": "add_topic_api_v1_watch_topics_post",
+        "deprecated": false,
+        "responses": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/watch-topics/{topic_id}": {
+      "delete": {
+        "operationId": "remove_topic_api_v1_watch_topics__topic_id__delete",
+        "deprecated": false,
+        "responses": [
+          "204",
+          "422"
+        ]
+      }
+    },
+    "/api/v1/workspace": {
+      "get": {
+        "operationId": "workspace_api_v1_workspace_get",
+        "deprecated": false,
+        "responses": [
+          "200"
+        ]
+      }
+    }
+  }
+}

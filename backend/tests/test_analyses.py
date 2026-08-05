@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from datetime import datetime,timezone
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import async_sessionmaker,create_async_engine
@@ -22,5 +23,7 @@ class AnalysisTests(unittest.IsolatedAsyncioTestCase):
   async with self.sessions() as db:
    u=User(username="b",email="b@b.com",password_hash="x");s=DataSource(key="real",name="Real",source_type="rss");db.add_all([u,s]);await db.flush()
    c=ContentItem(source_id=s.id,external_id="1",canonical_url="https://example.com/1",title="Verified release",body="Official release evidence",content_type="article",content_hash="b"*64,published_at=datetime.now(timezone.utc));e=Event(title="Release",slug="release",last_activity_at=datetime.now(timezone.utc));db.add_all([c,e]);await db.flush();db.add(EventContent(event_id=e.id,content_item_id=c.id));await db.flush()
-   req=AnalysisRequest(analysis_type="forecast",event_ids=[e.id]);first=await create_analysis(db,u.id,req);second=await create_analysis(db,u.id,req,first)
+   req=AnalysisRequest(analysis_type="forecast",event_ids=[e.id])
+   with patch("app.services.analysis_service.llm_is_configured", return_value=False):
+    first=await create_analysis(db,u.id,req);second=await create_analysis(db,u.id,req,first)
    data=await serialize(db,first);self.assertEqual(data["evidence_coverage"],100);self.assertTrue(data["citations"]);self.assertTrue(data["result"]["claims"][0]["inference"]);self.assertEqual(second.version,2);self.assertNotEqual(first.id,second.id)

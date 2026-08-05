@@ -6,17 +6,7 @@
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import {
-  ElDrawer,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon,
-  ElInput,
-  ElLoading,
-  ElProgress,
-  ElSlider,
-} from "element-plus";
+import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import {
   Aim,
@@ -73,18 +63,7 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
-app.use(ElLoading);
-
-const elementComponents = {
-  ElDrawer,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon,
-  ElInput,
-  ElProgress,
-  ElSlider,
-};
+app.use(ElementPlus);
 const icons = {
   Aim,
   ArrowDown,
@@ -131,7 +110,6 @@ const icons = {
 };
 
 for (const [key, component] of Object.entries({
-  ...elementComponents,
   ...icons,
 })) {
   app.component(key, component);

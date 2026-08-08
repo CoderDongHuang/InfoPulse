@@ -1,1 +1,22 @@
-{"name":"@infopulse/sdk","version":"0.1.0","type":"module","main":"dist/index.js","types":"dist/index.d.ts","scripts":{"build":"tsc"},"devDependencies":{"typescript":"^6.0.2"}}
+{
+  "name": "@infopulse/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript client for the InfoPulse Open Platform",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

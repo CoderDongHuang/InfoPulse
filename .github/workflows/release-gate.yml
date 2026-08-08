@@ -1,8 +1,13 @@
 name: Release Gate
 
 on:
+  push:
+    branches: [main, master]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   backend:

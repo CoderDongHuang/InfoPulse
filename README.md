@@ -1,8 +1,18 @@
 # InfoPulse
 
+[![Release Gate](https://github.com/CoderDongHuang/InfoPulse/actions/workflows/release-gate.yml/badge.svg)](https://github.com/CoderDongHuang/InfoPulse/actions/workflows/release-gate.yml)
+[![CodeQL](https://github.com/CoderDongHuang/InfoPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/CoderDongHuang/InfoPulse/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 InfoPulse 是一个面向普通用户的 AI 舆情洞察工作台。它从微博、B站和百度贴吧的公开讨论中整理话题样本，并提供热点洞察、表达创作、事件脉络和热搜解读四项核心能力。
 
 > 当前版本以可解释结果为中心：展示来源覆盖、样本数量、代表观点和事实风险，不把模型生成内容包装成已核验事实。
+
+## 开源状态
+
+当前代码已达到可供开发者克隆、审阅、测试和本地运行的开源阶段。后端自动化测试、API 契约、数据库迁移、前端构建、Docker Compose 和 SDK 构建均已通过验证。微博、贴吧、LLM、SMTP、S3、SSO 等依赖账号或第三方服务的能力需要使用者自行配置，未配置时按模块采用明确降级或保持关闭。
+
+本项目不承诺第三方平台接口永久可用，也不提供验证码破解、权限绕过或私有数据采集能力。生产或公网使用不属于默认开源运行边界。
 
 ## 核心功能
 
@@ -14,6 +24,8 @@ InfoPulse 是一个面向普通用户的 AI 舆情洞察工作台。它从微博
 | 事件脉络 | `/timeline` | 将公开线索整理为带来源和可信度的时间线 |
 | 热搜解读 | `/hot-search` | B站公开热榜与 AI 背景摘要 |
 | 内容档案 | `/history` | 统一保存洞察、文案和时间线记录 |
+
+除上述面向用户的核心工作台外，仓库还包含数据源管理、统一搜索、事件聚类、报告、自动化订阅、私有知识库、知识图谱、Agent 编排、多模态证据、企业多租户、开放平台、审计治理和阶段 20-29 的受控智能能力。完整索引见 [docs/README.md](./docs/README.md)。
 
 ## 技术栈
 
@@ -106,6 +118,14 @@ cd ..\frontend
 npm run build
 ```
 
+进一步执行接口和发布检查：
+
+```powershell
+cd backend
+python scripts/api_contract_check.py
+python scripts/production_check.py
+```
+
 ## 安全与合规
 
 - `.env`、数据库、日志和私有插件均被 Git 与 Docker 构建上下文排除。
@@ -115,3 +135,11 @@ npm run build
 - 本软件只是自动化信息整理工具。使用者必须遵守所在地法律、目标平台条款和数据授权范围。
 
 详细说明见 [需求.md](./需求.md)、[架构说明书.md](./架构说明书.md) 和 [开发步骤.md](./开发步骤.md)。
+
+## 参与和安全
+
+- 贡献流程见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+- 安全问题请按 [SECURITY.md](./SECURITY.md) 私下报告，不要公开披露漏洞细节。
+- 本项目采用 [MIT License](./LICENSE)。
+- 后续优化计划见 [开源优化路线图](./docs/30-open-source-roadmap.md)。
+- 项目设计与开源实践详解见 [技术博客](./docs/blog/infopulse-open-source-engineering.md)。

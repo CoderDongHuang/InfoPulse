@@ -2,6 +2,35 @@
 
 > 本文基于 InfoPulse 2026-08-08 的代码与实测结果，介绍项目背景、架构选择、关键实现、验证方法、问题解决过程、已知不足与后续路线。它不是营销材料，也不把未配置的第三方服务描述为已经完成真实生产验证。
 
+## 摘要
+
+面向公开信息的舆情与情报系统正从关键词检索、热度统计演进到由大语言模型参与的证据归纳、事件理解和决策辅助。然而，模型生成的不确定性、外部数据源的不稳定性、跨租户数据隔离、异步任务的可恢复性以及第三方依赖的快速演进，使“能够生成一段答案”和“能够作为可信工程系统运行”之间存在显著差距。
+
+本文以开源项目 InfoPulse 为研究对象，给出一种证据优先、可追溯、可降级的智能信息平台设计。系统使用 FastAPI、SQLAlchemy Async、PostgreSQL/SQLite、Redis、Vue 3 与 TypeScript 构建模块化单体和独立 Worker；通过统一 Collector 契约、来源定位、分析版本、租户上下文、工具默认拒绝、预算与审批状态机，将采集、检索、RAG、Agent、多模态分析、报告和行动闭环连接起来。本文不仅描述正常架构，还报告开源前实证验收：154 项后端自动化测试、353 条 API 路径契约、阶段 13 至 29 数据库迁移往返、前端与 TypeScript SDK 构建、Docker Compose 配置解析以及依赖审计。
+
+研究结果表明，系统的主要可靠性收益并非来自更复杂的模型，而来自确定性边界：没有证据时拒答、外部源失败时显式降级、高风险工具由代码授权、租户过滤发生在查询层、任务状态持久化、迁移和 SDK 纳入发布门禁。依赖升级案例进一步说明，自动化更新机器人只能发现新版本，不能替代兼容性工程：TypeScript、Vue Router 与 LangChain OpenAI 的三个独立 major PR 均因兼容集合不完整而失败。本文给出对应根因、修复策略、有效性威胁和可复现实验协议，为类似 AI 工程项目从功能原型走向可审计开源系统提供参考。
+
+## 关键词
+
+舆情分析；开源情报；证据溯源；大语言模型；检索增强生成；Agent 编排；多租户；异步任务；供应链安全；可复现工程；FastAPI；Vue 3
+
+## 研究问题与贡献
+
+本文围绕四个研究问题展开：
+
+- **RQ1：** 如何在数据源不稳定、模型服务可选的条件下，保持核心信息链路可用且不产生伪造内容？
+- **RQ2：** 如何把引用、身份、租户、审批和幂等性设计为系统约束，而不是依赖 prompt 或开发约定？
+- **RQ3：** 如何用可重复的工程实验判断一个大型功能仓库是否达到开发者预览版开源标准？
+- **RQ4：** 自动依赖升级为何会在单包层面失败，如何建立兼容性集合与发布门禁？
+
+本文的主要贡献包括：
+
+1. 提出一条从公开采集、证据归一、分析版本到行动回执的端到端可追溯链路。
+2. 总结模型不确定性与确定性治理代码之间的职责划分，并给出 Agent 工具、预算和审批的约束方法。
+3. 给出覆盖代码、API、迁移、构建、SDK、供应链和真实 UI 的开源验收矩阵。
+4. 公开报告失败的依赖升级案例，不以强制解析参数掩盖 peer dependency 和编译器接口冲突。
+5. 明确结论的适用范围和有效性威胁，区分“本地开发可用”“外部链路已验证”和“生产规模就绪”。
+
 ![InfoPulse 工作台实览](../blog-assets/infopulse-dashboard.png)
 
 ## 1. 背景：信息很多，可信结论很少
@@ -1054,7 +1083,155 @@ SQLite 用于降低本地开发门槛。生产需要 PostgreSQL 的并发、索�
 
 仓库包含生产配置检查和部署模板，但默认开源边界是本地自托管开发。公网前至少需要 TLS、反向代理限流、强随机密钥、显式 CORS/Trusted Hosts、PostgreSQL、独立 Worker、备份和监控，并完成认证 P0 加固。
 
-## 39. 结语
+## 39. 实验设计与可重复验收协议
+
+### 39.1 实验目标
+
+实验不是为了证明 InfoPulse 在所有环境绝对正确，而是验证以下有限命题：当前提交在指定 Python/Node 环境能够安装和构建；核心领域规则在自动化样本下满足预期；API 路由与契约快照一致；数据库迁移拓扑可往返；空外部配置不会伪造成功；前端关键入口能够真实渲染；SDK manifest 与 lockfile 能完成干净构建。
+
+### 39.2 环境与变量控制
+
+本地验收使用 Windows、PowerShell、Python 3.10、Node.js 20+，数据库主路径使用 SQLite 以降低环境噪声。CI 使用 Ubuntu 与 Python 3.11、Node.js 22。LLM Key、平台 Cookie、SMTP、S3 与 SSO 凭证保持为空，从而验证无付费外部依赖的开发者基线。
+
+实验控制变量包括：固定代码提交、固定 lockfile、`AUTO_CREATE_TABLES=false`、显式 SQLite URL、关闭不需要的后台调度、使用 MockTransport 提供外部 API 响应。非控制变量包括 GitHub Runner 镜像中预装工具、包仓库可用性和外部网络时延，因此依赖安装时间不作为性能结论。
+
+### 39.3 验收矩阵
+
+| 实验编号 | 对象 | 操作 | 判定条件 | 实际结果 |
+| --- | --- | --- | --- | --- |
+| E1 | Python 源码 | `compileall` | 无语法错误 | 通过 |
+| E2 | 后端领域逻辑 | 154 项 unittest | 0 failure / 0 error | 通过，338.857 秒 |
+| E3 | API 契约 | contract checker | 预期路径全部匹配 | 353 条路径通过 |
+| E4 | 数据迁移 | 13→29 downgrade/upgrade | 迁移命令全部成功 | 通过 |
+| E5 | 生产配置 | production check | 不安全配置被拒绝，完整配置通过 | 通过 |
+| E6 | 前端 | `npm ci && npm run build` | 类型检查和构建成功 | 通过 |
+| E7 | 前端依赖 | `npm audit --offline --omit=dev` | 无已知漏洞 | 0 vulnerabilities |
+| E8 | TypeScript SDK | `npm ci && npm run build` | lockfile 安装与 `tsc` 成功 | TypeScript 7 下通过 |
+| E9 | Compose | `docker compose config --quiet` | 配置可解析 | 通过 |
+| E10 | 关键 UI | Playwright 截图 | 中文、布局、真实空状态可见 | 认证页与工作台通过 |
+
+### 39.4 失败注入与负向测试
+
+正向测试只能证明系统在理想输入下工作。更关键的是负向断言：refresh token 不能访问 access-only 路由；私网 RSS URL 被拒绝；用户不能读取他人知识文档；不存在证据时 Agent 返回拒答；重复幂等键不产生第二次副作用；Webhook payload 篡改导致签名失败；图谱没有跨平台证据时拒绝构造路径；生产环境默认 secret 阻止启动。
+
+```python
+test_cases = [
+    "refresh_token_cannot_access_protected_endpoint",
+    "rss_rejects_private_networks",
+    "deleted_document_cannot_be_recalled",
+    "no_evidence_returns_refusal_not_fabrication",
+    "signature_detects_payload_tampering",
+    "tool_policy_defaults_to_deny",
+]
+```
+
+这种测试命名直接陈述安全不变量。与追求覆盖率百分比相比，不变量测试更能表达“哪些错误绝不能发生”。未来可把这些不变量转换为 property-based test，在更大的随机输入空间验证。
+
+## 40. 结果分析与消融思考
+
+### 40.1 RQ1：可用性来自降级边界
+
+当 Redis 不可用时，基础 API 仍能启动；当 LLM Key 为空时，证据采集和确定性处理仍可测试；当单个数据源失败时，其他来源继续处理。这支持“外部依赖不应决定整个系统可用性”的设计。但降级不是返回成功状态和空对象，必须携带 `degraded`、`insufficient_evidence` 或来源健康信息，否则监控和用户会误判。
+
+### 40.2 RQ2：治理约束必须位于模型之外
+
+测试表明，工具默认拒绝、租户查询过滤、预算前置判断和审批持久化可以用确定性断言验证。若移除这些约束，仅在 system prompt 写“不要越权”，系统将无法证明跨租户隔离或成本上限。可以把这种对比视为概念性消融：删除确定性 guard 后，关键属性不再可由普通单元测试保证，只剩对模型行为的概率期待。
+
+### 40.3 RQ3：项目完整性是向量，不是布尔值
+
+154 项测试、353 条路径和构建通过支持“开发者预览可用”，但不支持“生产规模完整”。项目完整性至少包含功能覆盖、接口一致性、数据演进、安全控制、运维能力、文档可达性、外部集成真实性和用户价值验证八个维度。当前前五项基线较强，真实外部 canary、移动端 E2E、依赖锁定和高阶段模块用户验证仍不足。
+
+### 40.4 RQ4：依赖机器人不能识别兼容性集合
+
+三个失败 PR 形成了清晰对照：
+
+| PR | 机器人操作 | 隐含兼容集合 | 失败点 | 决策 |
+| --- | --- | --- | --- | --- |
+| #37 | TypeScript 6→7 | TypeScript + vue-tsc + Vite | `./lib/tsc` 不再导出 | 关闭，等待工具链整体迁移 |
+| #43 | Vue Router 4→5 | Router + Pinia + Vue | Pinia peer dependency 冲突 | 关闭，人工规划框架迁移 |
+| #44 | langchain-openai 0.x→1.4 | LangChain + Core + OpenAI SDK | OpenAI 1.x/2.x 冲突 | 删除未使用 LangChain 依赖 |
+
+如果使用 `npm --legacy-peer-deps`，E7 可能暂时安装成功，但运行时类型和插件契约仍未得到验证；如果同时放宽所有 Python 上限，pip 可能解析出一套新依赖，却引入大面积 API 迁移。这些“让安装命令变绿”的做法没有解决兼容性问题。
+
+本轮复验还暴露了“离线审计假阴性”：`npm ci` 在线获取公告后报告 `nanoid <=3.3.16` 与 `postcss <=8.5.22` 两个高危传递依赖，而紧随其后的 `npm audit --offline` 因本地 advisory 缓存不完整显示 0。维护者随后执行在线 `npm audit`，确认前者可能因异常 size 进入无限循环，后者涉及 source map 路径穿越和文件泄露；两项均存在兼容修复。使用非 major 的 `npm audit fix` 更新 lockfile 后，重新执行 `npm ci`、前端构建和在线审计，结果为 0 vulnerabilities。
+
+这个案例说明安全门禁必须记录审计数据源和联网状态。“命令退出 0”不等于安全数据库完整；离线审计适合网络受限环境的补充检查，不能作为发布时唯一证据。CI 应优先使用在线 advisory，并把审计时间、lockfile commit 和结果作为发布证据保留。
+
+## 41. 有效性威胁
+
+按照实证软件工程论文的习惯，本文从构念、内部、外部和结论四类有效性威胁说明限制。
+
+### 41.1 构念有效性
+
+本文用测试、契约、迁移和构建表示“工程完整性”，但这些指标不能完整测量可用性、洞察质量和真实组织价值。测试数量可能重复覆盖同一逻辑，API 路径数量也不代表每条路径都具有相同成熟度。为降低威胁，本文同时报告负向安全不变量、真实 UI 截图和未验证项，不使用单一分数。
+
+### 41.2 内部有效性
+
+部分测试使用 SQLite 和模拟外部响应，失败可能被环境差异掩盖。全局 Python 环境中的无关包也可能影响 `pip check`。缓解措施包括 CI 使用干净 Runner、lockfile、MockTransport 与外部 canary 分离、迁移单独执行，以及未来加入 PostgreSQL service matrix。
+
+### 41.3 外部有效性
+
+InfoPulse 的结论未必直接推广到医疗、金融或关键基础设施系统。这些领域具有更严格的数据、模型和法规要求。本文模式更适合公开信息研究、企业情报和可审计 AI 工作流；在高风险领域应用前需要独立认证和领域评估。
+
+### 41.4 结论有效性
+
+154 项测试全部通过并不等于不存在未知漏洞。依赖审计数据库可能滞后，CodeQL 也无法识别所有业务授权错误。本文结论限定为“未发现阻断本地开源的已知问题且基线测试通过”，不声称形式化证明整个系统安全。
+
+## 42. 可复现性声明
+
+复现实验需要仓库提交、Python/Node 版本、依赖清单、环境变量和命令。外部账号不是基础实验必需条件。建议记录：
+
+```text
+Repository: https://github.com/CoderDongHuang/InfoPulse
+Python: 3.10 / CI 3.11
+Node.js: 20+ / CI 22
+Database: SQLite for baseline; PostgreSQL for production matrix
+LLM_API_KEY: empty
+Crawler credentials: empty
+AUTO_CREATE_TABLES: false
+```
+
+为进一步提高复现性，路线图包括 Python lockfile、容器镜像 digest、SBOM、制品 provenance、示例数据初始化和固定外部响应语料。涉及真实第三方服务的 canary 结果应记录时间、地区、账号权限和 API 版本，但不能公开 Cookie 或 token。
+
+## 43. 伦理、隐私与负责任披露
+
+公开可访问不等于可以无限采集、永久保存或重新识别个人。使用者应遵守所在地区法律、平台条款和数据授权范围，执行数据最小化、保留期、删除和访问控制。系统不提供验证码破解、设备指纹伪装或账号权限绕过。
+
+模型输出用于辅助整理，不替代事实核验和高风险人工决策。涉及个人、危机、政策或商业行动时，应回到原始来源并保留异议。漏洞通过 GitHub Private Vulnerability Reporting 私下报告，在修复或缓解方案可用前不公开攻击细节。
+
+## 44. 术语表
+
+| 术语 | 本文含义 |
+| --- | --- |
+| Evidence / 证据 | 可定位到来源 URL、文本片段、页码、时间段或画框的输入事实 |
+| Claim / 断言 | 分析结果中需要证据支持的陈述 |
+| Citation / 引用 | Claim 与 Evidence 之间的可验证连接 |
+| Collector | 将某个公开数据源映射为统一内容结构的适配器 |
+| Degradation / 降级 | 外部能力不可用时返回范围更小但不伪造的结果 |
+| TenantContext | 当前用户在组织和 Workspace 中的身份、角色与权限集合 |
+| Idempotency / 幂等 | 重复请求不会制造重复业务副作用 |
+| Provenance / 来源证明 | 数据、模型产物或构建制品的来源与演进记录 |
+| Canary | 用少量真实流量或定时探测验证外部依赖和新版本 |
+| Compatibility set | 必须联合升级和验证的一组相互依赖组件 |
+
+## 45. 参考文献与规范
+
+1. NIST, *Artificial Intelligence Risk Management Framework (AI RMF 1.0)*, 2023. [https://www.nist.gov/itl/ai-risk-management-framework](https://www.nist.gov/itl/ai-risk-management-framework)
+2. OWASP, *Server Side Request Forgery Prevention Cheat Sheet*. [https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
+3. OWASP, *Application Security Verification Standard*. [https://owasp.org/www-project-application-security-verification-standard/](https://owasp.org/www-project-application-security-verification-standard/)
+4. M. Jones, J. Bradley, N. Sakimura, *JSON Web Token (JWT)*, RFC 7519, 2015. [https://www.rfc-editor.org/rfc/rfc7519](https://www.rfc-editor.org/rfc/rfc7519)
+5. SLSA Community, *Supply-chain Levels for Software Artifacts Specification*. [https://slsa.dev/spec/](https://slsa.dev/spec/)
+6. OpenTelemetry Authors, *OpenTelemetry Specification*. [https://opentelemetry.io/docs/specs/](https://opentelemetry.io/docs/specs/)
+7. GitHub Docs, *About dependency review and Dependabot*. [https://docs.github.com/code-security](https://docs.github.com/code-security)
+8. PostgreSQL Global Development Group, *PostgreSQL Documentation: Row Security Policies*. [https://www.postgresql.org/docs/current/ddl-rowsecurity.html](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
+9. Alembic Authors, *Alembic Documentation*. [https://alembic.sqlalchemy.org/](https://alembic.sqlalchemy.org/)
+10. Martin Kleppmann, *Designing Data-Intensive Applications*, O'Reilly Media, 2017.
+11. Patrick Lewis et al., *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*, NeurIPS 2020. [https://arxiv.org/abs/2005.11401](https://arxiv.org/abs/2005.11401)
+12. ReAct Authors, *ReAct: Synergizing Reasoning and Acting in Language Models*, ICLR 2023. [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
+
+这些资料用于建立风险、协议、供应链、可观测性和 RAG 的通用背景。InfoPulse 的具体实现与验收结论以仓库代码、测试和本文记录的实验为准。
+
+## 46. 结语
 
 InfoPulse 当前已经达到“可以公开代码、供开发者本地运行和继续贡献”的阶段。它还没有达到“拿到任意环境即可无配置生产运行”的阶段，也不应该这样宣传。
 

@@ -10,6 +10,7 @@
 4. [接口文档](./04-接口文档.md)：REST、SSE、错误结构与鉴权约定。
 5. [配置指南](./29-configuration-guide.md)：开发、测试与生产配置矩阵。
 6. [开源优化路线图](./30-open-source-roadmap.md)：发布后的工程优先级与里程碑。
+7. [依赖升级政策](./31-dependency-upgrade-policy.md)：自动更新、major 迁移和兼容性门禁。
 
 ## 产品与开发
 

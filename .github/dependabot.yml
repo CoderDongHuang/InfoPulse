@@ -8,10 +8,19 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
+    ignore:
+      # Framework/toolchain majors must be upgraded as a tested compatibility set.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: vue-router
+        update-types: [version-update:semver-major]
   - package-ecosystem: npm
     directory: /sdk/typescript
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:

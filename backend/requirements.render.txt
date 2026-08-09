@@ -24,8 +24,6 @@ passlib[bcrypt]>=1.7.4,<2.0.0
 python-multipart>=0.0.6,<0.1.0
 
 # --- AI / LLM ---
-langchain>=0.1.0,<0.2.0
-langchain-openai>=0.0.5,<0.1.0
 openai>=1.7.0,<2.0.0
 
 # --- Lightweight Crawler ---

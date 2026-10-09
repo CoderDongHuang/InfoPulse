@@ -19,11 +19,13 @@
 
 ## P0：发布可靠性，下一批
 
-- [ ] 完整容器构建与 Nginx 真实 WS 握手；当前本机 Docker Hub 拉取受网络限制。
+- [x] 最小容器栈真实构建与 Nginx UI/大于 1 MiB 上传/WS 握手；GitHub Linux CI 已通过，见验收报告。
+- [ ] 完整 Chromium 采集镜像构建与 browser crawler/media 可选运行依赖验收；不以最小镜像代替。
 - [ ] PostgreSQL 降级/升级的数据保留与独立 worker 中断恢复集成矩阵，不能只看 SQLite。
-- [ ] 干净 Linux/Windows、Python 3.10/3.11 安装矩阵和版本约束文件；当前只有一次干净 3.10 实测。
+- [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
+- [ ] Windows 持续 CI、多平台版本约束文件和镜像 digest 维护。
 - [ ] 所有核心按钮、401/断网/取消/超时、两用户协作、跨租户负向 UI 测试；路由巡检不等于按钮验收。
-- [ ] 持续依赖漏洞审计与 SBOM artifact；一次 audit 为零不等于未来为零。
+- [x] 每次 PR 的 npm/pip 漏洞门禁与 Python CycloneDX/JSON artifact；本轮升级旧 setuptools 后通过，零已知漏洞不等于未来为零。
 - [ ] 固定可重复 fixture：采集 -> 内容 -> 事件 -> 分析 -> 报告 -> 通知 -> 回执跨域业务验收。
 
 验收：从空库和空缓存启动可重现；容器入口和独立 worker 都可运行；原始故障能由 CI 捕捉；发布证据标明日期和环境。

@@ -31,10 +31,10 @@
 
 | 编号 | 本轮状态 | 已落实 | 未落实/不能推出的结论 |
 | --- | --- | --- | --- |
-| B01 安装与依赖 | 部分完成 | base/render/full 分层、维护版本、tzdata、干净 Python 3.10 安装与 pip check、一次 Python 审计 | 全平台锁文件、镜像 digest 和长期兼容矩阵仍需维护 |
+| B01 安装与依赖 | 部分完成 | base/render/full 分层、维护版本、tzdata、Windows 3.10 干净安装；Linux 3.10/3.11 CI 安装/产品验收；每 PR 审计/SBOM | 全平台锁文件、镜像 digest 和长期兼容矩阵仍需维护 |
 | B02 超时预算 | 完成配置与回归 | 模型 45 秒总预算，前端 120 秒，Nginx 180 秒；超预算终止 | 全长任务取消/恢复/跨域事务尚未统一，是独立后续优化 |
 | B03 知识任务 | 完成（当前队列范围） | staging 先于 DB commit、lease/attempt/恢复、有界读取、阻塞存储/解析转线程 | 大规模对象存储一致性、孤儿 staging 清理和压力测试待补 |
-| B04 默认网络与代理 | 部分完成 | Docker loopback 端口绑定；Vite/Nginx WS 配置 | Vite WS 实测通过；本机完整镜像构建与 Nginx WS 未通过环境验收 |
+| B04 默认网络与代理 | 完成（最小栈） | Docker loopback；Vite WS 实测；GitHub CI 最小镜像构建、Nginx WS/上传/产品验收 | 完整 Chromium 镜像及可选采集/媒体运行依赖没有因此完成验收 |
 | B05 安全与会话 | 部分完成 | refresh 单次消费、sid 会话校验、logout 撤销、DB 限流失败关闭、指标默认拒绝 | 全 API 威胁模型、代理身份与分布式压测仍需专项验证 |
 | B06 门禁与评测 | 部分完成 | 354 路径的完整参数/认证/body/response/schema 快照；真实产品验收脚本 | 静态规则得分不是模型质量；固定模型评测集待补 |
 | B07 实验模块宣传 | 完成文档纠偏 | 能力矩阵标明实验/外部依赖，不再把 formal/BFT/删除声明当作证明 | 没有因此实现真实形式化验证或分布式共识 |
@@ -57,16 +57,22 @@
 
 Nginx 默认限制 1 MB 与后端知识 25 MB、媒体 250 MB 的默认限制不一致。代理整体请求上限设为 256 MiB，后端仍按单文件约束拒绝；提高后端配置时应同步评估代理限制。媒体 API 原先无界 `file.read()` 改为上限加一读取，新增超限负向测试。浏览器固定上传 fixture 改为略大于 1 MiB 的 Markdown（空行填充，不制造海量索引），容器 job 可以捕捉代理 413。
 
+### 4.5 远端门禁发现的探针与构建工具问题
+
+首次容器验收中镜像构建、数据库迁移与 API 启动成功，但前端探针失败。Nginx 配置监听 IPv4，`localhost` 探针受 IPv6 解析影响，改为显式 `127.0.0.1` 后最小容器产品验收全部通过。未通过增加重试次数或删除健康检查掩盖问题。
+
+Python 审计发现 runner 自带 setuptools 79.0.1 的源分发 Unicode 文件排除漏洞（修复版本 83.0.0）。审计环境与两个后端 Dockerfile 明确升级 `setuptools>=83.0.0`；远端实际使用 84.0.0 后通过。JSON 漏洞门禁与 CycloneDX 输出分为独立步骤，即使门禁失败也保留诊断制品，不忽略公告。
+
 ![桌面知识检索](./images/2026-10-09/knowledge-desktop.png)
 
 ![移动知识页面](./images/2026-10-09/knowledge-mobile.png)
 
 ## 5. 实测证据
 
-| 检查 | 本机结果 | 解释 |
+| 检查 | 实测结果/环境 | 解释 |
 | --- | --- | --- |
 | 最终全量后端 unittest | 187/187，751.843 秒 | 包含本轮负向、并发、生命周期回归；不等于行/分支覆盖率 |
-| 第二批媒体有界读取回归 | 新增 1 项，模块共 4 项 | 第一批全量为 187；第二批远端全量预期 188，以 CI 实际结果确认 |
+| 第二批完整后端 CI | 188/188，158.138 秒，Linux Python 3.11 | 含新增媒体超限测试；模块本机 4/4，和第一批 187 项记录分开 |
 | 初始化配置复查 | 1/1 | 两次生成不同密钥，禁止覆盖，模型空值，crawler/media 默认关闭 |
 | 前端 SSE | 5/5 | 单终态、服务端错误和清理逻辑 |
 | 前端类型检查/构建 | 通过 | 主包仍约 1 MB，有第三方 PURE 注释告警，不冒充优化完成 |
@@ -75,10 +81,11 @@ Nginx 默认限制 1 MB 与后端知识 25 MB、媒体 250 MB 的默认限制不
 | OpenAPI 完整快照 | 354 路径通过 | 检测 schema 漂移；不是语义兼容性证明 |
 | SQLite 迁移 | 空库 -> head -> base -> head 通过 | 隔离库，无用户数据 |
 | PostgreSQL 迁移与 API | 空库 -> head 通过 | pgvector/pg16，33 个迁移，实际注册与写入 |
-| 干净 Python 环境 | 3.10 base 安装、pip check 通过 | 本机 Windows；Linux 矩阵由新增 CI 验证 |
-| Python 依赖审计 | 记录中零条已知漏洞 | 见 `python-dependency-audit.json`；仅对应记录依赖及审计时点 |
+| 干净 Python 环境 | Windows 3.10 本机通过；Linux 3.10/3.11 CI 通过 | base 安装、pip check、隔离 PostgreSQL 迁移往返与真实浏览器验收 |
+| Python 依赖审计 | CI 92 个依赖，0 个受影响包/已知漏洞 | setuptools 84.0.0；JSON/CycloneDX 在下方 CI artifact；本机旧清单仅对应旧时点 |
 | 浏览器产品验收 | 7 组通过，JS 错误/5xx 均为空 | Edge Chromium；原始结果见 [result.json](./images/2026-10-09/result.json) |
-| 完整 Docker/Nginx | 尚未验收 | Docker Hub 基础镜像获取失败；不是把配置解析算成运行通过 |
+| 最小 Docker/Nginx | GitHub Linux CI 通过 | 实际构建 Dockerfile.render/前端，PostgreSQL/Redis，Nginx 7 组验收；JS 错误/5xx 为空 |
+| 完整 Chromium 镜像 | 尚未验收 | 本机 registry 拉取受限；最小容器通过不代表可选采集/媒体依赖通过 |
 
 浏览器检查覆盖：未登录重定向、UI 注册与非管理员身份、匿名解释拒绝、UI 新建/上传/索引/引用检索、同源 WebSocket ping/pong、协作草稿落库与发布版本不变、36 路由壳巡检、390px 移动布局、刷新恢复、UI 注销后旧 token 401、重新登录。
 
@@ -108,7 +115,13 @@ python -m unittest discover -s tests -v
 python scripts/api_contract_check.py
 ```
 
-新增 CI 使用 Linux、Python 3.10/3.11、隔离 PostgreSQL/Redis 和 Playwright Chromium，运行空库迁移往返及上述产品验收，上传失败/成功截图、JSON 和服务日志。另设 Python 漏洞门禁与 CycloneDX 制品，以及实际构建容器栈、经 Nginx 运行 UI/WS 验收的 job；前端镜像升级到 Node 22 和 Nginx stable。是否在远端通过应以 PR checks 为准，不以 YAML 存在宣称验证成功。
+新增 CI 使用 Linux、Python 3.10/3.11、隔离 PostgreSQL/Redis 和 Playwright Chromium，运行空库迁移往返及上述产品验收，上传失败/成功截图、JSON 和服务日志。另设 Python 漏洞门禁与 CycloneDX 制品，以及实际构建最小容器栈、经 Nginx 运行 UI/WS 验收的 job；前端镜像升级到 Node 22 和 Nginx stable。
+
+### 5.1 远端证据索引
+
+代码修正提交 `303aeb9` 的 [Release Gate 37902377401](https://github.com/CoderDongHuang/InfoPulse/actions/runs/37902377401) 全部通过；[CodeQL 37902377415](https://github.com/CoderDongHuang/InfoPulse/actions/runs/37902377415) 的 Python/TypeScript 检查通过。运行页 artifacts 提供 `container-acceptance`、`product-acceptance-python-3.10`、`product-acceptance-python-3.11`、`python-dependency-audit` 的截图、JSON、日志和 SBOM。Artifact 有平台保留期限，复核时应按上述命令重新运行，不把链接永远有效当作保证。
+
+第一批 [PR #59](https://github.com/CoderDongHuang/InfoPulse/pull/59) 已在门禁通过后合并；第二批 [PR #60](https://github.com/CoderDongHuang/InfoPulse/pull/60) 包含产品验收、容器故障修正与本文，最终合并状态以 PR 页面为准。文档收尾提交仍会再次运行完整门禁，不绕过 CI。
 
 ## 6. 升级注意
 
@@ -121,6 +134,6 @@ python scripts/api_contract_check.py
 
 ## 7. 后续验收顺序
 
-先补完整容器与独立 worker 崩溃恢复、数据保留迁移矩阵和全核心 UI 负向验收，再进行重复模块收敛、DTO 类型生成、前端按需依赖与包体预算。最后补真实提供商、模型质量、删除一致性与性能/恢复基线。细节和完成标记统一维护在路线图，不重复制造互相矛盾的任务列表。
+先补完整 Chromium 镜像与独立 worker 崩溃恢复、数据保留迁移矩阵和全核心 UI 负向验收，再进行重复模块收敛、DTO 类型生成、前端按需依赖与包体预算。最后补真实提供商、模型质量、删除一致性与性能/恢复基线。最小容器、Linux 双版本验收和持续审计已在路线图标记完成，不扩大为全平台或全提供商承诺。
 
 本轮代码提交分安全运行修复与产品验收文档两批；具体 PR 与 CI 结果见 GitHub。没有自动合并未经验证的 Dependabot major 更新。

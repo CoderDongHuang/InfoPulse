@@ -17,12 +17,33 @@ export function createSSEConnection(
 ): SSEConnection {
   const controller = new AbortController()
   let closed = false
+  let terminal = false
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
   let lastEventAt = Date.now()
 
+  const finish = () => {
+    if (closed) return
+    closed = true
+    window.clearInterval(timer)
+    controller.abort()
+    void reader?.cancel().catch(() => {})
+  }
+  const fail = (message: string) => {
+    if (closed) return
+    terminal = true
+    finish()
+    options.callbacks.onError?.(message)
+  }
+
   const dispatch = (type: string, raw: string) => {
+    if (closed) return
     lastEventAt = Date.now()
     let parsed: any = raw
     try { parsed = JSON.parse(raw) } catch { /* text event */ }
+    if (['result', 'error', 'done', 'message.completed', 'message.failed'].includes(type)) {
+      terminal = true
+      finish()
+    }
     options.callbacks.onEvent?.(type, parsed)
     if (type === 'progress') options.callbacks.onProgress?.(parsed)
     else if (type === 'chunk') options.callbacks.onChunk?.(typeof parsed === 'string' ? parsed : raw)
@@ -40,20 +61,26 @@ export function createSSEConnection(
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       })
+      if (closed) { void response.body?.cancel(); return }
       if (!response.ok) {
         let message = `请求失败（${response.status}）`
         try { message = (await response.json()).detail || message } catch { /* no body */ }
-        options.callbacks.onError?.(message)
+        fail(message)
         return
       }
-      const reader = response.body?.getReader()
+      reader = response.body?.getReader()
       if (!reader) throw new Error('浏览器无法读取流式响应')
       const decoder = new TextDecoder()
       let buffer = ''
       while (!closed) {
         const { value, done } = await reader.read()
-        if (done) break
+        if (closed) break
+        if (done) {
+          if (!terminal) fail('Stream ended before a terminal event')
+          break
+        }
         buffer += decoder.decode(value, { stream: true })
+        buffer = buffer.replace(/\r\n/g, '\n')
         const blocks = buffer.split('\n\n')
         buffer = blocks.pop() || ''
         for (const block of blocks) {
@@ -67,17 +94,20 @@ export function createSSEConnection(
         }
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') options.callbacks.onError?.(`连接异常：${error.message}`)
+      if (!closed) fail(`连接异常：${error.message}`)
+    } finally {
+      finish()
     }
   }
 
   const timer = window.setInterval(() => {
-    if (Date.now() - lastEventAt > 70000) {
-      options.callbacks.onTimeout?.()
-      controller.abort()
+    if (!closed && Date.now() - lastEventAt > 70000) {
+      finish()
+      if (options.callbacks.onTimeout) options.callbacks.onTimeout()
+      else options.callbacks.onError?.('Stream timed out')
     }
   }, 5000)
   void connect()
 
-  return { close: () => { closed = true; controller.abort(); window.clearInterval(timer) } }
+  return { close: finish }
 }

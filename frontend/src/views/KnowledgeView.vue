@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { knowledgeApi } from "@/api/knowledge";
 const bases = ref<any[]>([]),
@@ -11,6 +11,22 @@ const bases = ref<any[]>([]),
   query = ref(""),
   results = ref<any[]>([]);
 const active = computed(() => bases.value.find((x) => x.id === activeId.value));
+let pollTimer: ReturnType<typeof setTimeout> | undefined;
+let disposed = false;
+async function pollDocuments() {
+  try {
+    const id = activeId.value;
+    if (id && docs.value.some((doc) => ["queued", "processing"].includes(doc.status))) {
+      const updated = await knowledgeApi.documents(id);
+      if (!disposed && id === activeId.value) docs.value = updated;
+    }
+  } catch {
+    // Keep the last successful state; the request layer reports connectivity errors.
+  } finally {
+    if (!disposed) pollTimer = setTimeout(pollDocuments, 2000);
+  }
+}
+onUnmounted(() => { disposed = true; clearTimeout(pollTimer); });
 const labels: any = {
   queued: "排队中",
   processing: "索引中",
@@ -102,6 +118,7 @@ async function testSearch() {
   selected.value = null;
 }
 onMounted(async () => {
+  pollTimer = setTimeout(pollDocuments, 2000);
   cap.value = await knowledgeApi.capabilities();
   await loadBases();
 });
@@ -326,6 +343,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   border-bottom: 1px solid #e1e7e4;
 }
 .documents h2 {
@@ -334,6 +353,12 @@ main {
 .actions {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
+}
+.actions button,
+.actions label {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .actions input {
   display: none;

@@ -12,6 +12,8 @@ import type { UserResponse } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   let refreshInFlight: Promise<boolean> | null = null
+  let refreshEpoch = -1
+  let sessionEpoch = 0
   // --- State ---
   const token = ref<string | null>(sessionStorage.getItem('infopulse_access_token'))
   const refreshTokenValue = ref<string | null>(sessionStorage.getItem('infopulse_refresh_token'))
@@ -22,45 +24,60 @@ export const useUserStore = defineStore('user', () => {
 
   // --- Actions ---
   async function login(username: string, password: string) {
+    const epoch = ++sessionEpoch
     const res = await authApi.login({ username: username.trim(), password })
+    if (epoch !== sessionEpoch) return
     persistTokens(res)
     await fetchUserInfo()
   }
 
   async function register(username: string, email: string, password: string) {
+    const epoch = ++sessionEpoch
     const res = await authApi.register({ username: username.trim(), email: email.trim().toLowerCase(), password })
+    if (epoch !== sessionEpoch) return
     persistTokens(res)
     await fetchUserInfo()
   }
 
   async function fetchUserInfo() {
     if (!token.value) return
-    userInfo.value = await authApi.getMe()
+    const epoch = sessionEpoch
+    const info = await authApi.getMe()
+    if (epoch === sessionEpoch) userInfo.value = info
   }
 
   async function refreshToken() {
-    if (refreshInFlight) return refreshInFlight
+    if (refreshInFlight && refreshEpoch === sessionEpoch) return refreshInFlight
+    refreshEpoch = sessionEpoch
     refreshInFlight = (async () => {
+      const epoch = sessionEpoch
       try {
         if (!refreshTokenValue.value) return false
         const res = await authApi.refresh(refreshTokenValue.value)
+        if (epoch !== sessionEpoch) return false
         persistTokens(res)
         return true
       } catch {
-        logout()
+        if (epoch === sessionEpoch) void logout()
         return false
       }
     })()
-    try { return await refreshInFlight }
-    finally { refreshInFlight = null }
+    const current = refreshInFlight
+    try { return await current }
+    finally { if (refreshInFlight === current) refreshInFlight = null }
   }
 
-  function logout() {
+  async function logout() {
+    const previousToken = token.value
+    sessionEpoch += 1
     token.value = null
     refreshTokenValue.value = null
     userInfo.value = null
     sessionStorage.removeItem('infopulse_access_token')
     sessionStorage.removeItem('infopulse_refresh_token')
+    if (previousToken) {
+      try { await authApi.logout(previousToken) } catch { /* local session remains cleared */ }
+    }
   }
 
   // Try to restore session on app load

@@ -7,5 +7,7 @@ __pycache__/
 *.log
 .pytest_cache/
 .mypy_cache/
+.venv*/
+data/
 tests/
 test_playwright.py

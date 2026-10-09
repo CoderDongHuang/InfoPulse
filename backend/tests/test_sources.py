@@ -187,7 +187,7 @@ class SourceSyncTests(unittest.IsolatedAsyncioTestCase):
 
 class SourceApiContractTests(unittest.TestCase):
     def test_management_routes_are_registered_and_protected(self):
-        routes = {(route.path, method) for route in app.routes for method in (getattr(route, "methods", None) or set())}
+        routes = {(path, method.upper()) for path, operations in app.openapi()["paths"].items() for method in operations}
         expected = {
             ("/api/v1/sources", "GET"), ("/api/v1/sources/{source_id}", "GET"),
             ("/api/v1/sources/{source_id}", "PATCH"), ("/api/v1/sources/{source_id}/test", "POST"),

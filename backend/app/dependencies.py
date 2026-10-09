@@ -11,6 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.user import User
+from app.models.auth_session import AuthSession
+from app.core.time import as_utc
+from datetime import datetime, timezone
 from app.services.auth_service import get_user_by_id
 from app.services.enterprise import TenantContext, resolve_tenant
 
@@ -53,6 +56,10 @@ async def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is deactivated",
         )
+
+    session = await db.get(AuthSession, payload.get("sid", ""))
+    if not session or session.user_id != user.id or session.revoked_at or as_utc(session.expires_at) <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Session expired or revoked; sign in again")
 
     return user
 

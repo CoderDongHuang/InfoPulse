@@ -6,6 +6,9 @@ Base metadata before any relationships are resolved.
 """
 
 from app.models.user import User
+from app.models.auth_session import AuthSession
+from app.models.rate_limit import RateLimitBucket
+from app.models.dispatch import DispatchJob
 from app.models.analysis_history import AnalysisHistory
 from app.models.enterprise import ApprovalRequest, CustomRole, IdentityProvider, LegalHold, Organization, OrganizationMember, Team, TeamMember, TenantPolicy, TenantQuota, TenantSLA, Workspace, WorkspaceMember
 from app.models.platform import APIUsageMeter, BillingAccount, ConnectorDefinition, ConnectorInstallation, DeveloperAPIKey, OAuthAccessGrant, OAuthApplication, OAuthAuthorizationCode, SecurityReview, SubscriptionPlan, WebhookDelivery, WebhookEndpoint

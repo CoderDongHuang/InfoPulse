@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker,create_async_engine
 import app.models
 from app.core.database import Base
 from app.models.multimodal import CollaborativeDocument
+from app.models.orchestration import Workflow,WorkflowVersion
 from app.models.user import User
 from app.schemas.multimodal import ChangeCreate
 from app.services.collaboration import apply_change,digest
@@ -14,7 +15,11 @@ class CollaborationTests(unittest.IsolatedAsyncioTestCase):
   async with self.engine.begin() as conn:await conn.run_sync(Base.metadata.create_all)
  async def asyncTearDown(self):await self.engine.dispose()
  async def setup_doc(self,db):
-  user=User(username="collabowner",email="collab@test.local",password_hash="x");db.add(user);await db.flush();org=await provision_personal_tenant(db,user);snapshot={"title":"Brief","structured_content":{"risk":"low"}};doc=CollaborativeDocument(organization_id=org.id,resource_type="workflow",resource_id="resource-1",snapshot=snapshot,snapshot_hash=digest(snapshot),updated_by=user.id);db.add(doc);await db.flush();return user,doc
+  user=User(username="collabowner",email="collab@test.local",password_hash="x");db.add(user);await db.flush();org=await provision_personal_tenant(db,user)
+  graph={"nodes":[{"id":"start","type":"start"},{"id":"end","type":"end"}],"edges":[{"source":"start","target":"end"}]}
+  workflow=Workflow(organization_id=org.id,name="Collaborative workflow",created_by=user.id);db.add(workflow);await db.flush()
+  version=WorkflowVersion(organization_id=org.id,workflow_id=workflow.id,version=1,graph=graph,created_by=user.id);db.add(version);await db.flush();workflow.active_version_id=version.id
+  snapshot={"title":"Brief","structured_content":{"risk":"low"},"graph":graph};doc=CollaborativeDocument(organization_id=org.id,resource_type="workflow",resource_id=workflow.id,snapshot=snapshot,snapshot_hash=digest(snapshot),updated_by=user.id);db.add(doc);await db.flush();return user,doc
  async def test_idempotency_non_overlapping_merge_and_conflict(self):
   async with self.sessions() as db:
    user,doc=await self.setup_doc(db)

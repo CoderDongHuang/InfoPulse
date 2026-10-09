@@ -2,12 +2,13 @@
 import copy,hashlib,json,secrets
 from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func,select,update
 from app.core.redis import redis_client
 from app.models.enterprise import OrganizationMember
 from app.models.intelligence import Report,ReportVersion
 from app.models.multimodal import CollaborationAudit,CollaborationTicket,CollaborativeChange,CollaborativeDocument
 from app.models.orchestration import Workflow,WorkflowVersion
+from app.services.orchestration import validate_graph
 
 def now():return datetime.now(timezone.utc)
 def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,separators=(",",":")).encode()).hexdigest()
@@ -38,6 +39,15 @@ async def verify_resource(db,ctx,resource_type,resource_id):
  version=await db.get(ReportVersion,report.current_version_id)
  return {"title":report.title,"content_markdown":version.content_markdown if version else "","structured_content":version.structured_content if version else {},"citations":version.citations if version else []}
 async def sync_resource(db,doc,user_id):
+ if doc.resource_type=="workflow":
+  workflow=await db.get(Workflow,doc.resource_id)
+  if not workflow or workflow.organization_id!=doc.organization_id:raise HTTPException(404,"Workflow not found")
+  graph=validate_graph(doc.snapshot.get("graph",{}))
+  number=int(await db.scalar(select(func.max(WorkflowVersion.version)).where(WorkflowVersion.workflow_id==workflow.id)) or 0)+1
+  version=WorkflowVersion(organization_id=doc.organization_id,workflow_id=workflow.id,version=number,graph=graph,change_note=f"Collaboration draft {doc.id}:v{doc.version}",created_by=user_id)
+  db.add(version);await db.flush()
+  audit(db,doc,user_id,"workflow.draft_created",{"version_id":version.id,"version":number})
+  return
  if doc.resource_type!="report":return
  report=await db.get(Report,doc.resource_id);current=await db.get(ReportVersion,report.current_version_id);number=current.version_number+1 if current else 1;s=doc.snapshot
  version=ReportVersion(report_id=report.id,version_number=number,content_markdown=str(s.get("content_markdown","")),structured_content=s.get("structured_content",{}),citations=s.get("citations",[]),created_by=user_id);db.add(version);await db.flush();report.title=str(s.get("title",report.title))[:300];report.current_version_id=version.id
@@ -52,6 +62,11 @@ async def apply_change(db,doc,user_id,payload):
    row=CollaborativeChange(organization_id=doc.organization_id,document_id=doc.id,base_version=payload.base_version,client_id=payload.client_id,client_sequence=payload.client_sequence,operations=payload.operations,changed_paths=changed,status="conflict",conflict={"server_version":doc.version,"server_paths":sorted(set(server_paths)),"server_snapshot":doc.snapshot},created_by=user_id);db.add(row);await db.flush();audit(db,doc,user_id,"change.conflict",{"change_id":row.id,"paths":changed});return row
  try:snapshot=apply_operations(doc.snapshot,payload.operations)
  except ValueError as exc:raise HTTPException(422,str(exc))
+ if doc.resource_type=="workflow":
+  try:validate_graph(snapshot.get("graph",{}))
+  except ValueError as exc:raise HTTPException(422,str(exc))
+ claimed=await db.execute(update(CollaborativeDocument).where(CollaborativeDocument.id==doc.id,CollaborativeDocument.version==doc.version).values(version=doc.version+1).execution_options(synchronize_session=False))
+ if claimed.rowcount!=1:raise HTTPException(409,"Document changed concurrently; reload and retry")
  doc.version+=1;doc.snapshot=snapshot;doc.snapshot_hash=digest(snapshot);doc.updated_by=user_id;row=CollaborativeChange(organization_id=doc.organization_id,document_id=doc.id,base_version=payload.base_version,result_version=doc.version,client_id=payload.client_id,client_sequence=payload.client_sequence,operations=payload.operations,changed_paths=changed,status="applied",created_by=user_id);db.add(row);await db.flush();await sync_resource(db,doc,user_id);audit(db,doc,user_id,"change.applied",{"change_id":row.id,"version":doc.version,"paths":changed});return row
 def new_ticket():
  token="collab_"+secrets.token_urlsafe(32);return token,hashlib.sha256(token.encode()).hexdigest()

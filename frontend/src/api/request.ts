@@ -24,8 +24,7 @@ export function getApiError(error: AxiosError<ApiErrorPayload>) {
 
 const request: AxiosInstance = axios.create({
   baseURL: '/api/v1',
-  timeout: 30000,
-  headers: { 'Content-Type': 'application/json' },
+  timeout: 120000,
 })
 
 // --- Request Interceptor ---
@@ -60,13 +59,19 @@ request.interceptors.response.use(
 
     switch (status) {
       case 401:
-        if (error.config?.headers?.['X-Skip-Auth-Refresh'] || (error.config as any)?._retry) {
-          userStore.logout()
+        if (error.config?.headers?.['X-Skip-Auth-Refresh']) {
           return Promise.reject(error)
         }
+        if (error.config?.headers?.Authorization !== `Bearer ${userStore.token}`) return Promise.reject(error)
+        if ((error.config as any)?._retry) {
+          void userStore.logout()
+          return Promise.reject(error)
+        }
+        const failedToken = userStore.token
         if (error.config) (error.config as any)._retry = true
         // Try token refresh
         const refreshed = await userStore.refreshToken()
+        if (!refreshed && userStore.token !== failedToken) return Promise.reject(error)
         if (refreshed && error.config) {
           // Retry the original request with new token
           error.config.headers.Authorization = `Bearer ${userStore.token}`

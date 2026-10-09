@@ -63,7 +63,7 @@ class SearchServiceTests(unittest.IsolatedAsyncioTestCase):
 
 class SearchApiContractTests(unittest.TestCase):
     def test_search_content_and_saved_search_routes_are_protected(self):
-        routes = {(route.path, method) for route in app.routes for method in (getattr(route, "methods", None) or set())}
+        routes = {(path, method.upper()) for path, operations in app.openapi()["paths"].items() for method in operations}
         expected = {
             ("/api/v1/search", "GET"), ("/api/v1/contents/{content_id}", "GET"),
             ("/api/v1/saved-searches", "GET"), ("/api/v1/saved-searches", "POST"),

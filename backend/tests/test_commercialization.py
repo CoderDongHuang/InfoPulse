@@ -29,8 +29,11 @@ class CommercializationTests(unittest.IsolatedAsyncioTestCase):
    self.assertEqual(raised.exception.status_code,429)
  async def test_connector_is_real_http_and_idempotent(self):
   async with self.sessions() as db:
-   user,org=await self.seed(db);db.add(ConnectorDefinition(key="slack",name="Slack",category="messaging",write_capable=True));await db.flush();install=ConnectorInstallation(organization_id=org.id,workspace_id=None,connector_key="slack",status="approved",requested_by=user.id,approved_by=user.id);db.add(install);await db.flush();response=httpx.Response(200,headers={"x-request-id":"remote-1"},request=httpx.Request("POST","https://hooks.slack.com/x"));client=AsyncMock();client.post.return_value=response
-   p=ConnectorExecute(installation_id=install.id,provider="slack",webhook_url="https://hooks.slack.com/x",message="Approved response",idempotency_key="action-run-0001");a=await execute_connector(db,org.id,p,client);b=await execute_connector(db,org.id,p,client);self.assertEqual(a.id,b.id);self.assertEqual(a.status,"succeeded");client.post.assert_awaited_once()
+   user,org=await self.seed(db);db.add(ConnectorDefinition(key="slack",name="Slack",category="messaging",write_capable=True));await db.flush();install=ConnectorInstallation(organization_id=org.id,workspace_id=None,connector_key="slack",status="approved",requested_by=user.id,approved_by=user.id);db.add(install);await db.flush();response=httpx.Response(200,text="ok",headers={"x-request-id":"remote-1"},request=httpx.Request("POST","https://hooks.slack.com/x"));client=AsyncMock();client.post.return_value=response
+   install.config={"webhook_url":"https://hooks.slack.com/x"};requests=[]
+   def handler(request):requests.append(request);return response
+   async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
+    p=ConnectorExecute(installation_id=install.id,provider="slack",webhook_url="https://hooks.slack.com/x",message="Approved response",idempotency_key="action-run-0001");a=await execute_connector(db,org.id,p,transport);b=await execute_connector(db,org.id,p,transport);self.assertEqual(a.id,b.id);self.assertEqual(a.status,"succeeded");self.assertEqual(len(requests),1)
  def test_provider_payloads_and_approval_graph(self):
   self.assertEqual(connector_payload("slack","x"),{"text":"x"});self.assertEqual(connector_payload("feishu","x")["msg_type"],"text")
   with self.assertRaises(ValueError):ApprovalFlowCreate(name="Bad",trigger="high_risk",graph={"nodes":[{"id":"a"}],"edges":[{"from":"a","to":"missing"}]})

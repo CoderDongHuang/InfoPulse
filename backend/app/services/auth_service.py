@@ -5,6 +5,10 @@ Business logic for user registration, login, and profile management.
 """
 
 from sqlalchemy import func, select
+from datetime import datetime, timedelta, timezone
+import uuid
+from app.config import get_settings
+from app.models.auth_session import AuthSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -16,7 +20,6 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.config import get_settings
 from app.schemas.auth import (
     TokenResponse,
     UserRegisterRequest,
@@ -42,7 +45,7 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
         username=data.username,
         email=str(data.email).lower(),
         password_hash=await run_in_threadpool(hash_password, data.password),
-        is_admin=str(data.email).lower() in {email.lower() for email in get_settings().ADMIN_EMAILS},
+        is_admin=False,
     )
     db.add(user)
     try:
@@ -54,7 +57,7 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
     from app.services.enterprise import provision_personal_tenant
     await provision_personal_tenant(db, user)
 
-    return _generate_tokens(user)
+    return await _generate_tokens(user, db)
 
 
 async def login_user(db: AsyncSession, username: str, password: str) -> TokenResponse:
@@ -73,7 +76,7 @@ async def login_user(db: AsyncSession, username: str, password: str) -> TokenRes
     if not user.is_active:
         raise ValueError("账号已停用")
 
-    return _generate_tokens(user)
+    return await _generate_tokens(user, db)
 
 
 async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
@@ -97,10 +100,13 @@ async def update_user(db: AsyncSession, user_id: str, data: UserUpdateRequest) -
     return UserResponse.model_validate(user)
 
 
-def _generate_tokens(user: User) -> TokenResponse:
+async def _generate_tokens(user: User, db: AsyncSession) -> TokenResponse:
     """Generate access + refresh token pair for a user."""
-    token_data = {"sub": user.id, "username": user.username}
+    sid, jti = str(uuid.uuid4()), str(uuid.uuid4())
+    db.add(AuthSession(id=sid,user_id=user.id,refresh_jti=jti,expires_at=datetime.now(timezone.utc)+timedelta(days=get_settings().REFRESH_TOKEN_EXPIRE_DAYS)))
+    await db.flush()
+    token_data = {"sub": user.id, "username": user.username, "sid": sid}
     return TokenResponse(
         access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
+        refresh_token=create_refresh_token({**token_data,"jti":jti}),
     )

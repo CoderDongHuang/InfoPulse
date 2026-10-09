@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "checks": [
+    "guest redirect and UI registration",
+    "registration privilege and anonymous generation denial",
+    "UI create, upload, automatic index refresh and cited search",
+    "same-origin WebSocket ping and collaborative workflow draft persistence",
+    "36 route shells loaded (errors asserted at end)",
+    "mobile knowledge layout and session restoration",
+    "UI logout revokes server session and UI login works"
+  ],
+  "page_errors": [],
+  "server_errors": []
+}

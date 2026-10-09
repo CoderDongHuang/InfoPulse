@@ -44,3 +44,6 @@ Thumbs.db
 *.log
 *.db
 backend/data/audit-knowledge/
+acceptance-artifacts/
+container-acceptance-artifacts/
+docs/audits/images/*/failure.png

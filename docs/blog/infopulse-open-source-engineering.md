@@ -1,6 +1,6 @@
 # 从舆情工作台到可验证智能平台：InfoPulse 的开源工程设计
 
-> 本文基于 InfoPulse 2026-08-08 的代码与实测结果，介绍项目背景、架构选择、关键实现、验证方法、问题解决过程、已知不足与后续路线。它不是营销材料，也不把未配置的第三方服务描述为已经完成真实生产验证。
+> 2026-10-09 修订说明：第 1-46 节保留 2026-08-08 的设计与实验背景，其中的 154 项测试、353 条路径和阶段 29 是历史数字，不是当前验收。审计发现历史门禁遗漏了权限、真实副作用和产品 UI 缺陷，不能以旧文的设计目标推断当前实现保证。第 47-55 节新增安全修复、持久化执行、浏览器发现、可复现实验与有效性讨论。当前实测为 187 项后端测试、354 条完整 schema 路径、迁移 head 33 和 7 组产品浏览器检查。最新事实以 [修复验收报告](../audits/2026-10-09-remediation.md)、[能力矩阵](../32-capability-matrix.md) 与 [路线图](../30-open-source-roadmap.md) 为准；真实外部提供商、全部按钮和完整容器尚不能宣称验证完成。
 
 ## 摘要
 
@@ -1236,3 +1236,285 @@ AUTO_CREATE_TABLES: false
 InfoPulse 当前已经达到“可以公开代码、供开发者本地运行和继续贡献”的阶段。它还没有达到“拿到任意环境即可无配置生产运行”的阶段，也不应该这样宣传。
 
 开源的价值在于把边界写清楚：哪些链路经过自动化验证，哪些依赖外部账号，哪些问题仍待解决。相比展示更多功能，这种可验证、可追溯、可持续改进的工程基础更重要。
+
+## 47. 二次审计：从功能存在到结果可验证
+
+### 47.1 为什么已有测试不能回答“项目是否完整”
+
+一个模块具有路由、数据库模型、页面和状态字段，只能说明它有实现入口，不能证明完整业务闭环。实际审计需要追问：请求由谁授权，输入来自哪里，数据在哪个事务提交，哪个进程执行，如何判定远端结果，失败后能否恢复，用户看到的状态是否与事实一致。
+
+本轮审计发现四类具有代表性的缺口。第一类是边界不一致：注册根据未验证邮箱授予管理员，共享源写操作缺乏系统级权限限制，个别生成接口允许匿名调用。第二类是确定性故障：重复回执构造参数、SQLite 时间比较、SSE 成功后的残留超时、无匹配条件仍继续执行。第三类是业务假完成：工具只更新状态而不执行投递，行动缺少真正执行器，协作版本没有连接执行图。第四类是验证不足：浏览器只打开外部网页，API 快照只比较路径，SQLite 没有打开外键，已有依赖环境不代表干净安装。
+
+这些问题解释了为何历史 154 项测试通过仍不能推出“所有链路通畅”。不是测试数量无意义，而是测试观察点离真实失败条件太远。改进方向应是提高每项断言的证据强度，而不是只让测试总数增长。
+
+### 47.2 审计采用的证据层级
+
+| 层级 | 例子 | 可以推导 | 不可以推导 |
+| --- | --- | --- | --- |
+| 静态检查 | schema、路由、类型与调用关系 | 结构一致性、显式缺陷 | 实际执行结果 |
+| 隔离服务测试 | mock HTTP、SQLite、故障注入 | 本地状态机与授权规则 | 第三方真实协议全兼容 |
+| 跨组件验收 | UI -> API -> PostgreSQL -> worker -> UI | 指定 fixture 的闭环 | 任意内容与所有页面 |
+| 真实提供商 canary | 授权 SMTP/模型/webhook 调用 | 特定账号、时点、版本的协议效果 | 永久可用或全面 SLA |
+| 运行演练 | 崩溃、恢复、负载、备份回滚 | 设定环境的恢复与容量 | 所有拓扑与故障组合 |
+
+本轮主要完成前三层；后两层保留为后续专项。开源本地使用不需要把服务部署到公网，也不需要公开密钥，但仍需要限制本地程序访问内网和执行外部副作用。
+
+## 48. 身份与出站边界：把默认拒绝写入代码
+
+### 48.1 管理员不是用户自报的属性
+
+旧设计将 `ADMIN_EMAILS` 当作注册授权来源，但公开表单中邮箱只是未经验证的字符串。即使配置内容由维护者填写，攻击者仍可以抢先注册该字符串。因此可信配置与可信身份不能混为一谈。
+
+本轮注册固定设置 `is_admin=False`，管理员通过具有本地数据库访问权限的 CLI 对已有账号提升。这里依赖的信任边界是“能管理本地实例的操作者”，而不是“知道管理员邮箱的人”。未来若增加邮件验证和受控邀请，应形成独立授权流程，而不能恢复原来的隐式提升。
+
+```python
+# backend/app/services/auth_service.py，省略非关键字段
+user = User(
+    username=data.username,
+    email=str(data.email).lower(),
+    password_hash=await run_in_threadpool(hash_password, data.password),
+    is_admin=False,
+)
+```
+
+共享公共源的配置影响所有使用者，因此写操作需要系统管理员；租户内 connector 和行动则遵循组织/Workspace 权限。两类资源不能仅因都需要登录，就使用同一个“当前用户”检查替代领域授权。
+
+### 48.2 JWT 签名正确不等于会话仍有效
+
+纯无状态 access token 一旦签发，注销不能阻止它在过期前继续使用。本轮加入 `AuthSession`：access token 包含 `sid`，每次身份解析核验会话归属、到期及撤销；refresh token 增加 `jti`，刷新时原子消费并轮换，避免同一 refresh 多次成功；注销在服务器持久化撤销，再清空客户端会话。
+
+浏览器验收不仅观察登录页出现，还用注销前保存的 token 请求 `/auth/me`，断言返回 401。这比“客户端删掉 token”更接近安全需求。迁移后旧 token 缺少 `sid` 会被拒绝，升级文档必须明确需要重新登录。
+
+数据库限流进一步解决多 worker 内存计数彼此独立的问题。计数以窗口和身份为键，用条件 upsert 原子递增；存储不可用返回 503，而不是故障时无限放行。当前实现仍需代理拓扑与高并发压测，不能把算法测试当作容量证明。
+
+### 48.3 SSRF 防护必须覆盖连接过程
+
+只在请求前校验一次 URL 不够：重定向可以改变目的地，DNS 可以在检查与连接之间变化，环境代理可能重新解释目标。统一 `core/outbound.py` 采用逐跳策略：限制协议和标准端口、拒绝 userinfo/fragment、解析所有地址并拒绝非公网结果，将实际连接主机固定为检查后的 IP，同时保留原始 `Host` 和 TLS SNI。
+
+```python
+# 实现节选；完整资源界限和 finally 清理见 core/outbound.py
+addresses = await asyncio.to_thread(public_addresses, current)
+original = httpx.URL(current)
+target = original.copy_with(host=addresses[0])
+headers = {**request_headers, "Host": original.netloc.decode("ascii")}
+transport = httpx.AsyncClient(
+    timeout=timeout, follow_redirects=False, trust_env=False
+)
+async with transport.stream(
+    method, target, headers=headers,
+    follow_redirects=False,
+    extensions={"sni_hostname": original.host},
+) as response:
+    # GET 的重定向返回上层循环，再解析并检查新目标
+    # 有副作用的 POST 不自动跟随重定向
+    ...
+```
+
+读取响应使用流式累计字节上限，整个调用受 `asyncio.wait_for` 总预算约束，避免每次 redirect 都重置成完整等待时间。注入 `httpx.MockTransport` 只用于测试，没有公开 API 可让调用者关闭目标校验。
+
+保守限制会牺牲部分兼容性：非标准端口、私网 webhook、带认证的 RSS 以及某些特殊重定向不能直接使用。当前面向本地开源的公开采集/公网 connector，这是刻意收窄的能力。未来确有私有集成需求，应增加独立、可审计的管理员 allowlist，而不是把公网安全检查全局关闭。
+
+## 49. 持久化执行：区分入队、发送和远端确认
+
+### 49.1 为什么不能把 pending 直接改为 succeeded
+
+跨数据库与 HTTP 的操作没有天然原子事务。先写成功再发送可能产生假成功；先发送再提交可能在提交失败后重复发送；超时可能发生在远端已经执行、响应尚未返回之后。因此“收到 HTTP timeout”不能证明“对方没有收到”。
+
+本轮新增 `DispatchJob` outbox，领域操作先在事务内写投递意图，worker 原子 claim 后执行。工作流保持 `waiting_dispatch`，读取真实结果后才决定继续或失败。行动执行器依据实际 execution 创建自动回执，人工动作保持等待人工回执。
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending: 事务提交投递意图
+    pending --> running: 原子 claim
+    running --> succeeded: 收到明确成功
+    running --> failed: 明确拒绝或执行前校验失败
+    running --> unknown: 网络不确定或 worker 中断
+    succeeded --> [*]: 产生可信回执并推进业务
+    failed --> [*]: 暴露失败
+    unknown --> [*]: 停止自动重放，人工对账
+```
+
+`unknown` 是业务事实，不是可以隐藏的内部错误。若提供商支持可查询的幂等键，可以基于远端查询设计恢复；若不支持，就不能声称本地 idempotency key 实现了端到端 exactly-once。
+
+### 49.2 原子领取的作用与限制
+
+```python
+# backend/app/services/dispatch.py
+claimed = await db.execute(
+    update(DispatchJob)
+    .where(DispatchJob.id == identifier, DispatchJob.status == "pending")
+    .values(status="running", claimed_at=at)
+)
+await db.commit()
+if claimed.rowcount != 1:
+    return False
+```
+
+条件更新保证只有一个竞争者成功领取指定任务。过期 running 变为 unknown，不被重新当作 pending。`execution_fingerprint` 绑定请求输入，已有幂等键遇到不同目标、Workspace、行动或消息必须拒绝，避免重用 key 复用错误结果。
+
+这套策略优先避免重复高风险副作用，代价是中断时需要人工对账，也可能将尚未发送的任务保守归入 unknown。后续可以细化 preparing/sending/acknowledged 状态及远端幂等协议，但不能通过无限重试“提升成功率”。
+
+### 49.3 审批必须绑定执行目标
+
+审批 connector 安装后，执行请求不能临时传入另一个 webhook。执行时重新确认安装状态、撤销标记、组织与 Workspace、提供商、目标和消息边界。入队授权不等于永远有效授权，worker 必须在实际执行时复查。
+
+支持范围同样需要说明：本轮是人工与 connector 两种行动执行，编排通知和记忆工具具有真实效果；不支持的停止条件或工具必须显式拒绝。形式化标记、治理分数和声明记录不会因此自动变成真实安全证明。
+
+## 50. 异步知识链路：先持久化输入，再确认任务
+
+### 50.1 staging 顺序决定可恢复性
+
+旧流程如果先提交 queued 文档再保存输入，磁盘或对象存储失败会留下永远无法处理的任务。正确顺序是有界读取与校验、写 staging、提交文档，再由 worker 处理。
+
+```text
+文件输入
+  -> 受限读取与结构校验
+  -> staging 持久化
+  -> queued 文档事务提交
+  -> claim / lease / processing_attempts
+  -> 解析、版本、chunks
+  -> ready + active_version
+  -> UI 自动刷新 + 证据检索
+```
+
+反方向的失败仍存在：staging 成功但 DB commit 失败可能留下孤儿文件。它比“承诺任务却丢失输入”更安全，但需要未来的有界孤儿清理与审计，不应写成跨存储原子事务已实现。
+
+### 50.2 lease 与 attempt 不等于无限重试
+
+claim 持久化 processing_attempts 和 lease_until；过期 processing 可恢复，达到上限进入明确失败。主动 reindex 重置耗尽计数，但正在处理或已排队的任务返回 409，避免重复创建工作。阻塞的文件读写、PDF/DOCX 解析放入线程，防止长解析堵住 async API 事件循环。
+
+线程隔离不是进程级沙箱，无法强制终止所有解析器或限制极端内存行为。因此恶意复杂文件、OCR/视频资源预算与对象存储恢复仍应独立压测。当前文本 embedding 是确定性 hash 特征，不是已经验收的高质量语义模型；检索有结果不等于语义召回率优秀。
+
+## 51. 浏览器如何找到单测之外的缺陷
+
+### 51.1 FormData 与全局 JSON 请求头
+
+浏览器点击知识上传时返回 422，但直接服务测试成功。根因是请求层全局声明 JSON，Axios 在发送 FormData 时改变序列化，后端要求 multipart。这是典型跨层契约错误：服务函数、API 路径与前端组件分别正确，组合后却不正确。
+
+```typescript
+// frontend/src/api/request.ts：由 Axios 根据实际数据选择格式
+const request = axios.create({
+  baseURL: '/api/v1',
+  timeout: 120_000,
+  // 不在这里设置全局 Content-Type: application/json
+})
+
+// JSON 请求自动处理；上传的 boundary 由浏览器/Axios 生成
+const form = new FormData()
+form.append('files', file)
+await request.post(`/knowledge/bases/${baseId}/documents`, form)
+```
+
+验收不是“上传返回 200”就结束，而是等文档 ready，再检索固定文本，断言结果带 `acceptance.md`。这连接了前端编码、API、存储、worker、索引与展示六个观察点。
+
+![实际桌面知识检索，隔离数据](../audits/images/2026-10-09/knowledge-desktop.png)
+
+### 51.2 SQLite 的便利可能隐藏 PostgreSQL 的约束
+
+编排工具目录引用 connector 定义，首次打开时平台目录未创建。默认 SQLite 测试没打开外键而通过，PostgreSQL 立即拒绝。修复将平台目录初始化放在工具目录之前，并为测试显式启用外键。
+
+随后路由巡检暴露并发目录创建的唯一键错误。逻辑上“如果不存在则插入”由两个 SQL 操作组成，两个请求都能先读到不存在。解决方案是将并发决定交给数据库唯一约束和原子 upsert。
+
+```python
+# 示意代码，对应 platform.seed_catalog 的数据库方言选择
+if db.bind.dialect.name == "sqlite":
+    from sqlalchemy.dialects.sqlite import insert
+else:
+    from sqlalchemy.dialects.postgresql import insert
+
+await db.execute(
+    insert(ConnectorDefinition)
+    .values(catalog_rows)
+    .on_conflict_do_nothing(index_elements=["key"])
+)
+```
+
+使用 DO NOTHING 而不是覆盖更新很重要：已有目录中的禁用项可能是用户主动配置，初始化不能把它重新启用。回归同时检查空库依赖顺序、12 个并发访问、目录数量和用户配置保留，不只检查“没有异常”。
+
+### 51.3 截图是证据，但不是唯一断言
+
+本轮在 1440px 桌面和 390px 移动视口保存实际 UI。截图帮助发现按钮折行、横向溢出和处理中状态不刷新；自动断言则核验 document ready、引用文件名、scrollWidth、会话失效与 JS/5xx。
+
+![实际移动端知识页面，隔离数据](../audits/images/2026-10-09/knowledge-mobile.png)
+
+移动截图发生在路由巡检后，检索框为空属于新页面状态，并不表示桌面检索证据失效。报告要说明截图上下文，不能用视觉素材代替状态因果关系。
+
+## 52. 可复现实验协议与发布门禁
+
+### 52.1 隔离是实验的前提
+
+验收入口 `scripts.acceptance_server` 不读取个人 `.env`，清除 Settings 对应环境值，明确使用本机隔离数据库、Redis、测试密钥和知识路径，关闭 crawler/media/scheduler。`product_smoke` 拒绝非 localhost 地址，但数据库隔离仍是操作者责任，脚本不可指向真实业务库。
+
+测试创建唯一账号和固定 Markdown fixture，不访问真实私有网页、不调用付费模型、不向真实 webhook 发送消息。所有测试凭据只能用于此隔离实例。截图与 JSON 分文件保存，日志和上传数据不提交 Git。
+
+### 52.2 指标与观察点
+
+| 实验 | 结果 | 主要观察点 |
+| --- | --- | --- |
+| Windows Python 3.10 后端测试 | 187/187，751.843 秒 | 授权、负向、故障、并发、状态与数据 |
+| SSE 辅助逻辑 | 5/5 | 成功/失败/超时只有一个终态 |
+| 完整 OpenAPI 快照 | 354 条路径 | schema、认证、参数、请求与响应 |
+| SQLite 迁移往返 | 通过 | 空库 base/head 往返 |
+| PostgreSQL/pgvector 空库启动 | 通过 | 实际约束与跨组件写入 |
+| 浏览器验收 | 7 组通过 | UI 上传、索引、引用、WS、协作、会话、移动 |
+| 路由巡检 | 36 个页面壳 | 非空页面、JS 错误和 API 5xx |
+| 前端/SDK | 构建通过 | 编译与类型，不等于业务完备 |
+
+没有测量行覆盖率、吞吐量或语义质量，本文不填写虚构数值。187 相比 154 的增加包含本轮新回归，不是覆盖率提高百分比。耗时受设备、bcrypt 与测试 fixture 影响，也不是 API 性能指标。
+
+新增 CI 在 Linux Python 3.10/3.11 使用 PostgreSQL/Redis、Playwright Chromium 和 Vite 同源代理，运行迁移往返与真实产品验收，上传结果和日志。Python 漏洞审计生成 JSON 与 CycloneDX 制品。远端运行情况以 PR checks 为准；定义 job 只是建立可执行实验，绿色结果才构成该环境的证据。
+
+### 52.3 为什么完整 schema gate 仍不是兼容性证明
+
+历史快照只捕捉 operationId、路径和状态码，无法发现字段类型、认证方式或 required 参数变化。本轮扩大到完整参数、请求体、响应引用和 components/schema，使不一致在 CI 明确失败。
+
+严格快照会阻止未经审视的变化，但批准更新快照仍可能包含破坏性修改。v0.x 可以进行记录清楚的安全修正；稳定 v1 必须再引入语义兼容检查、SDK contract tests 和迁移政策，不能把“更新快照后通过”当作兼容性的数学证明。
+
+## 53. 供应链：漏洞结果具有时效性
+
+第一批修复在本机完成后，GitHub npm audit 又发现 Vue、Axios 与 source-map-js 的 4 条 high 项（Vue 与 renderer 形成两个受影响节点）。已有构建绿色不能抵消漏洞审计红色；旧时点“零已知漏洞”也不能永久保留为项目事实。
+
+处理流程是读取官方 advisory 的版本范围，更新修复版本和锁文件，在不使用 `--force` 的前提下重新安装，重新运行前端测试、构建和产品验收，再由 CI 审计复核。Vue 与相关编译/renderer 包需要保持版本协调，Axios 升级必须复查 JSON 与 multipart 两种载荷，不能只确认包安装成功。
+
+```text
+锁文件中的版本
+  -> 当前官方漏洞数据库
+  -> 受影响范围与实际使用面
+  -> 修复版本集合
+  -> clean install / tests / build / UI
+  -> CI audit + 记录依赖与时点
+```
+
+SBOM 是库存和关联分析基础，不是“没有漏洞”证书；pip check 验证依赖声明兼容，不检查漏洞；npm/pip audit 检查已知公告，不证明没有未知逻辑缺陷。这三种信号应同时保留，不能互相替代。
+
+## 54. 有效性威胁、局限与结构收敛
+
+### 54.1 内部有效性
+
+mock HTTP 能证明构造、状态和调用次数，但可能与真实提供商响应格式不同。SQLite 并发测试能暴露竞争，但无法替代 PostgreSQL 隔离级别、锁等待及实际 worker 中断。浏览器验收需要观察 API 错误、业务状态和持久化内容，截图单独无法证明因果。
+
+### 54.2 外部有效性
+
+本机网络阻止部分 Docker Hub 基础镜像获取，因此完整容器栈和 Nginx 真实 WS 握手不能列为通过。Vite WS 成功只证明该代理链路。没有第三方凭据就无法证明 SMTP、SSO、S3、模型和 connector 在真实账号权限下有效；保持空配置是正确边界，而不是用假的演示结果填补实验缺口。
+
+### 54.3 构念有效性
+
+“有引用”不是“事实正确”，“规则得分高”不是“模型质量高”，“状态 completed”不是“现实行动已发生”，“formal_result”字段存在不是“形式化证明已验证”。后续指标应由真实用户任务定义：引用定位率、无证据拒答率、远端副作用可核验率、跨租户误读率、恢复时间、包体预算与安装成功率。
+
+### 54.4 重复代码如何收敛
+
+项目有 crawler/collector、领域通知/平台 webhook/connector 和多个复杂治理页面。重复名称不必然意味着可以合并业务模型，统一技术基础设施也不意味着统一授权语义。
+
+适合共享的是 URL 安全、时间归一、发送预算、任务领取、低层存储和可观测性。应保持独立的是公共内容与临时讨论样本、平台事件与业务行动回执、租户角色与系统管理员。重构前建立同一 fixture 的结果与副作用基线，重构后验证授权、状态和数据一致；只有减少实际复杂度才引入新抽象。
+
+前端仍有高风险 `any` 和约 1 MB 主包。后续按领域拆分大型视图，生成 DTO/OpenAPI 类型，按需加载依赖，并设定包体与加载预算。调高 chunk 告警阈值不等于性能改善，删除复杂测试也不等于 CI 优化。
+
+## 55. 下一阶段：以验收条件而非模块数量推进
+
+第一优先级是发布可靠性：完整容器、独立 worker 崩溃恢复、带数据迁移、所有核心按钮负向矩阵、固定跨域 fixture 与持续依赖审计。第二优先级是结构收敛：来源契约、投递技术基础设施、严格类型、大型页面与 SDK 协议测试。第三优先级是真实质量：提供商 canary、固定模型评测、trace_id、成本/失败指标、删除一致性与备份恢复。
+
+第二批验收又将入口检查扩展到大文件：Nginx 默认 1 MiB 请求限制与知识/媒体后端能力不匹配，改为 256 MiB 整体上限，并为媒体读取增加单文件上限加一的有界调用。浏览器 fixture 使用超过 1 MiB 的固定文本检测代理 413，新增媒体超限回归。第一批完整测试 187 项仍保留其原始时点，第二批新增后预期为 188 项；实际远端结果另记在修复报告。避免把后续代码变化悄悄套用到先前测试结果，是可复现实验记录的基本要求。
+
+每个事项应记录负责人、前置条件、可运行实验、结果制品和通过标准。例如“知识库优化”太宽泛，应拆成“worker 在 claim 后终止，lease 过期后另一进程处理，同一文档只产生一个有效 active_version”；“LLM 优化”应拆成“固定证据集下引用与拒答指标，记录模型版本和费用”；“协作完成”应拆成“两用户冲突处理、重连和发布版本不被草稿覆盖”。
+
+本轮完成的是明确缺陷与可重复的核心验收，不是无限范围的产品完成证明。公开开发者预览的前提是代码可运行、风险有边界、状态不造假、文档与证据一致。稳定版则需要更多外部协议、恢复、兼容性和长期维护证据，不能靠博客篇幅或功能阶段编号获得。

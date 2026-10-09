@@ -57,7 +57,7 @@ async def assets(media_type:str|None=None,status:str|None=None,ctx:TenantContext
  return [asset_view(x) for x in (await db.scalars(q.order_by(MediaAsset.created_at.desc()).limit(200))).all()]
 @router.post("/assets",status_code=201)
 async def upload(file:UploadFile=File(...),workspace_id:str|None=Form(None),copyright_status:str=Form("unknown"),license_name:str=Form(""),source_url:str=Form(""),consent_confirmed:bool=Form(False),capture_metadata:str=Form("{}"),ctx:TenantContext=Depends(get_tenant_context),user:User=Depends(get_current_user),db:AsyncSession=Depends(get_db)):
- require_permission(ctx,"media.upload");workspace(ctx,workspace_id);name=safe_filename(file.filename or "media");data=await file.read()
+ require_permission(ctx,"media.upload");workspace(ctx,workspace_id);name=safe_filename(file.filename or "media");data=await file.read(settings.MEDIA_MAX_FILE_MB*1024*1024+1)
  try:kind,mime=validate_media(name,data);capture=json.loads(capture_metadata)
  except (ValueError,json.JSONDecodeError) as exc:fail(str(exc),422)
  if not isinstance(capture,dict):fail("capture_metadata must be an object",422)

@@ -1,0 +1,49 @@
+# Isolated acceptance stack. Contains test-only credentials, no personal .env.
+# Run: docker compose -p infopulse-audit -f docker-compose.audit.yml up --build -d
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "127.0.0.1:15432:5432"
+    environment:
+      POSTGRES_DB: infopulse_audit
+      POSTGRES_USER: audit
+      POSTGRES_PASSWORD: audit-local-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit -d infopulse_audit"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:16379:6379"
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.render
+    command: ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://audit:audit-local-only@postgres:5432/infopulse_audit
+      REDIS_URL: redis://redis:6379/0
+      AUTO_CREATE_TABLES: "false"
+      JWT_SECRET_KEY: audit-isolated-not-for-real-use-00000000000000
+      PLATFORM_ENCRYPTION_KEY: audit-isolated-encryption-not-for-real-use-000000
+      METRICS_TOKEN: audit-isolated-metrics-not-for-real-use
+      LLM_API_KEY: ""
+      DEMO_MODE: "false"
+      CRAWLER_ENABLED: "false"
+      MEDIA_WORKER_ENABLED: "false"
+      TASK_SCHEDULER_ENABLED: "false"
+    ports:
+      - "127.0.0.1:18080:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:15173:80"
+    depends_on:
+      - backend

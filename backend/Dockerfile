@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # --- Install Python dependencies ---
 COPY requirements*.txt ./
-RUN pip install --upgrade pip setuptools && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip 'setuptools>=83.0.0' && pip install --no-cache-dir -r requirements.txt
 
 # --- Install Chromium browser ---
 # playwright install-deps installs any remaining system libraries.

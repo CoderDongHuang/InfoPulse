@@ -11,6 +11,8 @@
 5. [配置指南](./29-configuration-guide.md)：开发、测试与生产配置矩阵。
 6. [开源优化路线图](./30-open-source-roadmap.md)：发布后的工程优先级与里程碑。
 7. [依赖升级政策](./31-dependency-upgrade-policy.md)：自动更新、major 迁移和兼容性门禁。
+8. [能力与验证矩阵](./32-capability-matrix.md)：beta、实验功能、外部依赖和实际保证。
+9. [2026-10-09 修复验收报告](./audits/2026-10-09-remediation.md)：问题编号、完成状态、测试证据与剩余路线。
 
 ## 产品与开发
 

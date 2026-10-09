@@ -12,6 +12,7 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: backend
@@ -79,3 +80,137 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm audit --audit-level=high
+
+  product-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11"]
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: infopulse_audit
+          POSTGRES_USER: audit
+          POSTGRES_PASSWORD: audit-local-only
+        ports:
+          - 15432:5432
+        options: >-
+          --health-cmd "pg_isready -U audit -d infopulse_audit"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 16379:6379
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements-base.txt 'playwright>=1.59.0,<2.0.0'
+      - run: python -m pip check
+      - run: python -m playwright install --with-deps chromium
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - name: Isolated PostgreSQL migration round trip
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://audit:audit-local-only@127.0.0.1:15432/infopulse_audit
+          AUTO_CREATE_TABLES: "false"
+        run: |
+          alembic upgrade head
+          alembic downgrade 20260804_0029
+          alembic upgrade head
+      - name: Start isolated API and Vite proxy
+        run: |
+          (cd backend && python -m scripts.acceptance_server --database-url postgresql+asyncpg://audit:audit-local-only@127.0.0.1:15432/infopulse_audit > audit-product-api.log 2>&1) &
+          (cd frontend && VITE_API_PROXY_TARGET=http://127.0.0.1:18080 npm run dev -- --host 127.0.0.1 --port 15173 --strictPort > audit-product-vite.log 2>&1) &
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:18080/api/v1/health > /dev/null && curl --fail --silent http://127.0.0.1:15173 > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Real UI, worker, WebSocket and session acceptance
+        working-directory: backend
+        run: python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --output ../acceptance-artifacts
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: product-acceptance-python-${{ matrix.python }}
+          path: |
+            acceptance-artifacts/
+            backend/audit-product-api.log
+            frontend/audit-product-vite.log
+
+  python-dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install --upgrade 'setuptools>=83.0.0'
+      - run: pip install -r backend/requirements.txt pip-audit
+      - run: python -m pip check
+      - name: Vulnerability gate
+        run: python -m pip_audit --format json --output python-dependency-audit.json
+      - name: CycloneDX inventory
+        if: success() || failure()
+        run: python -m pip_audit --format cyclonedx-json --output python-sbom.json
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: python-dependency-audit
+          path: |
+            python-dependency-audit.json
+            python-sbom.json
+
+  container-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: pip install 'playwright>=1.59.0,<2.0.0'
+      - run: python -m playwright install --with-deps chromium
+      - name: Build and run isolated container stack
+        run: docker compose -p infopulse-audit -f docker-compose.audit.yml up --build --wait --wait-timeout 180 -d
+      - name: Wait for Nginx-to-API route
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:15173/api/v1/health > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Nginx UI and WebSocket acceptance
+        working-directory: backend
+        run: python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --output ../container-acceptance-artifacts
+      - name: Collect container diagnostics
+        if: always()
+        run: docker compose -p infopulse-audit -f docker-compose.audit.yml logs --no-color > container-acceptance.log
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: container-acceptance
+          path: |
+            container-acceptance-artifacts/
+            container-acceptance.log
+      - name: Stop isolated containers
+        if: always()
+        run: docker compose -p infopulse-audit -f docker-compose.audit.yml down

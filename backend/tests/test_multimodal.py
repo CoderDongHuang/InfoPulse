@@ -2,6 +2,7 @@ import io,unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock,patch
 from PIL import Image
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker,create_async_engine
 import app.models
@@ -16,6 +17,13 @@ def png(color="white"):
  stream=io.BytesIO();Image.new("RGB",(16,12),color).save(stream,"PNG");return stream.getvalue()
 
 class MultimodalTests(unittest.IsolatedAsyncioTestCase):
+ async def test_media_upload_read_is_bounded_before_validation(self):
+  from app.api import multimodal as api
+  file=AsyncMock();file.filename="large.png";file.read.return_value=b"too large"
+  with patch.object(api.settings,"MEDIA_MAX_FILE_MB",0),patch.object(api,"require_permission"),patch.object(api,"workspace"):
+   with self.assertRaises(HTTPException) as raised:
+    await api.upload(file=file,workspace_id=None,ctx=SimpleNamespace(),user=None,db=None)
+  self.assertEqual(raised.exception.status_code,422);file.read.assert_awaited_once_with(1)
  async def asyncSetUp(self):
   self.engine=create_async_engine("sqlite+aiosqlite:///:memory:");self.sessions=async_sessionmaker(self.engine,expire_on_commit=False)
   async with self.engine.begin() as conn:await conn.run_sync(Base.metadata.create_all)

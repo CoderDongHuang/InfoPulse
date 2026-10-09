@@ -1402,7 +1402,7 @@ const request = axios.create({
 // JSON 请求自动处理；上传的 boundary 由浏览器/Axios 生成
 const form = new FormData()
 form.append('files', file)
-await request.post(`/knowledge/bases/${baseId}/documents`, form)
+await request.post(`/knowledge-bases/${baseId}/documents`, form)
 ```
 
 验收不是“上传返回 200”就结束，而是等文档 ready，再检索固定文本，断言结果带 `acceptance.md`。这连接了前端编码、API、存储、worker、索引与展示六个观察点。

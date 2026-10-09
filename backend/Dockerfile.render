@@ -23,7 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # --- Install Python dependencies (lightweight, no playwright) ---
 COPY requirements-base.txt requirements.render.txt ./
-RUN pip install --no-cache-dir -r requirements.render.txt
+RUN pip install --no-cache-dir --upgrade pip 'setuptools>=83.0.0' \
+    && pip install --no-cache-dir -r requirements.render.txt
 
 # --- Copy application code ---
 COPY . .

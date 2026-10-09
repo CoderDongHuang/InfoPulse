@@ -5,7 +5,7 @@ All settings read from environment variables / .env file.
 Uses pydantic-settings for validation and auto-loading.
 """
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    GENERATION_REQUESTS_PER_MINUTE: int = Field(default=20, ge=1, le=1000)
     SSO_PROXY_SECRET: str = ""
     PLATFORM_ENCRYPTION_KEY: str = ""
 
@@ -41,6 +42,8 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_API_BASE: str = "https://api.openai.com/v1"
     LLM_MODEL: str = "gpt-4o-mini"
+    LLM_TIMEOUT_SECONDS: float = Field(default=45, ge=1, le=120)
+    LLM_MAX_RETRIES: int = Field(default=0, ge=0, le=2)
 
     # --- Task scheduler and delivery ---
     TASK_SCHEDULER_ENABLED: bool = True

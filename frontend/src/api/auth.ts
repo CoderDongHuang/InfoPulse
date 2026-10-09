@@ -5,6 +5,7 @@
  */
 
 import request from './request'
+import axios from 'axios'
 
 // --- Types ---
 export interface UserResponse {
@@ -36,6 +37,9 @@ export interface RegisterRequest {
 
 // --- API Calls ---
 export const authApi = {
+  async logout(token: string): Promise<void> {
+    await axios.post('/api/v1/auth/logout', undefined, { timeout: 5000, headers: { Authorization: `Bearer ${token}` } })
+  },
   async register(data: RegisterRequest): Promise<TokenResponse> {
     const res = await request.post('/auth/register', data, { headers: { 'X-Skip-Auth-Refresh': '1', 'X-Suppress-Error-Message': '1' } })
     return res.data

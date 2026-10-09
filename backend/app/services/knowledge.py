@@ -1,13 +1,14 @@
 import asyncio, hashlib, io, ipaddress, math, os, re, socket, zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 import httpx
 from bs4 import BeautifulSoup
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.models.intelligence import KnowledgeBase, KnowledgeChunk, KnowledgeDocument, KnowledgeDocumentVersion, KnowledgeProcessingRun
+from app.core.outbound import public_addresses, public_request
 
 ALLOWED={".pdf":"application/pdf",".docx":"application/vnd.openxmlformats-officedocument.wordprocessingml.document",".md":"text/markdown",".txt":"text/plain"}
 settings=get_settings()
@@ -48,20 +49,34 @@ storage=Storage()
 processing_queue: asyncio.Queue[tuple[str,bytes|None]] = asyncio.Queue()
 
 async def enqueue_document(document_id:str,data:bytes|None=None):
-    if data is not None: storage.put(f"staging/{document_id}",data)
+    if data is not None: await asyncio.to_thread(storage.put,f"staging/{document_id}",data)
     await processing_queue.put((document_id,data))
 
 async def process_knowledge_once(document_id:str|None=None,sessions=None)->bool:
     from app.core.database import _get_sessionmaker
     async with (sessions or _get_sessionmaker())() as db:
-        query=select(KnowledgeDocument).where(KnowledgeDocument.status=="queued",KnowledgeDocument.deleted_at.is_(None))
+        at=datetime.now(timezone.utc)
+        expired=or_(KnowledgeDocument.lease_until<at,KnowledgeDocument.lease_until.is_(None))
+        await db.execute(update(KnowledgeDocument).where(KnowledgeDocument.status=="processing",expired,KnowledgeDocument.processing_attempts>=3).values(status="failed",error_message="Processing retry limit exhausted",lease_until=None))
+        eligible=or_(KnowledgeDocument.status=="queued",(KnowledgeDocument.status=="processing") & expired)
+        query=select(KnowledgeDocument).where(eligible,KnowledgeDocument.processing_attempts<3,KnowledgeDocument.deleted_at.is_(None))
         if document_id: query=query.where(KnowledgeDocument.id==document_id)
         doc=await db.scalar(query.order_by(KnowledgeDocument.updated_at).limit(1).with_for_update(skip_locked=True))
-        if not doc:return False
-        doc.status="processing";await db.commit()
-        staging=f"staging/{doc.id}";data=storage.get(staging) if storage.exists(staging) else None
-        await process_document(db,doc,data)
-        storage.remove(staging)
+        if not doc:await db.commit();return False
+        claimed=await db.execute(update(KnowledgeDocument).where(KnowledgeDocument.id==doc.id,eligible,KnowledgeDocument.processing_attempts<3).values(status="processing",processing_attempts=KnowledgeDocument.processing_attempts+1,lease_until=at+timedelta(minutes=5)).execution_options(synchronize_session=False))
+        await db.commit()
+        if claimed.rowcount!=1:return False
+        await db.refresh(doc)
+        staging=f"staging/{doc.id}"
+        try:
+            data=await asyncio.to_thread(storage.get,staging) if await asyncio.to_thread(storage.exists,staging) else None
+            await asyncio.wait_for(process_document(db,doc,data),timeout=120)
+        except Exception as exc:
+            await db.rollback();await db.refresh(doc)
+            doc.status="failed";doc.lease_until=None;doc.error_message=type(exc).__name__+": "+str(exc)[:900]
+            await db.commit()
+            raise
+        await asyncio.to_thread(storage.remove,staging)
         return True
 
 async def knowledge_worker_loop(stop:asyncio.Event):
@@ -73,7 +88,8 @@ async def knowledge_worker_loop(stop:asyncio.Event):
         try:
             await process_knowledge_once(document_id)
         except Exception:
-            pass
+            import logging
+            logging.getLogger(__name__).exception("Knowledge processing failed")
         finally:
             if queued: processing_queue.task_done()
 
@@ -134,43 +150,32 @@ def chunks(rows,limit=1200):
 
 async def process_document(db:AsyncSession,doc:KnowledgeDocument,data:bytes|None=None):
     previous=await db.scalar(select(func.max(KnowledgeDocumentVersion.version_number)).where(KnowledgeDocumentVersion.document_id==doc.id)) or 0
-    run=KnowledgeProcessingRun(document_id=doc.id,user_id=doc.user_id,status="running",stage="security_scan",progress=5,attempt=previous+1);db.add(run);doc.status="processing";await db.flush()
+    run=KnowledgeProcessingRun(document_id=doc.id,user_id=doc.user_id,status="running",stage="security_scan",progress=5,attempt=doc.processing_attempts or previous+1);db.add(run);doc.status="processing";await db.flush()
     try:
         if data is None:
-            current=await db.get(KnowledgeDocumentVersion,doc.active_version_id);data=storage.get(current.storage_key)
-        validate_upload(doc.filename,data);digest=hashlib.sha256(data).hexdigest();key=f"{doc.user_id}/{doc.knowledge_base_id}/{doc.id}/v{previous+1}-{digest[:12]}{Path(doc.filename).suffix.lower()}";storage.put(key,data)
+            current=await db.get(KnowledgeDocumentVersion,doc.active_version_id)
+            if not current:raise ValueError("No staged upload or active document version available")
+            data=await asyncio.to_thread(storage.get,current.storage_key)
+        await asyncio.to_thread(validate_upload,doc.filename,data);digest=hashlib.sha256(data).hexdigest();key=f"{doc.user_id}/{doc.knowledge_base_id}/{doc.id}/v{previous+1}-{digest[:12]}{Path(doc.filename).suffix.lower()}";await asyncio.to_thread(storage.put,key,data)
         version=KnowledgeDocumentVersion(document_id=doc.id,version_number=previous+1,storage_key=key,content_hash=digest);db.add(version);await db.flush()
-        parsed=parse_document(doc.filename,data);version.page_count=max((x[1] or 0 for x in parsed),default=0);run.stage="embedding";run.progress=70
+        parsed=await asyncio.to_thread(parse_document,doc.filename,data);version.page_count=max((x[1] or 0 for x in parsed),default=0);run.stage="embedding";run.progress=70
         for ordinal,(text,page,para,heading) in enumerate(chunks(parsed)):
             db.add(KnowledgeChunk(version_id=version.id,document_id=doc.id,knowledge_base_id=doc.knowledge_base_id,user_id=doc.user_id,ordinal=ordinal,content=text,page_number=page,paragraph_index=para,heading=heading,token_count=len(text.split()),content_hash=hashlib.sha256(text.encode()).hexdigest(),embedding=embedding(text)))
-        doc.active_version_id=version.id;doc.status="ready";doc.error_message="";run.status="succeeded";run.stage="completed";run.progress=100;run.finished_at=datetime.now(timezone.utc);await db.commit()
+        doc.active_version_id=version.id;doc.status="ready";doc.lease_until=None;doc.error_message="";run.status="succeeded";run.stage="completed";run.progress=100;run.finished_at=datetime.now(timezone.utc);await db.commit()
     except Exception as exc:
-        doc.status="failed";doc.error_message=str(exc)[:1000];run.status="failed";run.error_message=str(exc)[:1000];run.finished_at=datetime.now(timezone.utc);await db.commit();raise
+        doc.status="failed";doc.lease_until=None;doc.error_message=str(exc)[:1000];run.status="failed";run.error_message=str(exc)[:1000];run.finished_at=datetime.now(timezone.utc);await db.commit();raise
 
 async def validate_public_url(url:str):
-    parsed=urlparse(url)
-    if parsed.scheme not in {"http","https"} or parsed.username or parsed.password or not parsed.hostname: raise ValueError("仅允许公开 HTTP(S) 地址")
-    try: infos=await __import__("asyncio").get_running_loop().run_in_executor(None,lambda:socket.getaddrinfo(parsed.hostname,parsed.port or (443 if parsed.scheme=="https" else 80),type=socket.SOCK_STREAM))
-    except socket.gaierror: raise ValueError("网页地址无法解析")
-    for info in infos:
-        ip=ipaddress.ip_address(info[4][0])
-        if not ip.is_global: raise ValueError("网页地址不允许访问内部网络")
+    await asyncio.to_thread(public_addresses,url)
 
 async def fetch_web(url:str)->tuple[str,bytes]:
-    current=url
-    async with httpx.AsyncClient(timeout=12,follow_redirects=False) as client:
-        for _ in range(5):
-            await validate_public_url(current);resp=await client.get(current,headers={"User-Agent":"InfoPulse-Knowledge/1.0"})
-            if resp.status_code in {301,302,303,307,308}:
-                current=urljoin(current,resp.headers.get("location",""));continue
-            resp.raise_for_status();ctype=resp.headers.get("content-type","").lower()
-            if "text/html" not in ctype: raise ValueError("网页内容类型不受支持")
-            if len(resp.content)>settings.KNOWLEDGE_WEB_MAX_BYTES: raise ValueError("网页内容超过大小限制")
-            soup=BeautifulSoup(resp.content,"lxml");[x.decompose() for x in soup(["script","style","noscript"])]
-            title=(soup.title.string.strip() if soup.title and soup.title.string else urlparse(current).hostname);text="\n\n".join(x.strip() for x in soup.get_text("\n").splitlines() if x.strip())
-            if not text: raise ValueError("网页没有可解析正文")
-            return safe_filename(title)+".md",text.encode()
-    raise ValueError("网页重定向次数过多")
+    resp=await public_request("GET",url,max_bytes=settings.KNOWLEDGE_WEB_MAX_BYTES,headers={"User-Agent":"InfoPulse-Knowledge/1.0"})
+    resp.raise_for_status();ctype=resp.headers.get("content-type","").lower()
+    if "text/html" not in ctype: raise ValueError("网页内容类型不受支持")
+    soup=BeautifulSoup(resp.content,"lxml");[x.decompose() for x in soup(["script","style","noscript"])]
+    title=(soup.title.string.strip() if soup.title and soup.title.string else resp.request.url.host);text="\n\n".join(x.strip() for x in soup.get_text("\n").splitlines() if x.strip())
+    if not text: raise ValueError("网页没有可解析正文")
+    return safe_filename(title)+".md",text.encode()
 
 def cosine(a,b): return sum(x*y for x,y in zip(a,b))
 

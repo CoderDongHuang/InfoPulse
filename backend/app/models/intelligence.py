@@ -463,6 +463,8 @@ class KnowledgeDocument(Base):
     status: Mapped[str] = mapped_column(String(20), default="queued", index=True)
     active_version_id: Mapped[str | None] = mapped_column(String(36), index=True)
     error_message: Mapped[str] = mapped_column(Text, default="")
+    processing_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)

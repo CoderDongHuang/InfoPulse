@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.dependencies import get_current_user
+from app.models.user import User
 from app.schemas.workflows import HotItemRequest
 from app.services.content_feed import fetch_intelligence_ranking
 from app.services.workflows import explain_hot_item
@@ -17,5 +19,5 @@ async def ranking(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/explain")
-async def explain(item: HotItemRequest):
+async def explain(item: HotItemRequest, user: User = Depends(get_current_user)):
     return {"explanation": await explain_hot_item(item.model_dump())}

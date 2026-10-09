@@ -50,11 +50,11 @@ async def upload(kid:str,files:list[UploadFile]=File(...),user:User=Depends(get_
     if len(files)>settings.KNOWLEDGE_MAX_FILES_PER_UPLOAD:fail("单次上传文件过多")
     result=[]
     for file in files:
-        name=safe_filename(file.filename);data=await file.read()
+        name=safe_filename(file.filename);data=await file.read(settings.KNOWLEDGE_MAX_FILE_MB*1024*1024+1)
         try:validate_upload(name,data)
         except Exception as exc:fail(str(exc))
         doc=KnowledgeDocument(knowledge_base_id=kid,user_id=user.id,filename=name,source_type="upload",mime_type=file.content_type or "",byte_size=len(data));db.add(doc);await db.flush()
-        await db.commit();await enqueue_document(doc.id,data)
+        await enqueue_document(doc.id,data);await db.commit()
         result.append(doc_json(doc))
     return result
 @router.post("/knowledge-bases/{kid}/web-imports",status_code=201)
@@ -63,7 +63,7 @@ async def web_import(kid:str,p:WebImportCreate,user:User=Depends(get_current_use
     try:name,data=await fetch_web(str(p.url))
     except Exception as exc:fail(str(exc))
     doc=KnowledgeDocument(knowledge_base_id=kid,user_id=user.id,filename=name,source_type="web",source_url=str(p.url),mime_type="text/markdown",byte_size=len(data));db.add(doc);await db.flush()
-    await db.commit();await enqueue_document(doc.id,data)
+    await enqueue_document(doc.id,data);await db.commit()
     return doc_json(doc)
 @router.get("/knowledge-documents/{did}")
 async def document_detail(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):
@@ -71,7 +71,8 @@ async def document_detail(did:str,user:User=Depends(get_current_user),db=Depends
 @router.post("/knowledge-documents/{did}/reindex")
 async def reindex(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):
     doc=await owned_doc(db,did,user.id)
-    doc.status="queued";doc.error_message="";await db.commit();await enqueue_document(doc.id)
+    if doc.status in {"queued","processing"}:fail("Document processing is already active",409)
+    doc.status="queued";doc.processing_attempts=0;doc.lease_until=None;doc.error_message="";await db.commit();await enqueue_document(doc.id)
     return doc_json(doc)
 @router.delete("/knowledge-documents/{did}",status_code=204)
 async def remove_document(did:str,user:User=Depends(get_current_user),db=Depends(get_db)):await ensure_not_held(db,user.id);await delete_document(db,await owned_doc(db,did,user.id))

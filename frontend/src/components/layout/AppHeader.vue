@@ -76,10 +76,10 @@ function navigate(path: string) {
   void router.push(path);
 }
 
-function handleUserCommand(command: string) {
+async function handleUserCommand(command: string) {
   if (command === "history") void router.push("/history");
   if (command === "logout") {
-    userStore.logout();
+    await userStore.logout();
     void router.push("/auth");
   }
 }
@@ -261,6 +261,10 @@ function handleUserCommand(command: string) {
   }
 }
 .desktop-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-top: 28px;
   display: grid;
   gap: 20px;
@@ -311,6 +315,7 @@ function handleUserCommand(command: string) {
   transform: scaleY(1);
 }
 .account-area {
+  flex-shrink: 0;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #dce4e1;

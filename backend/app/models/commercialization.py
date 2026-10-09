@@ -79,6 +79,7 @@ class ProductUsage(Base):
 class ConnectorExecution(Base):
     __tablename__ = "connector_executions"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid); organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    request_hash: Mapped[str] = mapped_column(String(64), default="")
     installation_id: Mapped[str] = mapped_column(ForeignKey("connector_installations.id", ondelete="CASCADE")); action_id: Mapped[str | None] = mapped_column(ForeignKey("response_actions.id", ondelete="SET NULL")); provider: Mapped[str] = mapped_column(String(20)); idempotency_key: Mapped[str] = mapped_column(String(160))
     status: Mapped[str] = mapped_column(String(20), default="pending"); response_code: Mapped[int | None] = mapped_column(Integer); external_reference: Mapped[str] = mapped_column(String(300), default=""); error: Mapped[str] = mapped_column(String(500), default=""); created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now); finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (UniqueConstraint("organization_id", "idempotency_key", name="uq_connector_execution_idempotency"),)

@@ -14,6 +14,7 @@ from app.core.database import Base, close_db, init_db
 from app.core.errors import setup_error_handlers
 from app.core.redis import close_redis, init_redis
 from app.middleware.cors import setup_cors
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.services.crawler.browser_manager import BrowserManager
 from app.services.automation import scheduler_loop
 from app.services.knowledge import knowledge_worker_loop
@@ -92,6 +93,7 @@ app = FastAPI(
 
 # --- Middleware ---
 setup_cors(app)
+app.add_middleware(RateLimitMiddleware)
 setup_error_handlers(app)
 setup_observability(app)
 

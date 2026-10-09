@@ -15,9 +15,19 @@ SNAPSHOT = Path(__file__).resolve().parents[2] / "docs" / "api-contract-v1.json"
 METHODS = {"get", "post", "put", "patch", "delete"}
 
 
-def contract() -> dict[str, dict[str, dict]]:
+def structural(value):
+    """Exclude prose, retain the validation and authentication contract."""
+    if isinstance(value, dict):
+        return {key: structural(item) for key, item in sorted(value.items()) if key not in {"description", "summary", "title", "example", "examples", "externalDocs"}}
+    if isinstance(value, list):
+        return [structural(item) for item in value]
+    return value
+
+
+def contract(schema=None) -> dict:
+    schema = schema or app.openapi()
     result = {}
-    for path, item in sorted(app.openapi()["paths"].items()):
+    for path, item in sorted(schema["paths"].items()):
         operations = {}
         for method, operation in sorted(item.items()):
             if method not in METHODS:
@@ -25,17 +35,20 @@ def contract() -> dict[str, dict[str, dict]]:
             operations[method] = {
                 "operationId": operation.get("operationId"),
                 "deprecated": bool(operation.get("deprecated", False)),
-                "responses": sorted(operation.get("responses", {}).keys()),
+                "parameters": structural(operation.get("parameters", [])),
+                "requestBody": structural(operation.get("requestBody")),
+                "responses": structural(operation.get("responses", {})),
+                "security": structural(operation.get("security", schema.get("security", []))),
             }
         result[path] = operations
-    return result
+    return {"paths": result, "components": structural(schema.get("components", {}))}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--update", action="store_true")
     args = parser.parse_args()
-    current = {"version": 1, "policy": "docs/api-deprecation-policy.md", "paths": contract()}
+    current = {"version": 2, "policy": "docs/api-deprecation-policy.md", **contract()}
     if args.update:
         SNAPSHOT.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Updated {SNAPSHOT}")

@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_admin
 from app.models.intelligence import ContentItem, DataSource, SyncRun
 from app.models.user import User
 from app.schemas.sources import (
@@ -46,7 +46,7 @@ async def list_sources(
 @router.post("/rss/validate", response_model=ConnectionTestResponse)
 async def validate_rss(
     payload: RssValidateRequest,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
 ):
     try:
         items = await RssCollector(str(payload.feed_url)).collect(1)
@@ -58,7 +58,7 @@ async def validate_rss(
 @router.post("/rss", response_model=DataSourceResponse, status_code=status.HTTP_201_CREATED)
 async def add_rss_source(
     payload: RssSourceRequest,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     feed_url = str(payload.feed_url)
@@ -90,7 +90,7 @@ async def get_source_detail(
 async def update_source(
     source_id: str,
     payload: SourceUpdateRequest,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     source = await _get_source(db, source_id)
@@ -104,7 +104,7 @@ async def update_source(
 @router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_source(
     source_id: str,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     source = await _get_source(db, source_id)
@@ -119,7 +119,7 @@ async def delete_source(
 @router.post("/{source_id}/test", response_model=ConnectionTestResponse)
 async def test_connection(
     source_id: str,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     source = await _get_source(db, source_id)
@@ -140,7 +140,7 @@ async def test_connection(
 @router.post("/{source_id}/sync", response_model=SyncRunResponse)
 async def trigger_sync(
     source_id: str,
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     await ensure_builtin_sources(db)

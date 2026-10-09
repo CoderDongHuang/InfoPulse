@@ -15,8 +15,9 @@ from sqlalchemy import func, select, text
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.core.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, security_scheme
 from app.models.user import User
 from app.schemas.auth import (
     TokenResponse,
@@ -73,7 +74,7 @@ async def sso_exchange(
     if not membership:
         membership = OrganizationMember(organization_id=org.id, user_id=user.id, role_key="member"); db.add(membership)
     elif membership.status != "active": raise HTTPException(status_code=403, detail="Organization membership is inactive")
-    return auth_service._generate_tokens(user)
+    return await auth_service._generate_tokens(user, db)
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -107,11 +108,31 @@ async def refresh(payload: RefreshTokenRequest, db: AsyncSession = Depends(get_d
     if not current_user or not current_user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在或已停用")
     token_data = {"sub": current_user.id, "username": current_user.username}
+    from datetime import datetime, timedelta, timezone
+    import uuid
+    from sqlalchemy import update
+    from app.models.auth_session import AuthSession
+    at=datetime.now(timezone.utc);jti=str(uuid.uuid4());sid=token_payload.get("sid")
+    if not sid or not token_payload.get("jti"):
+        raise HTTPException(401,"Session is no longer valid; sign in again")
+    claimed=await db.execute(update(AuthSession).where(AuthSession.id==sid,AuthSession.user_id==current_user.id,AuthSession.refresh_jti==token_payload["jti"],AuthSession.revoked_at.is_(None),AuthSession.expires_at>at).values(refresh_jti=jti,expires_at=at+timedelta(days=get_settings().REFRESH_TOKEN_EXPIRE_DAYS)))
+    if claimed.rowcount!=1:raise HTTPException(401,"Refresh token already used, expired or revoked")
+    token_data["sid"]=sid
     return TokenResponse(
         access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
+        refresh_token=create_refresh_token({**token_data,"jti":jti}),
         token_type="bearer",
     )
+
+
+@router.post("/logout", status_code=204)
+async def logout(current_user: User = Depends(get_current_user), credentials=Depends(security_scheme), db: AsyncSession = Depends(get_db)):
+    from datetime import datetime, timezone
+    from app.core.security import verify_token
+    from app.models.auth_session import AuthSession
+    payload=verify_token(credentials.credentials)
+    session=await db.get(AuthSession,payload["sid"])
+    session.revoked_at=datetime.now(timezone.utc)
 
 
 @router.get("/me", response_model=UserResponse)

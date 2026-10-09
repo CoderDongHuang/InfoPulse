@@ -1,16 +1,13 @@
 """Generic RSS 2.0 and Atom feed collector."""
 
-import ipaddress
-import socket
 from datetime import datetime
 from email.utils import parsedate_to_datetime
-from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 import httpx
 
 from app.services.collectors.base import NormalizedContent
-from app.services.collectors.http import get_response
+from app.core.outbound import public_addresses, public_request
 
 
 class RssCollector:
@@ -19,14 +16,11 @@ class RssCollector:
         self._client = client
 
     async def collect(self, limit: int = 30) -> list[NormalizedContent]:
-        validate_public_feed_url(self.feed_url, resolve_dns=self._client is None)
-        if self._client:
-            return await self._collect(self._client, limit)
-        async with httpx.AsyncClient(timeout=12, follow_redirects=True, headers={"User-Agent": "InfoPulse/1.0"}) as client:
-            return await self._collect(client, limit)
+        return await self._collect(self._client, limit)
 
     async def _collect(self, client: httpx.AsyncClient, limit: int) -> list[NormalizedContent]:
-        response = await get_response(client, self.feed_url)
+        response = await public_request("GET", self.feed_url, client=client, headers={"User-Agent": "InfoPulse/1.0"})
+        response.raise_for_status()
         if len(response.content) > 5_000_000:
             raise ValueError("RSS feed exceeds 5 MB")
         root = ElementTree.fromstring(response.content)
@@ -73,20 +67,7 @@ class RssCollector:
 
 
 def validate_public_feed_url(url: str, resolve_dns: bool = True) -> None:
-    parsed = urlparse(url)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
-        raise ValueError("RSS 地址必须是公开的 HTTP 或 HTTPS URL")
-    host = parsed.hostname.lower()
-    if host == "localhost" or host.endswith(".local"):
-        raise ValueError("RSS 地址不能指向本地网络")
-    try:
-        addresses = [ipaddress.ip_address(host)]
-    except ValueError:
-        addresses = []
-        if resolve_dns:
-            addresses = {ipaddress.ip_address(info[4][0]) for info in socket.getaddrinfo(host, None)}
-    if any(address.is_private or address.is_loopback or address.is_link_local or address.is_reserved for address in addresses):
-        raise ValueError("RSS 地址不能指向私有或保留网络")
+    public_addresses(url, resolve_dns=resolve_dns)
 
 
 def _child_text(node, name):

@@ -1,0 +1,10 @@
+# Browser-free localhost installation. No public discussion crawler or media engine.
+# Run: docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile.render
+    environment:
+      DEMO_MODE: "false"
+      CRAWLER_ENABLED: "false"
+      MEDIA_WORKER_ENABLED: "false"

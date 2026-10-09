@@ -1,7 +1,7 @@
 """Durable, policy-bound agent workflow runtime."""
 import asyncio, re, socket
 from datetime import datetime,timedelta,timezone
-from sqlalchemy import func,or_,select
+from sqlalchemy import func,or_,select,update
 from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
@@ -9,6 +9,8 @@ from app.core.database import _get_sessionmaker
 from app.core.llm import complete_chat,llm_is_configured
 from app.models.orchestration import AgentMemory,EvaluationDataset,EvaluationRun,ModelRoute,OrchestrationAudit,PromptDefinition,ToolDefinition,ToolPolicy,Workflow,WorkflowApproval,WorkflowRun,WorkflowStepRun,WorkflowTemplate,WorkflowVersion
 from app.models.platform import ConnectorInstallation
+from app.models.dispatch import DispatchJob
+from app.services.dispatch import enqueue_dispatch, process_dispatch_once
 
 UTC=timezone.utc
 NODE_TYPES={"start","agent","tool","approval","condition","memory_read","memory_write","end"}
@@ -44,6 +46,12 @@ def validate_graph(graph:dict)->dict:
     if len(visited)!=len(ids):raise ValueError("workflow graph must be acyclic")
     for node in nodes:
         cfg=node.get("config",{})
+        outgoing=[e for e in edges if e["source"]==node["id"]]
+        labels=[e.get("condition", "always") or "always" for e in outgoing]
+        if any(label not in {"always", "default", "true", "false"} for label in labels):raise ValueError("unsupported edge condition")
+        if len(labels)!=len(set(labels)) or ("always" in labels and len(labels)>1):raise ValueError("ambiguous outgoing edges; parallel execution is not supported")
+        if node["type"]=="end" and outgoing:raise ValueError("end nodes cannot have outgoing edges")
+        if node["type"]!="end" and not outgoing:raise ValueError("non-end nodes must have outgoing edges")
         if node["type"]=="tool" and not cfg.get("tool_key"):raise ValueError("tool nodes require tool_key")
         if node["type"]=="agent" and not cfg.get("prompt_key"):raise ValueError("agent nodes require prompt_key")
     return {"nodes":nodes,"edges":edges}
@@ -51,20 +59,26 @@ def validate_graph(graph:dict)->dict:
 def audit(db,org,action,run_id=None,actor_id=None,details=None):db.add(OrchestrationAudit(organization_id=org,run_id=run_id,actor_id=actor_id,action=action,details=details or {}))
 
 async def seed_catalog(db,organization_id):
+    from app.services.platform import seed_catalog as seed_platform_catalog
+    await seed_platform_catalog(db)
+    if db.bind.dialect.name == "sqlite":
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
     builtins=(("memory.read","Read workflow memory","low",None,"memory.read"),("memory.write","Write workflow memory","medium",None,"memory.write"),("connector.notify","Send approved connector notification","high","slack","notify"))
-    for key,name,risk,connector,action in builtins:
-        if not await db.scalar(select(ToolDefinition.id).where(ToolDefinition.organization_id==organization_id,ToolDefinition.key==key)):db.add(ToolDefinition(organization_id=organization_id,key=key,name=name,risk_level=risk,connector_key=connector,action=action,input_schema={"type":"object"}))
-    await db.flush()
+    values=[dict(organization_id=organization_id,key=key,name=name,risk_level=risk,connector_key=connector,action=action,input_schema={"type":"object"}) for key,name,risk,connector,action in builtins]
+    await db.execute(insert(ToolDefinition).values(values).on_conflict_do_nothing(index_elements=["organization_id","key"]))
 
 def next_node(graph,current,node_output):
     edges=[x for x in graph["edges"] if x["source"]==current]
     if not edges:return None
-    selected=[x for x in edges if x.get("condition") in (None,"always")]
+    selected=[x for x in edges if x.get("condition") in (None,"always","default")]
     for edge in edges:
         condition=edge.get("condition")
         if condition=="true" and bool(node_output.get("result")):return edge["target"]
         if condition=="false" and not bool(node_output.get("result")):return edge["target"]
-    return (selected or edges)[0]["target"]
+    if selected:return selected[0]["target"]
+    raise ValueError("No outgoing condition matched; add an explicit default edge")
 
 async def model_output(db,run,node):
     cfg=node.get("config",{});prompt=await db.scalar(select(PromptDefinition).where(PromptDefinition.organization_id==run.organization_id,PromptDefinition.key==cfg["prompt_key"],PromptDefinition.status=="active").order_by(PromptDefinition.version.desc()))
@@ -82,7 +96,7 @@ async def model_output(db,run,node):
             try:text=await complete_chat(prompt.system_prompt,message,max_tokens=route.max_tokens,model=candidate);selected=candidate;break
             except Exception as exc:last_error=exc
         else:raise RuntimeError(f"all approved model routes failed: {last_error}")
-    else:text=f"Model route {route.primary_model} accepted the step without a configured LLM."
+    else:raise RuntimeError("LLM unavailable: configure a model before running agent nodes")
     run.spent_cents+=estimated
     return {"text":text,"model":selected,"prompt":f"{prompt.key}:v{prompt.version}","cost_cents":estimated}
 
@@ -102,18 +116,53 @@ async def tool_guard(db,run,node,step):
             approval=WorkflowApproval(organization_id=run.organization_id,run_id=run.id,step_run_id=step.id,risk_summary=f"{tool.risk_level} risk tool: {tool.name}",requested_action={"tool":tool.key,"action":tool.action,"input":cfg.get("input",{})},requested_by=run.user_id);db.add(approval);run.status="waiting_approval";step.status="waiting_approval";audit(db,run.organization_id,"approval.requested",run.id,run.user_id,{"tool":tool.key});return None
         if approval.status=="pending":run.status="waiting_approval";step.status="waiting_approval";return None
         if approval.status!="approved":raise RuntimeError("tool action rejected")
-    # External side effects are handed to a connector worker with no credential material in the run log.
-    return {"tool":tool.key,"action":tool.action,"dispatch":"queued" if tool.connector_key else "completed","input":cfg.get("input",{})}
+    if tool.connector_key:
+        inputs=cfg.get("input",{})
+        job=await enqueue_dispatch(db,organization_id=run.organization_id,workspace_id=run.workspace_id,installation_id=install.id,message=inputs.get("message"),key=f"workflow:{run.id}:{step.node_id}")
+        run.status="waiting_dispatch";step.status="waiting_dispatch"
+        step.output={"dispatch_id":job.id};return None
+    if tool.key not in {"memory.read","memory.write"}:raise RuntimeError("No executor registered for this tool")
+    return await memory_operation(db,run,{"type":tool.key.replace(".","_"),"id":node["id"],"config":cfg.get("input",{})})
+
+async def memory_operation(db,run,node):
+    cfg=node.get("config",{});key=cfg.get("key",node["id"])
+    memory=await db.scalar(select(AgentMemory).where(AgentMemory.organization_id==run.organization_id,AgentMemory.workspace_id==run.workspace_id,AgentMemory.user_id==run.user_id,AgentMemory.namespace==cfg.get("namespace","workflow"),AgentMemory.key==key))
+    if node["type"]=="memory_read":
+        from app.core.time import as_utc
+        available=memory and not memory.deleted_at and (not memory.expires_at or as_utc(memory.expires_at)>now())
+        return {"value":memory.value if available else None}
+    if memory:memory.value=cfg.get("value",run.output);memory.deleted_at=None;memory.expires_at=None
+    else:db.add(AgentMemory(organization_id=run.organization_id,workspace_id=run.workspace_id,user_id=run.user_id,run_id=run.id,namespace=cfg.get("namespace","workflow"),key=key,value=cfg.get("value",run.output)))
+    return {"stored":True,"key":key}
 
 async def execute_one(db,run,worker_id="inline"):
     if run.status in TERMINAL or run.status=="waiting_approval":return run
+    at=now()
+    claimed=await db.execute(update(WorkflowRun).where(WorkflowRun.id==run.id,WorkflowRun.status.in_(["queued","waiting_dispatch","running"]),or_(WorkflowRun.lease_until.is_(None),WorkflowRun.lease_until<at)).values(lease_owner=worker_id,lease_until=at+timedelta(minutes=5)).execution_options(synchronize_session=False))
+    if claimed.rowcount!=1:return run
+    await db.refresh(run)
     version=await db.get(WorkflowVersion,run.version_id);graph=version.graph;nodes={x["id"]:x for x in graph["nodes"]}
     if not run.current_node_id:run.current_node_id=next(x["id"] for x in graph["nodes"] if x["type"]=="start")
-    node=nodes[run.current_node_id];attempt=int(await db.scalar(select(func.max(WorkflowStepRun.attempt)).where(WorkflowStepRun.run_id==run.id,WorkflowStepRun.node_id==node["id"])) or 0)+1
-    step=WorkflowStepRun(organization_id=run.organization_id,run_id=run.id,node_id=node["id"],node_type=node["type"],attempt=attempt,input={"run":run.input,"config":node.get("config",{})});db.add(step);await db.flush()
+    node=nodes[run.current_node_id]
+    resuming=run.status=="waiting_dispatch"
+    if resuming:
+        step=await db.scalar(select(WorkflowStepRun).where(WorkflowStepRun.run_id==run.id,WorkflowStepRun.node_id==node["id"],WorkflowStepRun.status=="waiting_dispatch").order_by(WorkflowStepRun.attempt.desc()))
+        job=await db.get(DispatchJob,step.output.get("dispatch_id")) if step else None
+        if not job:
+            run.status="failed";run.completed_at=now();run.lease_owner=None;run.lease_until=None
+            if step:step.status="failed";step.error="Dispatch record missing";step.completed_at=now()
+            audit(db,run.organization_id,"run.failed",run.id,details={"error":"Dispatch record missing"});return run
+        if job.status in {"pending","running"}:
+            run.lease_owner=None;run.lease_until=None;return run
+    else:
+        attempt=int(await db.scalar(select(func.max(WorkflowStepRun.attempt)).where(WorkflowStepRun.run_id==run.id,WorkflowStepRun.node_id==node["id"])) or 0)+1
+        step=WorkflowStepRun(organization_id=run.organization_id,run_id=run.id,node_id=node["id"],node_type=node["type"],attempt=attempt,input={"run":run.input,"config":node.get("config",{})});db.add(step);await db.flush()
     run.status="running";run.started_at=run.started_at or now();output={}
     try:
-        if node["type"]=="agent":output=await model_output(db,run,node)
+        if resuming:
+            if job.status!="succeeded":raise RuntimeError(f"Connector delivery {job.status}: {job.error}")
+            output={"dispatch_id":job.id,"dispatch":"succeeded",**job.result}
+        elif node["type"]=="agent":output=await model_output(db,run,node)
         elif node["type"]=="tool":
             output=await tool_guard(db,run,node,step)
             if output is None:return run
@@ -123,14 +172,7 @@ async def execute_one(db,run,worker_id="inline"):
             else:
                 approval=WorkflowApproval(organization_id=run.organization_id,run_id=run.id,step_run_id=step.id,risk_summary=node.get("config",{}).get("summary","Human review required"),requested_action=node.get("config",{}),requested_by=run.user_id);db.add(approval);step.status="waiting_approval";run.status="waiting_approval";return run
         elif node["type"]=="condition":output={"result":bool(run.output.get(node.get("config",{}).get("field")))}
-        elif node["type"]=="memory_read":
-            cfg=node.get("config",{});memory=await db.scalar(select(AgentMemory).where(AgentMemory.organization_id==run.organization_id,AgentMemory.workspace_id==run.workspace_id,AgentMemory.user_id==run.user_id,AgentMemory.namespace==cfg.get("namespace","workflow"),AgentMemory.key==cfg.get("key"),AgentMemory.deleted_at.is_(None),or_(AgentMemory.expires_at.is_(None),AgentMemory.expires_at>now())))
-            output={"value":memory.value if memory else None}
-        elif node["type"]=="memory_write":
-            cfg=node.get("config",{});key=cfg.get("key",node["id"]);memory=await db.scalar(select(AgentMemory).where(AgentMemory.organization_id==run.organization_id,AgentMemory.workspace_id==run.workspace_id,AgentMemory.user_id==run.user_id,AgentMemory.namespace==cfg.get("namespace","workflow"),AgentMemory.key==key))
-            if memory:memory.value=cfg.get("value",run.output);memory.deleted_at=None
-            else:db.add(AgentMemory(organization_id=run.organization_id,workspace_id=run.workspace_id,user_id=run.user_id,run_id=run.id,namespace=cfg.get("namespace","workflow"),key=key,value=cfg.get("value",run.output)))
-            output={"stored":True,"key":key}
+        elif node["type"] in {"memory_read","memory_write"}:output=await memory_operation(db,run,node)
         elif node["type"]=="end":output={"completed":True}
         step.output=output;step.status="completed";step.completed_at=now();run.output={**run.output,node["id"]:output};audit(db,run.organization_id,"step.completed",run.id,None,{"node_id":node["id"],"type":node["type"]})
         following=next_node(graph,node["id"],output)
@@ -142,16 +184,20 @@ async def execute_one(db,run,worker_id="inline"):
     return run
 
 async def claim_run(db,worker_id):
-    at=now();row=await db.scalar(select(WorkflowRun).where(WorkflowRun.status=="queued",or_(WorkflowRun.lease_until.is_(None),WorkflowRun.lease_until<at)).order_by(WorkflowRun.created_at).with_for_update(skip_locked=True))
-    if row:row.lease_owner=worker_id;row.lease_until=at+timedelta(minutes=5);await db.flush()
-    return row
+    at=now()
+    return await db.scalar(select(WorkflowRun).where(WorkflowRun.status.in_(["queued","waiting_dispatch","running"]),or_(WorkflowRun.lease_until.is_(None),WorkflowRun.lease_until<at)).order_by(WorkflowRun.created_at).limit(1))
 
 async def orchestration_worker_loop(stop):
     worker=f"{socket.gethostname()}:{id(stop)}"
     while not stop.is_set():
-        async with _get_sessionmaker()() as db:
-            run=await claim_run(db,worker)
-            if run:await execute_one(db,run,worker);await db.commit()
+        try:
+            await process_dispatch_once()
+            async with _get_sessionmaker()() as db:
+                run=await claim_run(db,worker)
+                if run:await execute_one(db,run,worker);await db.commit()
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Orchestration worker iteration failed")
         try:await asyncio.wait_for(stop.wait(),timeout=2)
         except asyncio.TimeoutError:pass
 

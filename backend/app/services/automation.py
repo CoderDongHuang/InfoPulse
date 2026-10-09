@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.core.database import _get_sessionmaker
+from app.core.outbound import public_addresses, public_request
 from app.models.intelligence import (
     AgentTask, ContentItem, DataSource, DeliveryAttempt, Notification,
     NotificationPreference, Report, ReportVersion, Subscription, TaskRun,
@@ -83,12 +84,7 @@ async def create_notification(db, user_id: str, notification_type: str, title: s
 
 
 def validate_webhook_url(url: str) -> None:
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.hostname: raise ValueError("Webhook must use HTTP(S)")
-    if parsed.username or parsed.password: raise ValueError("Webhook credentials in URL are not allowed")
-    for result in socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80), type=socket.SOCK_STREAM):
-        address = ipaddress.ip_address(result[4][0])
-        if not address.is_global: raise ValueError("Webhook target must resolve to a public address")
+    public_addresses(url)
 
 
 async def deliver_attempt(db, attempt: DeliveryAttempt):
@@ -108,12 +104,10 @@ async def deliver_attempt(db, attempt: DeliveryAttempt):
             await asyncio.to_thread(send)
         elif attempt.channel == "webhook":
             if not preference.webhook_enabled or not preference.webhook_url: raise RuntimeError("Webhook delivery is not configured")
-            validate_webhook_url(preference.webhook_url)
             raw = json.dumps({"id": notification.id, "type": notification.notification_type, "title": notification.title, "body": notification.body, "payload": notification.payload}, ensure_ascii=False).encode()
             signature = hmac.new(preference.webhook_secret.encode(), raw, hashlib.sha256).hexdigest()
-            async with httpx.AsyncClient(timeout=get_settings().WEBHOOK_TIMEOUT_SECONDS, follow_redirects=False) as client:
-                response = await client.post(preference.webhook_url, content=raw, headers={"Content-Type": "application/json", "X-InfoPulse-Signature": f"sha256={signature}"})
-                attempt.response_code = response.status_code; response.raise_for_status()
+            response = await public_request("POST",preference.webhook_url,max_bytes=64_000,max_redirects=0,timeout=get_settings().WEBHOOK_TIMEOUT_SECONDS,content=raw,headers={"Content-Type": "application/json", "X-InfoPulse-Signature": f"sha256={signature}"})
+            attempt.response_code = response.status_code; response.raise_for_status()
         attempt.status = "delivered"; attempt.delivered_at = now_utc(); attempt.error_message = ""
     except Exception as exc:
         attempt.error_message = str(exc)[:2000]

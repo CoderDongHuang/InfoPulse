@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from cryptography.fernet import Fernet
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -18,7 +18,7 @@ from app.models.platform import APIUsageMeter, BillingAccount, ConnectorDefiniti
 from app.models.user import User
 from app.schemas.platform import APIKeyCreate, ConnectorInstall, OAuthAppCreate, OAuthAuthorize, OAuthTokenExchange, ReviewDecision, SandboxRequest, WebhookCreate, WebhookTest
 from app.services.enterprise import TenantContext, require_permission, set_db_context
-from app.services.platform import canonical_payload, enforce_and_meter, hash_secret, issue_secret, pkce_s256, seed_catalog, sign_webhook, validate_outbound_url
+from app.services.platform import canonical_payload, cipher, enforce_and_meter, hash_secret, issue_secret, pkce_s256, seed_catalog, sign_webhook, validate_outbound_url
 
 router = APIRouter(prefix="/api/v1/platform", tags=["Open Platform"])
 optional_bearer = HTTPBearer(auto_error=False)
@@ -26,11 +26,6 @@ optional_bearer = HTTPBearer(auto_error=False)
 
 def audit(db, user, org, action, target, target_id, after=None):
     db.add(AuditLog(user_id=user.id, organization_id=org, action=action, target_type=target, target_id=target_id, after_data=after or {}))
-
-
-def cipher() -> Fernet:
-    raw = get_settings().PLATFORM_ENCRYPTION_KEY or get_settings().JWT_SECRET_KEY
-    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(raw.encode()).digest()))
 
 
 def key_view(row):
@@ -150,6 +145,7 @@ async def webhooks(ctx: TenantContext = Depends(get_tenant_context), db: AsyncSe
 @router.post("/webhooks", status_code=201)
 async def create_webhook(payload: WebhookCreate, ctx: TenantContext = Depends(get_tenant_context), user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     require_permission(ctx, "developer.manage"); validate_outbound_url(payload.target_url)
+    if payload.workspace_id and (not ctx.workspace or ctx.workspace.id != payload.workspace_id): raise HTTPException(403, "Select the target workspace")
     secret, _, digest = issue_secret("whsec")
     row = WebhookEndpoint(organization_id=ctx.organization.id, workspace_id=payload.workspace_id, name=payload.name, target_url=payload.target_url, event_types=sorted(set(payload.event_types)), secret_hash=digest, secret_ciphertext=cipher().encrypt(secret.encode()).decode())
     db.add(row); await db.flush(); audit(db, user, ctx.organization.id, "webhook.create", "webhook", row.id)
@@ -157,15 +153,17 @@ async def create_webhook(payload: WebhookCreate, ctx: TenantContext = Depends(ge
 
 
 @router.post("/webhooks/{endpoint_id}/test")
-async def test_webhook(endpoint_id: str, payload: WebhookTest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+async def test_webhook(endpoint_id: str, payload: WebhookTest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db), external_delivery: bool = False):
     require_permission(ctx, "developer.manage"); endpoint = await db.get(WebhookEndpoint, endpoint_id)
     if not endpoint or endpoint.organization_id != ctx.organization.id or endpoint.revoked_at: raise HTTPException(404, "Webhook not found")
-    event_id = "evt_" + secrets.token_urlsafe(12); body = {"id": event_id, "type": payload.event_type, "sandbox": True, "data": {}}
+    if endpoint.workspace_id and (not ctx.workspace or endpoint.workspace_id != ctx.workspace.id): raise HTTPException(403, "Select the endpoint workspace")
+    if not endpoint.enabled or payload.event_type not in endpoint.event_types: raise HTTPException(422, "Endpoint disabled or event type not subscribed")
+    event_id = "evt_" + secrets.token_urlsafe(12); body = {"id": event_id, "type": payload.event_type, "sandbox": not external_delivery, "data": {}}
     raw = canonical_payload(body); timestamp = str(int(datetime.now(timezone.utc).timestamp())); secret = cipher().decrypt(endpoint.secret_ciphertext.encode()).decode()
     fingerprint = hashlib.sha256(endpoint.id.encode() + raw).hexdigest()
-    row = WebhookDelivery(organization_id=ctx.organization.id, endpoint_id=endpoint.id, event_id=event_id, event_type=payload.event_type, fingerprint=fingerprint, payload=body, status="sandboxed")
+    row = WebhookDelivery(organization_id=ctx.organization.id, endpoint_id=endpoint.id, event_id=event_id, event_type=payload.event_type, fingerprint=fingerprint, payload=body, status="queued" if external_delivery else "sandboxed")
     db.add(row); await db.flush()
-    return {"delivery_id": row.id, "sent": False, "headers": {"InfoPulse-Event-ID": event_id, "InfoPulse-Timestamp": timestamp, "InfoPulse-Signature": "sha256=" + sign_webhook(secret, timestamp, event_id, raw)}, "body": body}
+    return {"delivery_id": row.id, "sent": False, "status": row.status, "headers": {"InfoPulse-Event-ID": event_id, "InfoPulse-Timestamp": timestamp, "InfoPulse-Signature": "sha256=" + sign_webhook(secret, timestamp, event_id, raw)}, "body": body}
 
 
 @router.get("/webhooks/deliveries")
@@ -175,11 +173,16 @@ async def deliveries(ctx: TenantContext = Depends(get_tenant_context), db: Async
 
 
 @router.post("/webhooks/deliveries/{delivery_id}/replay", status_code=201)
-async def replay(delivery_id: str, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+async def replay(delivery_id: str, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db), external_delivery: bool = False):
     require_permission(ctx, "developer.manage"); old = await db.get(WebhookDelivery, delivery_id)
     if not old or old.organization_id != ctx.organization.id: raise HTTPException(404, "Delivery not found")
+    endpoint = await db.get(WebhookEndpoint, old.endpoint_id)
+    if not endpoint or endpoint.revoked_at or not endpoint.enabled: raise HTTPException(409, "Endpoint disabled or revoked")
+    if endpoint.workspace_id and (not ctx.workspace or endpoint.workspace_id != ctx.workspace.id): raise HTTPException(403, "Select the endpoint workspace")
+    await db.execute(update(WebhookEndpoint).where(WebhookEndpoint.id == endpoint.id).values(enabled=WebhookEndpoint.enabled))
+    if external_delivery and old.status in {"queued", "running"}: raise HTTPException(409, "Original delivery still active")
     attempt = int(await db.scalar(select(func.max(WebhookDelivery.attempt)).where(WebhookDelivery.endpoint_id == old.endpoint_id, WebhookDelivery.fingerprint == old.fingerprint)) or 0) + 1
-    row = WebhookDelivery(organization_id=old.organization_id, endpoint_id=old.endpoint_id, event_id=old.event_id, event_type=old.event_type, fingerprint=old.fingerprint, payload=old.payload, attempt=attempt, status="queued", replay_of_id=old.id)
+    row = WebhookDelivery(organization_id=old.organization_id, endpoint_id=old.endpoint_id, event_id=old.event_id, event_type=old.event_type, fingerprint=old.fingerprint, payload=old.payload, attempt=attempt, status="queued" if external_delivery else "sandboxed", replay_of_id=old.id)
     db.add(row); await db.flush(); return {"id": row.id, "status": row.status, "attempt": row.attempt, "replay_of_id": old.id}
 
 
@@ -199,6 +202,8 @@ async def installations(ctx: TenantContext = Depends(get_tenant_context), db: As
 @router.post("/installations", status_code=201)
 async def install(payload: ConnectorInstall, ctx: TenantContext = Depends(get_tenant_context), user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     require_permission(ctx, "integrations.install"); await seed_catalog(db); definition = await db.get(ConnectorDefinition, payload.connector_key)
+    if payload.workspace_id and (not ctx.workspace or ctx.workspace.id != payload.workspace_id): raise HTTPException(403, "Select the target workspace")
+    if payload.config.get("webhook_url"): validate_outbound_url(payload.config["webhook_url"])
     row = ConnectorInstallation(organization_id=ctx.organization.id, workspace_id=payload.workspace_id, connector_key=payload.connector_key, credential_reference=payload.credential_reference, config=payload.config, requested_by=user.id, status="pending" if definition.write_capable else "approved")
     db.add(row); await db.flush(); db.add(SecurityReview(organization_id=ctx.organization.id, target_type="connector", target_id=row.id)); audit(db, user, ctx.organization.id, "connector.install.request", "connector_installation", row.id)
     return {"id": row.id, "status": row.status, "approval_required": definition.write_capable}

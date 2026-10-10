@@ -143,7 +143,7 @@ jobs:
       - name: Real UI, worker, WebSocket and session acceptance
         working-directory: backend
         run: python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --output ../acceptance-artifacts
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: product-acceptance-python-${{ matrix.python }}
@@ -169,7 +169,7 @@ jobs:
       - name: CycloneDX inventory
         if: success() || failure()
         run: python -m pip_audit --format cyclonedx-json --output python-sbom.json
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: python-dependency-audit
@@ -204,7 +204,7 @@ jobs:
       - name: Collect container diagnostics
         if: always()
         run: docker compose -p infopulse-audit -f docker-compose.audit.yml logs --no-color > container-acceptance.log
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: container-acceptance

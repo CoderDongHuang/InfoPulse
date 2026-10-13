@@ -61,7 +61,7 @@ python -m unittest tests.test_recovery_harness tests.test_knowledge tests.test_k
 
 ## R03：前端按需组件与包体预算
 
-状态：本机测试和生产构建浏览器验收完成；独立 PR 的完整门禁通过后才能合并。
+状态：本机测试和生产构建浏览器验收完成；独立 [PR #64](https://github.com/CoderDongHuang/InfoPulse/pull/64) 按最新 head 全部门禁通过后合并的流程提交。
 
 现有路由已使用动态 import，图标也已明确导入。主要问题是入口 `app.use(ElementPlus)` 注册整个库并导入全量 CSS。本轮只注册实际使用的 19 种组件，保留 `v-loading` 指令以及程序调用的 Message / MessageBox 样式。官方组件样式入口会带入内部依赖，避免只导入表面样式造成下拉/遮罩缺失。
 
@@ -74,6 +74,8 @@ python -m unittest tests.test_recovery_harness tests.test_knowledge tests.test_k
 | 静态入口 JS Brotli | 293,334 | 149,826 | -48.9% |
 | 静态入口 CSS 原始体积 | 368,917 | 136,414 | -63.0% |
 | 静态入口 CSS gzip | 50,745 | 19,963 | -60.7% |
+
+以上为初版按需构建；补充取消处理后的静态 JS raw/CSS raw 不变，JS gzip 为 173,242、Brotli 为 149,868 字节，路由 chunk 的修复不会因动态拆分而改变静态图统计规则。
 
 预算为 JS raw ≤ 600,000、JS gzip ≤ 200,000、CSS raw ≤ 160,000 字节；超出预算构建返回非零。预算约留 15–20% 空间，不能靠改 chunk 名称、拆 vendor 或提高 Vite 告警阈值绕过统计。所有执行 `npm run build` 的 CI 和 Docker 构建都会检查，frontend job 保存 `bundle-budget.json` 制品。
 
@@ -95,3 +97,5 @@ npm run build
 浏览器截图保存于 CI 产品验收制品（`components-desktop.png`、知识桌面/移动图），本机证据在忽略的 `acceptance-artifacts/bundle` 中。动态路由、认证页图片、首屏 LCP/INP、冷缓存网络测量未纳入当前预算；本轮减少传输体积，不宣称已证明某个加载耗时或全核心按钮完成。
 
 首次 [Release Gate 38351461978](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38351461978) 的完整/最小生产容器通过，但开发服务器下两个 Python 产品环境均捕获 `page_errors: ["cancel"]`。原有报告删除 handler 没有处理 MessageBox 取消时的 Promise rejection；生产 Vue 的异常行为差异使本机生产预览没有将其上报为 pageerror。现已只处理预期的 cancel/close，其他异常继续传播，新增直接执行实际 handler 的回归；未忽略浏览器错误。其他模块的取消操作尚需逐页验收。
+
+修复提交 `f2b872a` 的 [Release Gate 38352699229](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699229) 与 [CodeQL 38352699244](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699244) 全部通过，包含开发服务器的两个 Python 环境及两个生产容器环境。文档证据补充后仍以最新提交的 checks 为合并条件。

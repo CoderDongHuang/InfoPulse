@@ -23,7 +23,7 @@ async def run(base_url, output, browser_channel=None):
         page = await context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("console", lambda message: component_errors.append(message.text)
-                if "Failed to resolve component" in message.text or "Failed to resolve directive" in message.text else None)
+                if "Failed to resolve component" in message.text or "Failed to resolve directive" in message.text or "cannot be child of" in message.text else None)
         page.on("response", lambda response: server_errors.append(f"{response.status} {urlparse(response.url).path}") if response.status >= 500 else None)
         try:
             await page.goto(base_url + "/knowledge")
@@ -149,6 +149,30 @@ async def run(base_url, output, browser_channel=None):
             detail = await api("GET", "/orchestration/workflows/" + workflow["id"])
             assert len(detail["versions"]) == 2 and detail["active_version_id"] == workflow["active_version_id"]
             checks.append("same-origin WebSocket ping and collaborative workflow draft persistence")
+
+            # Display-only HTTP fixture: exercise the nonempty detail branch without
+            # creating/approving a real action or claiming to test its execution.
+            action = {"id": "table-fixture", "title": "Action table fixture", "status": "completed", "risk_level": "low",
+                      "evidence_content_ids": [], "steps": [{"id": "step-fixture", "sequence": 1, "channel": "manual", "status": "succeeded"}]}
+
+            async def action_fixture(route):
+                assert route.request.method == "GET", "display fixture must not intercept writes"
+                await route.fulfill(json=[action] if urlparse(route.request.url).path.endswith("/actions") else action)
+
+            await page.route("**/api/v1/actions", action_fixture)
+            await page.route("**/api/v1/actions/table-fixture", action_fixture)
+            try:
+                await page.goto(base_url + "/action-loop")
+                await page.get_by_role("button", name=__import__("re").compile("Action table fixture")).click()
+                table = page.locator(".detail table")
+                await expect(table.locator(":scope > thead > tr > th")).to_have_text(["序号", "渠道", "状态"])
+                await expect(table.locator(":scope > tbody > tr > td")).to_have_text(["1", "manual", "succeeded"])
+                await expect(table.locator(":scope > tr")).to_have_count(0)
+                await page.screenshot(path=str(output / "action-step-table.png"), full_page=True)
+            finally:
+                await page.unroute("**/api/v1/actions", action_fixture)
+                await page.unroute("**/api/v1/actions/table-fixture", action_fixture)
+            checks.append("nonempty action detail table renders header and step in valid HTML sections (display fixture)")
 
             for route in ["/", "/dashboard", "/discover", "/search", "/events", "/analysis", "/agent", "/reports", "/subscriptions", "/tasks", "/notifications", "/history", "/sources", "/orchestration", "/multimodal", "/global-intelligence", "/action-loop", "/commercial-operations", "/enterprise", "/developers", "/autonomy", "/trust-network", "/global-coordination", "/adaptive-os", "/provable-autonomy", "/planetary-resilience", "/cognitive-infrastructure", "/cognitive-commons", "/insight", "/mouthpiece", "/timeline", "/hot-search", "/watchlist", "/alerts", "/bi", "/help"]:
                 await page.goto(base_url + route)

@@ -145,3 +145,13 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 复现：`frontend` 执行 `npm test`、`npm run build`；隔离验收服务运行后，在 `backend` 执行 `python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --browser-channel msedge --output ../acceptance-artifacts/dialogs`。CI 在两个 Python 产品环境及两个容器环境运行同一浏览器验收。当前单元模拟不能替代其余六页面全部按钮的浏览器操作；401/断网/超时、两用户协作、跨租户 UI 仍未标记完成。
 
 改基后的 `b76c355` 在 [Release Gate 38367992804](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38367992804) 的 Python 3.10 产品验收失败：工作流 POST 201 后立即打开协作文档收到 404 `Workflow not found`。工作流创建仍只 flush，依赖响应后才 commit；现将工作流、初始版本、活动版本引用与审计在成功响应前同事务提交，不增加等待或重试。新增独立 SQLite 连接读取与真实协作资源校验、提交失败不得成功返回两项回归；首次测试传错上下文参数已修正，完整协作事务/协作/编排 **12/12** 通过（101.785 秒）。重启隔离 PostgreSQL 16 服务后 Edge + Vite dev 产品 **9/9** 通过，三类错误数组为空，证据为 `acceptance-artifacts/dialogs-transaction/result.json`。仍需修复后最新 head 的 CI；其他编排写操作的事务边界未由此全部证明。
+
+## R06：行动执行步骤表格结构
+
+状态：实现及本机验收完成，独立 PR 最新 head 全部门禁通过后合并。
+
+开发服务器巡检发现 `ActionLoopView` 把 tr 直接放在 table 下，Vue 报 HTML 嵌套告警；浏览器自动补 tbody 可能导致实际 DOM 与 Vue 预期不同。表头和步骤行改用明确的 thead / tbody，保持字段和操作逻辑。
+
+本机 `npm run build` 类型检查、生产构建、包体预算通过，JS raw 502,997 / gzip 173,243，CSS raw 136,414 字节。隔离 PostgreSQL + Vite dev + Edge 产品验收 **10/10** 通过，新增展示专用 GET fixture 打开非空行动详情，检查三个表头、序号/渠道/状态各列和无直接子 tr，截图单独保存 `action-step-table.png`。产品脚本还将 `cannot be child of` 控制台信息视为失败，防止再次只巡检空状态而错过模板缺陷。错误列表为空。
+
+这一 fixture 只替代两条 GET 展示请求，拒绝拦截写请求，结束即撤除；不创建、批准或执行真实行动，不将展示验收当成 dispatch/outbox 的端到端验收。其余九组真实产品检查继续通过。复现命令与 R05 相同，仅输出目录改为 `../acceptance-artifacts/action-table`。

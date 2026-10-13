@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { reportsApi, type ReportType } from '@/api/reports'
+import { runDialog } from '@/utils/dialog'
 
 const router = useRouter(), route = useRoute(), reports = ref<any[]>([]), templates = ref<any[]>([])
 const loading = ref(true), creating = ref(false), dialog = ref(false), query = ref(''), typeFilter = ref('')
@@ -14,12 +15,7 @@ function sourceConfig() { const q = route.query; return { event_ids: q.event_id 
 function start(template: any) { draft.value = { title: `${template.name} ${new Date().toLocaleDateString()}`, report_type: template.id }; dialog.value = true }
 async function create() { if (!draft.value.title.trim()) return; creating.value = true; try { const result = await reportsApi.create({ ...draft.value, source_config: sourceConfig() }); dialog.value = false; await router.push(`/reports/${result.id}`) } finally { creating.value = false } }
 async function remove(item: any) {
-  try {
-    await ElMessageBox.confirm(`删除“${item.title}”？`, '删除报告')
-  } catch (action) {
-    if (action === 'cancel' || action === 'close') return
-    throw action
-  }
+  if (!await runDialog(() => ElMessageBox.confirm(`删除“${item.title}”？`, '删除报告'))) return
   await reportsApi.remove(item.id)
   ElMessage.success('报告已删除')
   await load()

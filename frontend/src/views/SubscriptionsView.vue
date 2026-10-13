@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { runDialog } from '@/utils/dialog'
 import { automationApi } from '@/api/automation'
 
 const items = ref<any[]>([]), loading = ref(true), open = ref(false), saving = ref(false)
@@ -15,7 +16,7 @@ async function create() {
   } finally { saving.value = false }
 }
 async function toggle(item: any) { item.enabled = !item.enabled; await automationApi.toggleSubscription(item.id, item.enabled); ElMessage.success(item.enabled ? '订阅已恢复' : '订阅已暂停') }
-async function remove(item: any) { await ElMessageBox.confirm(`删除订阅“${item.name}”及关联任务？`, '删除订阅'); await automationApi.deleteSubscription(item.id); await load() }
+async function remove(item: any) { if (!await runDialog(() => ElMessageBox.confirm(`删除订阅“${item.name}”及关联任务？`, '删除订阅'))) return; await automationApi.deleteSubscription(item.id); await load() }
 function scheduleText(item: any) { return item.schedule.kind === 'interval' ? `每 ${item.schedule.minutes} 分钟` : `每天 ${item.schedule.time}` }
 onMounted(load)
 </script>

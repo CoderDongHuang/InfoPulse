@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { knowledgeApi } from "@/api/knowledge";
+import { runDialog } from "@/utils/dialog";
 const bases = ref<any[]>([]),
   activeId = ref(""),
   docs = ref<any[]>([]),
@@ -44,16 +45,17 @@ async function loadDocs() {
   results.value = [];
 }
 async function createBase() {
-  const x = await ElMessageBox.prompt("知识库名称", "新建知识库", {
+  const x = await runDialog(() => ElMessageBox.prompt("知识库名称", "新建知识库", {
     inputPattern: /\S+/,
     inputErrorMessage: "请输入名称",
-  });
+  }));
+  if (!x) return;
   await knowledgeApi.create({ name: x.value, description: "" });
   await loadBases();
 }
 async function deleteBase() {
   if (!active.value) return;
-  const x = await ElMessageBox.prompt(
+  const x = await runDialog(() => ElMessageBox.prompt(
     `输入“${active.value.name}”确认。文件和向量将一并删除。`,
     "删除知识库",
     {
@@ -61,7 +63,8 @@ async function deleteBase() {
       inputValidator: (v) => v === active.value.name || "名称不匹配",
       type: "warning",
     },
-  );
+  ));
+  if (!x) return;
   if (x.value === active.value.name) {
     await knowledgeApi.remove(activeId.value);
     activeId.value = "";
@@ -80,11 +83,12 @@ async function upload(e: Event) {
   }
 }
 async function importWeb() {
-  const x = await ElMessageBox.prompt(
+  const x = await runDialog(() => ElMessageBox.prompt(
     "内网地址会被安全策略拒绝。",
     "导入公开网页",
     { inputPattern: /^https?:\/\//i, inputErrorMessage: "请输入完整 URL" },
-  );
+  ));
+  if (!x) return;
   busy.value = true;
   try {
     await knowledgeApi.importWeb(activeId.value, x.value);
@@ -102,11 +106,11 @@ async function retry(x: any) {
   await loadDocs();
 }
 async function removeDoc(x: any) {
-  await ElMessageBox.confirm(
+  if (!await runDialog(() => ElMessageBox.confirm(
     "删除后 Agent 与检索将立即停止召回。",
     "删除文档",
     { confirmButtonText: "删除文档", type: "warning" },
-  );
+  ))) return;
   await knowledgeApi.removeDocument(x.id);
   await loadDocs();
 }

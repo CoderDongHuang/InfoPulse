@@ -143,3 +143,5 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 首次新增检测误把携带查询体的 POST `/search-test` 计为写入，实际返回检索结果；随后按接口语义排除这一只读查询并重新运行，未忽略真实数据写入或浏览器错误。没有真实第三方调用或个人配置读取。
 
 复现：`frontend` 执行 `npm test`、`npm run build`；隔离验收服务运行后，在 `backend` 执行 `python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --browser-channel msedge --output ../acceptance-artifacts/dialogs`。CI 在两个 Python 产品环境及两个容器环境运行同一浏览器验收。当前单元模拟不能替代其余六页面全部按钮的浏览器操作；401/断网/超时、两用户协作、跨租户 UI 仍未标记完成。
+
+改基后的 `b76c355` 在 [Release Gate 38367992804](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38367992804) 的 Python 3.10 产品验收失败：工作流 POST 201 后立即打开协作文档收到 404 `Workflow not found`。工作流创建仍只 flush，依赖响应后才 commit；现将工作流、初始版本、活动版本引用与审计在成功响应前同事务提交，不增加等待或重试。新增独立 SQLite 连接读取与真实协作资源校验、提交失败不得成功返回两项回归；首次测试传错上下文参数已修正，完整协作事务/协作/编排 **12/12** 通过（101.785 秒）。重启隔离 PostgreSQL 16 服务后 Edge + Vite dev 产品 **9/9** 通过，三类错误数组为空，证据为 `acceptance-artifacts/dialogs-transaction/result.json`。仍需修复后最新 head 的 CI；其他编排写操作的事务边界未由此全部证明。

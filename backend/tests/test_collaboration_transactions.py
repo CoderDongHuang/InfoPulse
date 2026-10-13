@@ -11,11 +11,13 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import app.models
 from app.api import multimodal as api
+from app.api import orchestration
 from app.core.database import Base
 from app.models.multimodal import CollaborationAudit, CollaborationTicket, CollaborativeDocument
-from app.models.orchestration import Workflow
+from app.models.orchestration import OrchestrationAudit, Workflow, WorkflowVersion
 from app.models.user import User
 from app.schemas.multimodal import CollabOpen
+from app.schemas.orchestration import WorkflowCreate
 from app.services.enterprise import provision_personal_tenant
 
 
@@ -72,3 +74,26 @@ class CollaborationTransactionTests(unittest.IsolatedAsyncioTestCase):
             with patch.object(api, "require_permission"), patch.object(writer, "commit", AsyncMock(side_effect=RuntimeError("commit rejected"))):
                 with self.assertRaisesRegex(RuntimeError, "commit rejected"):
                     await api.ticket(document["id"], self.ctx, self.user, writer)
+
+    async def test_workflow_and_version_visible_to_immediate_collaboration_request(self):
+        graph = {"nodes": [{"id": "start", "type": "start"}, {"id": "end", "type": "end"}], "edges": [{"source": "start", "target": "end"}]}
+        async with self.sessions() as writer:
+            with patch.object(orchestration, "require_permission"):
+                result = await orchestration.create_workflow(WorkflowCreate(name="committed workflow", graph=graph), self.ctx, self.user, writer)
+            async with self.sessions() as reader:
+                workflow = await reader.get(Workflow, result["id"])
+                self.assertIsNotNone(workflow)
+                version = await reader.get(WorkflowVersion, result["active_version_id"])
+                self.assertEqual(version.workflow_id, workflow.id)
+                audit = await reader.scalar(select(OrchestrationAudit).where(OrchestrationAudit.action == "workflow.created"))
+                self.assertEqual(audit.details["workflow_id"], workflow.id)
+                # Use the actual cross-domain ownership lookup, not a mocked verifier.
+                snapshot = await api.verify_resource(reader, self.ctx, "workflow", workflow.id)
+                self.assertEqual(snapshot["graph"], graph)
+
+    async def test_workflow_commit_failure_cannot_return_success(self):
+        graph = {"nodes": [{"id": "start", "type": "start"}, {"id": "end", "type": "end"}], "edges": [{"source": "start", "target": "end"}]}
+        async with self.sessions() as writer:
+            with patch.object(orchestration, "require_permission"), patch.object(writer, "commit", AsyncMock(side_effect=RuntimeError("commit rejected"))):
+                with self.assertRaisesRegex(RuntimeError, "commit rejected"):
+                    await orchestration.create_workflow(WorkflowCreate(name="rejected workflow", graph=graph), self.ctx, self.user, writer)

@@ -61,7 +61,7 @@ python -m unittest tests.test_recovery_harness tests.test_knowledge tests.test_k
 
 ## R03：前端按需组件与包体预算
 
-状态：本机测试和生产构建浏览器验收完成；独立 [PR #64](https://github.com/CoderDongHuang/InfoPulse/pull/64) 按最新 head 全部门禁通过后合并的流程提交。
+状态：本机测试和生产构建浏览器验收完成；独立 [PR #64](https://github.com/CoderDongHuang/InfoPulse/pull/64) 已在最新 head 全部门禁通过后合并，主分支提交为 `c94c606`。
 
 现有路由已使用动态 import，图标也已明确导入。主要问题是入口 `app.use(ElementPlus)` 注册整个库并导入全量 CSS。本轮只注册实际使用的 19 种组件，保留 `v-loading` 指令以及程序调用的 Message / MessageBox 样式。官方组件样式入口会带入内部依赖，避免只导入表面样式造成下拉/遮罩缺失。
 
@@ -105,3 +105,15 @@ npm run build
 本机隔离配置下后端全量 **193/193** 通过（补充协作事务测试之前的完整集合，702.690 秒）；新增回归结果和最新 CI 仍分别记录，不能将旧提交全绿当作当前 head 已通过。
 
 补充协作事务、协作业务和多模态回归 **9/9** 通过（63.325 秒）；实际 PostgreSQL WS / 容器链路仍以本次提交的 CI 为准。
+
+最终提交 `bdae03e` 的 [Release Gate 38354536068](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38354536068) 与 [CodeQL 38354536209](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38354536209) 全部通过。本机 Windows Python 3.10、隔离 PostgreSQL 16 + Vite dev + Edge 的 **8/8** 产品检查通过，错误列表均为空；随后正常 squash 合并，没有自动重试失败验收或绕过门禁。
+
+## R04：Windows 后端持续验收
+
+状态：实现并准备独立 PR；首次 Windows CI 尚待验证，路线图暂不勾选完成。
+
+原门禁主要运行于 Linux，本机 Windows 的一次成功不能代替持续兼容验证。新增 `windows-latest` Python 3.10/3.11 矩阵，从 checkout 安装完整 `requirements.txt`（包括可选浏览器 Python 包），执行 pip check、全模块编译、完整 unittest、API 契约快照，以及独立空 SQLite 库 head → revision 13 → head。每条 native 命令独立 step，失败立即影响 job，不能被下一条命令的退出码覆盖。两个 Python job 互不取消，保存各自依赖清单，详细执行证据在 Actions 日志。
+
+CI 设置 UTF-8，并关闭采集、模型凭据、调度器及后台 worker；不访问个人配置或业务数据库。本机已有 Python 3.10 的 **193/193** 全量及补充事务 **9/9** 回归证据；Windows Python 3.11、干净解析安装和新迁移链路以本次 CI 的实际结果为准。
+
+边界：此项验证 Python 包安装、代码导入、后端逻辑及 SQLite 空库迁移，不验证 Windows Chromium/ffmpeg、Windows PostgreSQL worker kill、所有浏览器按钮或完整备份恢复。依赖版本清单只是证据，不是约束/锁文件；多平台版本约束、镜像 digest 仍独立待完成。

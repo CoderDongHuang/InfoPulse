@@ -1,6 +1,6 @@
 # 从舆情工作台到可验证智能平台：InfoPulse 的开源工程设计
 
-> 2026-10-09 修订说明：第 1-46 节保留 2026-08-08 的设计与实验背景，其中的 154 项测试、353 条路径和阶段 29 是历史数字，不是当前验收。审计发现历史门禁遗漏了权限、真实副作用和产品 UI 缺陷，不能以旧文的设计目标推断当前实现保证。第 47-55 节新增安全修复、持久化执行、浏览器发现、可复现实验与有效性讨论。当前 CI 实测为 188 项后端测试、354 条完整 schema 路径、迁移 head 33、Linux Python 3.10/3.11 与最小容器 Nginx 的 7 组产品浏览器检查。最新事实以 [修复验收报告](../audits/2026-10-09-remediation.md)、[能力矩阵](../32-capability-matrix.md) 与 [路线图](../30-open-source-roadmap.md) 为准；真实外部提供商、全部按钮和完整 Chromium 采集镜像尚不能宣称验证完成。
+> 2026-10-13 修订说明：第 1–46 节保留 2026-08-08 的设计背景，第 47–55 节是 2026-10-09 审计时点；其中 154/188 项测试、353/354 条路径、7 组浏览器检查和“完整镜像待验收”等描述不得当作当前结果。第 56 节起追加本轮真实失败、根因、修复与实验：完整 Chromium/ffmpeg 镜像、14 张核心表迁移、独立知识 worker、Windows 双版本、前端预算、取消、表格、媒体失败与认证事务。R04 Windows 实测基线为 198 项，后续测试数量以各 PR 最新日志为准。最新事实以 [逐项验收](../audits/2026-10-13-roadmap-progress.md)、[认证专项](../audits/2026-10-13-auth-durability.md)、[能力矩阵](../32-capability-matrix.md) 与 [路线图](../30-open-source-roadmap.md) 为准；不宣称外部提供商、全部按钮或所有 worker 已验证。
 
 ## 摘要
 
@@ -1526,3 +1526,353 @@ mock HTTP 能证明构造、状态和调用次数，但可能与真实提供商�
 每个事项应记录负责人、前置条件、可运行实验、结果制品和通过标准。例如“知识库优化”太宽泛，应拆成“worker 在 claim 后终止，lease 过期后另一进程处理，同一文档只产生一个有效 active_version”；“LLM 优化”应拆成“固定证据集下引用与拒答指标，记录模型版本和费用”；“协作完成”应拆成“两用户冲突处理、重连和发布版本不被草稿覆盖”。
 
 本轮完成的是明确缺陷与可重复的核心验收，不是无限范围的产品完成证明。公开开发者预览的前提是代码可运行、风险有边界、状态不造假、文档与证据一致。稳定版则需要更多外部协议、恢复、兼容性和长期维护证据，不能靠博客篇幅或功能阶段编号获得。
+
+## 56. 第二轮研究设计：从“运行成功”到“失败也有正确语义”
+
+2026-10-13 的工作不是重复执行一次已有测试，而是扩展原门禁没有观察到的边界。第一轮证明了若干核心路径可以完成，但留下四类问题：安装是否跨平台、成功响应是否已持久化、工作进程中断是否会丢失任务、部分模型结果是否会被错误发布。它们共同指向一个工程问题：系统对用户宣告的状态，是否与其他观察者实际能看到的状态一致？
+
+### 56.1 可检验的研究问题
+
+| 编号 | 问题 | 失败判据 | 不能据此推断 |
+| --- | --- | --- | --- |
+| RQ5 | 成功 HTTP 响应是否对应已提交数据库状态？ | handler 已返回但独立 reader 看不到资源/会话；提交异常仍返回成功 | 所有接口、所有隔离级别都正确 |
+| RQ6 | worker 被操作系统中断后是否能恢复？ | staging 消失、有效 lease 被抢、重复版本、过期任务永不处理 | 所有 worker 或外部副作用恰好一次 |
+| RQ7 | UI 的正常取消是否被视为错误或写入？ | pageerror、写请求、选中状态意外变化 | 401、断网、超时等其他负向场景也完成 |
+| RQ8 | 多模态后半程失败是否泄漏前半程证据？ | failed/unknown 下仍出现本轮部分 OCR、usage 或已发布帧 | 真实模型质量、计费对账已验证 |
+| RQ9 | 优化是否有可重复的量化结果？ | 相同依赖、相同构建统计规则下无改善，或超过预算不失败 | LCP、INP、业务转化率已经改善 |
+
+这些问题都需要“观察者”。同一个 ORM session 能读到自己的未提交对象，不足以证明其他请求可读；同一个 Python 进程抛异常，不等于操作系统 kill；一张成功页面截图，也不能证明取消时没有副作用。实验先指定观察者，再选择工具，避免把方便测量的量当成真正想证明的性质。
+
+### 56.2 实验隔离
+
+本机验收使用专用 PostgreSQL 16、Redis、临时 SQLite 文件、隔离知识目录和 `acceptance_server`。该入口禁用个人 `.env`，清理 Settings 对应的环境变量，再设置测试专用配置。第三方模型密钥保持为空，测试仅调用本机服务和受控 fixture。临时数据库采用唯一名称并校验目标，不能把“测试清理”变成删除已有业务库。
+
+本轮不测量模型事实准确率，也不假装已经连接真实 SMTP、S3、Slack 或 OIDC 服务。模型 adapter 的 mock 用于触发超时、部分响应和数据库异常；Chromium/ffmpeg 的真实进程用于验证运行依赖。两类实验对应不同构念，必须分别报告。
+
+## 57. 响应前提交：一次 404 如何暴露事务边界
+
+### 57.1 现象与原因
+
+浏览器顺序执行创建工作流与打开协作文档时，创建接口返回 201，随后的资源校验却返回 `Workflow not found`。另一次验收中，退出登录已经跳转到认证页，旧 token 请求 `/auth/me` 仍得到 200。前端确实等待了前一个 Promise，因而简单增加 `await` 不能解决问题。
+
+根因在服务端：handler 只执行 `flush`，把 `commit` 留在 FastAPI 数据库依赖的 `yield` 之后。`flush` 会把 SQL 发给数据库并获得主键，但不代表事务已提交。真实 ASGI 网络响应可能先到达客户端，新的数据库连接仍看不到未提交数据，或者仍能看到尚未提交撤销之前的会话。
+
+```mermaid
+sequenceDiagram
+    participant UI as 浏览器
+    participant API as 请求 A
+    participant DB as 数据库
+    participant B as 请求 B / 独立连接
+    UI->>API: 创建资源 / 撤销会话
+    API->>DB: flush / UPDATE（未提交）
+    API-->>UI: 201 / 204
+    UI->>B: 立即读取 / 使用旧 token
+    B->>DB: SELECT
+    DB-->>B: 旧的已提交状态
+    API->>DB: 依赖清理阶段 commit
+```
+
+这不是缓存延迟问题，也不是应当重试所有 404 的理由。重试会改变观察窗口，可能让错误看似消失，但无法保证成功响应前提交失败不会发生。正确修复是把事务提交纳入 API 的成功条件。
+
+### 57.2 修复方式与原子性
+
+下面是认证注册修复的结构摘录；生产实现还包含输入约束和错误映射：
+
+```python
+async def register(data, db):
+    try:
+        tokens = await auth_service.register_user(db, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    await db.commit()
+    return tokens
+```
+
+`register_user` 仍负责组合用户、个人组织、工作区、角色和会话，`_generate_tokens` 仍不自行提交。这样不会因为底层 helper 提前 commit 而使“用户已创建但租户失败”成为半成品。令牌先在内存构造；若签名失败，不先提交不可用会话；若提交失败，不把凭据返回客户端。
+
+同一原则分别落实于本轮遇到的 Agent 会话、WS ticket、协作文档、工作流创建、logout，以及后续注册、登录、SSO exchange、refresh。每个领域都保留自己的授权、审计和事务组合。没有贸然全局修改流式依赖的生命周期：SSE、长连接、transaction-local 租户上下文和 RLS 都需要单独判断。
+
+### 57.3 为什么已有 HTTP 单测没有发现
+
+内存 ASGITransport 通常等待完整应用调用返回，包括依赖清理。测试端读到 HTTP 响应时，数据库可能已经提交；实际 TCP 客户端则可能更早读取响应字节。因此，“ASGITransport 测试绿色”和“真实网络存在竞态”并不矛盾，它们观察的是不同时间边界。
+
+新的回归直接执行实际 handler，在 writer session 保持打开、未执行测试端 commit 的情况下，让独立 reader 使用真实权限函数：
+
+```python
+async with sessions() as writer:
+    tokens = await register(payload, writer)
+    async with sessions() as reader:
+        user = await get_current_user(
+            HTTPAuthorizationCredentials(
+                scheme="Bearer", credentials=tokens.access_token
+            ),
+            reader,
+        )
+        assert user is not None
+```
+
+还必须加入提交失败测试，只替换 `writer.commit` 使其抛错，要求 API 不返回成功；rollback 后，独立 reader 不得看到新增账户、成员或会话。refresh 则要求原 jti 没有被失败事务消费。测试不是只断言 mock 被调用一次，而是检查持久化状态。
+
+认证专项新增 8 项与原认证/撤销/企业权限回归合计 19/19，通过耗时 135.766 秒。本机真实 PostgreSQL、Vite dev、Edge 的 9 组产品检查也通过。这里的时间是整个测试执行时间，不是登录 API 延迟，更不是性能基线。
+
+## 58. 任务恢复：数据库 lease 需要进程级实验
+
+### 58.1 知识文件为何先 staging
+
+知识入库不能只把上传内容留在 API 进程内存，再向后台任务传一个引用。响应返回后进程可能重启；任务记录存在而原始字节已经丢失，会产生永久无法完成的队列项。当前实现先将源文件写入 staging，再持久化任务。最终版本和分块可见之后，才清理 staging。
+
+它仍不是数据库与对象存储之间的分布式事务。上传成功但任务提交失败可能留下孤儿文件；清理失败可能残留 staging。需要通过幂等键、可追踪状态和后续清理处理，不能声称跨系统严格原子。当前恢复实验聚焦 claim 已提交后进程中断这一明确窗口。
+
+### 58.2 实验序列
+
+```mermaid
+flowchart TD
+    A[创建 staging 与任务] --> B[独立 worker A 领取并提交 lease]
+    B --> C[操作系统终止 worker A]
+    C --> D[启动已连接数据库的 worker B]
+    D --> E{lease 是否过期}
+    E -->|否| F[不抢占 不产生版本]
+    E -->|测试推进到过期| G[再次领取 attempts = 2]
+    G --> H[生成唯一 active_version 和非空分块]
+    H --> I[清理 staging]
+```
+
+测试确实启动生产 worker 入口的独立进程，等待领取事务落库后注入停顿，再由操作系统 kill。为了避免每次等待生产的 5 分钟 lease，实验把数据库到期时间推进到过去；这是显式加速时间条件，不是跳过 lease 逻辑。第二个 worker 在到期前已连接数据库，从而避免“还没启动所以没重复处理”的假阳性。
+
+另一个实验在两个独立 worker 都完成初始化后才提交新任务，检查 attempts=1、版本数=1。只断言最终 status=ready 不够：两个进程都成功一次也可能留下 ready，但已经重复索引或重复计费。attempts、活动版本、分块、源文件和清理状态共同组成观察面。
+
+### 58.3 有限结论
+
+这一结果只属于 knowledge worker。actions、orchestration 和 media 具有不同的外部副作用，不能复制“lease 过期就重试”规则。发送通知或调用模型后连接断开，远端可能已经接收；再次执行可能重复通知或重复收费。知识恢复的成功不是“所有任务恰好一次”的证据。
+
+## 59. 带数据迁移：退出码之外还要比较什么
+
+空数据库 `upgrade -> downgrade -> upgrade` 能发现 DDL 错误、语法不兼容和部分约束问题，但无法证明业务数据在迁移后保持一致。第二轮向 PostgreSQL 写入 14 张核心表：用户、来源、正文、事件及关联、分析及引用、报告及版本、知识库/文档/版本/分块/处理记录，然后执行 head → revision 29 → head。
+
+逐表记录行数，并对稳定字段进行规范化后计算 SHA-256。行数一致不代表正文和外键没有变化；hash 一致也必须明确哪些字段被纳入，不能排除关键字段再宣称无损。实验同时核对引用、活动版本、非空正文和 96 维向量等业务不变量。
+
+```text
+迁移前：表名 + 行数 + 稳定字段摘要 + 业务关系
+             ↓ downgrade / upgrade
+迁移后：表名 + 行数 + 稳定字段摘要 + 业务关系
+             ↓ 精确比较
+结论：这 14 张已有核心表在这条 revision 路径上保持所测数据
+```
+
+降级到 revision 29 会删除后续版本新增的 dispatch_jobs、auth_sessions、api_rate_limits 等表或字段。所以本实验不是全业务无损回滚保证；更不能把脚本指向运行中的业务库。真正发布回滚要协调 worker 停止、备份、文件、应用版本和模式兼容。数据库可降级不代表业务副作用可逆，远端已经送达的消息不会被 Alembic 撤回。
+
+复现入口是 `scripts.postgres_recovery_smoke`，它限定本机 audit 服务器、生成唯一临时库名并检查删除目标。CI 保存逐表摘要和 worker 日志。后续应扩展其他领域及基于备份的恢复，而不是不断加长一条破坏性 downgrade 链来代替灾备。
+
+## 60. 多模态失败原子性：不发布半份证据
+
+### 60.1 原缺陷的两个层次
+
+源对象读取曾位于异常处理边界外。文件丢失时，进程已经把任务标成 running，却没有机会记录 failed。把读取放进 try 只能修复这一层；后续 OCR 的第二条记录出错、唯一键冲突或视频第二帧处理失败时，第一条证据可能已进入 ORM 待提交集合。如果异常分支直接 commit，就会错误发布部分结果。
+
+SQLAlchemy 的 flush 抛出 IntegrityError 后，session 还处于需要 rollback 的失败状态。直接再次 commit 不能可靠写入失败终态，反而可能抛 PendingRollbackError。因此失败处理必须先恢复事务可用性，再记录状态。
+
+### 60.2 修复结构
+
+```python
+provider_started = False
+try:
+    data = await asyncio.to_thread(storage.get, asset.storage_key)
+    # 元数据、OCR/转录证据、usage 在同一发布事务中构造
+    # 调用 adapter 前设置 provider_started = True
+    await db.commit()
+except Exception:
+    await db.rollback()
+    await db.refresh(asset)
+    await db.refresh(run)
+    terminal = "unknown" if provider_started else "failed"
+    asset.status = run.status = terminal
+    run.lease_owner = run.lease_until = None
+    await db.commit()
+    raise
+```
+
+这是结构摘录，不是可以直接替换生产函数的完整实现。生产代码另有错误信息、结束时间、证据定位、模型路由和视频帧清理。核心约束是本轮证据、元数据、usage 要么成功发布，要么整体回滚；失败终态在 rollback 后的新事务中写入。
+
+### 60.3 为什么不是所有失败都叫 failed
+
+调用前发现源文件缺失或路由不可用，可以确定没有启动 provider adapter，修复本地原因后允许显式重试。adapter 启动后超时、响应解析失败或数据库提交失败，不能证明远端没有处理或收费，因此保守记录 unknown，普通 retry 和队列领取都不重放它。
+
+```mermaid
+flowchart LR
+    A[queued] --> B[读取与本地验证]
+    B -->|调用前确定失败| C[failed 可显式重试]
+    B --> D[启动 provider adapter]
+    D -->|证据和 usage 提交成功| E[succeeded / ready]
+    D -->|超时 解析或发布失败| F[unknown 不自动重放]
+    F --> G[后续对账与人工处置]
+```
+
+这个边界有意偏保守：adapter 内部可能尚未发出网络包就失败，仍归 unknown。好处是不会把“无法确认是否执行”错误当成“确认没有执行”；代价是需要人工核对或未来的 provider request id 查询机制。当前尚未实现完整的自动对账界面和恢复策略，这一不足应公开保留。
+
+### 60.4 SDK 隐式重试也是副作用
+
+仅在 worker 层不重试还不够。SDK 本身可能对连接错误、超时、429 或服务器错误重新发送请求。多模态客户端现在显式设置：
+
+```python
+AsyncOpenAI(
+    api_key=settings.LLM_API_KEY,
+    base_url=settings.LLM_API_BASE,
+    max_retries=0,
+)
+```
+
+独立构造回归验证 `max_retries=0`，防止未来重构时丢失。该设置不证明远端永不重复，也不提供 provider-side 幂等；它只消除当前 SDK 的隐式重放来源。对于允许安全重试的读请求，可以在其他明确边界采用独立策略，不能把这一配置无差别推广成全系统性能建议。
+
+### 60.5 实验和仍未解决的窗口
+
+新增六项数据库回归覆盖源对象丢失后修复、路由拒绝、模型超时、第二条 OCR 非法、真实重复 ordinal 引发 IntegrityError、视频第二帧失败后的帧和临时目录清理。与原四项媒体测试合计 10/10，205.814 秒；SDK 配置回归另一次 1/1，10.268 秒。它们不是同一次“11/11”执行，应保留两条记录。
+
+本修复处理普通 Python 异常，不覆盖操作系统 kill、失联 worker 的 fencing token、跨对象存储原子提交或全部 claim 竞争。视频帧删除是尽力清理，失败有日志；进程被 kill 后清理代码可能不运行。后续应引入可识别的临时帧命名空间、后台回收和明确的 provider 对账，避免把清理成功的一个样本写成永久无残留承诺。
+
+## 61. 前端可靠性：取消、非空状态和包体预算
+
+### 61.1 取消不是异常失败
+
+Element Plus MessageBox 用 Promise rejection 表示 cancel/close。如果 handler 直接 await，开发服务器可能把用户正常取消上报为未处理异常。正确做法不是忽略所有 pageerror，而是只处理协议规定的两个退出值：
+
+```typescript
+export async function runDialog<T>(open: () => Promise<T>): Promise<T | undefined> {
+  try {
+    return await open()
+  } catch (action) {
+    if (action === 'cancel' || action === 'close') return undefined
+    throw action
+  }
+}
+```
+
+页面在返回 undefined 时立即结束，不调用写 API、不刷新、不清空选择。图谱有两步或三步输入，每一步都要测试取消，否则第一步正确并不能保证第二步不会使用缺失值继续写入。实际 handler 由 TypeScript parser 从页面提取，执行时只替换对话框和 API 边界，避免复制一份“理想业务逻辑”自测。
+
+前端完整回归为 25/25；知识库浏览器实际打开新建、网页导入、删除库、删除文档四种弹框并取消，检查网络无写入及 ready 文档仍存在。POST `/search-test` 携带查询体但语义只读，不能机械地把所有 POST 计为写入；同样不能为了通过测试把真正的 POST 写操作排除。
+
+![取消操作后知识库与 ready 文档仍保留](../blog-assets/2026-10-13/knowledge-cancellation.png)
+
+图中是取消后的业务状态，不是正在打开的弹框。截图可以帮助复核结果位置，零写入由网络请求断言提供证据；仅凭截图无法证明没有发生一次写入后又被撤销。
+
+### 61.2 非空 fixture 发现 HTML 结构问题
+
+行动详情原先把 tr 直接放到 table 中。浏览器可能自动插入 tbody，导致 DOM 与 Vue 的预期结构不一致。空列表巡检不会渲染执行步骤，因此 36 个路由都能打开仍可能遗漏这一缺陷。修复明确区分 thead/tbody，新增一条非空步骤展示。
+
+![行动详情非空步骤表：只读展示 fixture](../blog-assets/2026-10-13/action-step-table.png)
+
+这里的行动标题明确标注 fixture，三列表头与 `1 / manual / succeeded` 是展示测试数据，不能视为真实行动执行或送达证明。脚本只拦截两条 GET，写方法被拒绝，finally 撤除拦截；同时把 `cannot be child of` 控制台警告纳入失败条件。新增后本机产品验收为 10/10，page/server/component 三类错误数组为空。
+
+### 61.3 按需组件不是简单调大告警阈值
+
+原入口全局安装 Element Plus 并导入全量 CSS。项目路由已经动态 import，主要收益来自按需注册实际 19 种组件，保留 loading 指令和 Message/MessageBox 的程序化样式。只导入表面组件样式而遗漏内部依赖，会产生下拉、遮罩或弹框残缺，所以还要用真实交互验收。
+
+![真实 loading、筛选和确认框交互后的报告页面](../blog-assets/2026-10-13/components-desktop.png)
+
+包体统计读取 Vite manifest，从所有静态入口递归遍历 imports，CSS 和共享 chunk 去重，分别累计每个资源原始、gzip、Brotli 大小。若只量名为 index 的文件，拆出 vendor 就会“优化成功”但首屏仍下载同样代码；依赖图预算可以避免这种统计错觉。
+
+| 指标（同环境初版对比） | 全量注册 | 按需注册 | 相对变化 |
+| --- | ---: | ---: | ---: |
+| JS raw / 字节 | 1,099,167 | 503,002 | -54.2% |
+| JS gzip / 字节 | 355,166 | 173,251 | -51.2% |
+| CSS raw / 字节 | 368,917 | 136,414 | -63.0% |
+| CSS gzip / 字节 | 50,745 | 19,963 | -60.7% |
+
+门禁固定 JS raw 600,000、JS gzip 200,000、CSS raw 160,000 字节。后续小改动会使压缩字节数略变，报告保留每个时点而不覆盖历史实验。动态路由、图片、冷缓存网络、LCP 与 INP 尚未纳入；减少传输字节是已测结果，“快了多少毫秒”不是。
+
+## 62. 平台与容器：测试环境也是实验对象
+
+Windows Python 3.10/3.11 持续 CI 从完整 requirements 入口安装依赖，执行 pip check、编译、完整 unittest、API 快照与 SQLite head → revision 13 → head。每条 native 命令拆为单独 step，避免 PowerShell 后一条成功命令覆盖前一条失败退出码。
+
+首次 Windows CI 的知识测试有九项 `invalid storage key`。生产存储构造函数会 resolve 根目录，夹具替换根路径时却保留了 Windows 短路径别名；再把 resolved 子路径与未 resolved 父目录比较，自然不相等。修复夹具规范化而不是放松生产路径遍历防御，并补真实嵌套读写、删除及绝对路径/遍历/根目录拒绝回归。最终两版本基线均通过 198 项，后续专项继续增加。
+
+完整容器实验则真正启动 BrowserManager 和 Chromium，渲染本地 HTML、执行 JavaScript、检查 stealth 兼容层与任务锁释放；媒体用合成视频运行 ffprobe/ffmpeg，检查帧数量上限、图片尺寸、WAV 音轨和临时目录清理。它证明镜像具备所测依赖，不证明微博登录、站点反自动化策略或模型准确率。
+
+本机曾在 Docker Hub 元数据拉取阶段超时，后来 CI 完整镜像通过。文档必须同时保留“本机未能执行”和“CI 实际通过”：前者不能被改写成通过，后者也不能继续被旧 README 写成完全未验收。环境差异不是掩盖结果的借口，而是结果不可缺少的一部分。
+
+## 63. 实际展示、证据索引与复现协议
+
+![超过 1 MiB 文档入库与有来源检索](../blog-assets/2026-10-13/knowledge-desktop.png)
+
+这张桌面图来自隔离验收服务，1026 KB 文档通过上传、自动索引及引用检索。检索结果能定位文件与段落，但图中的 72% 是系统检索分数，不是事实正确率或模型置信度。fixture 的文本是固定测试材料，不是用户私人资料。
+
+![移动视口下知识库单列布局](../blog-assets/2026-10-13/knowledge-mobile.png)
+
+移动图证明当前视口的单列布局、上传工具栏和检索输入可见。它不证明所有手机、缩放、屏幕阅读器、键盘操作或完整 WCAG 要求已满足。后续无障碍测试仍需焦点顺序、对比度、语义标签和真实辅助技术参与。
+
+图片统一存于 `docs/blog-assets/2026-10-13/`，来源及用途记录在该目录 README。所有新图来自实际浏览器，不是生成式效果图。GitHub Markdown 使用相对链接，可随克隆离线查看；CI 的结果 JSON、日志、bundle report 和依赖清单是更完整的机器证据。
+
+### 63.1 本地复现顺序
+
+先按仓库 README 安装依赖，再启动专用 audit PostgreSQL/Redis。不要复用个人服务或修改已有 `.env`；启动 API 的脚本会主动隔离配置。
+
+```powershell
+# 仓库根目录，仅启动隔离数据库和缓存
+docker compose -p infopulse-audit -f docker-compose.audit.yml up -d postgres redis
+
+# backend，窗口一：专用审计库，不是业务库
+python -m scripts.acceptance_server --database-url postgresql+asyncpg://audit:audit-local-only@127.0.0.1:15432/infopulse_audit
+
+# frontend，窗口二
+$env:VITE_API_PROXY_TARGET='http://127.0.0.1:18080'
+npm run dev -- --host 127.0.0.1 --port 15173 --strictPort
+
+# backend，窗口三：本机已安装 Edge；Linux CI 使用 Chromium
+python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --browser-channel msedge --output ../acceptance-artifacts/local-product
+python -m scripts.postgres_recovery_smoke --output ../acceptance-artifacts/local-recovery
+
+# frontend
+npm test
+npm run build
+
+# 结束自己启动的 API/Vite 后，在仓库根目录停止隔离栈；不删除数据卷
+docker compose -p infopulse-audit -f docker-compose.audit.yml down
+```
+
+浏览器测试会创建测试账号和文档，所以必须使用专用环境。重复执行产生不同唯一账号，不要求清空已有数据库。运行成功查看 `completed`、checks 和所有 error 数组，不能只看 shell 最后一行；失败保留现场日志，不自动 rerun 后只保存最后一次绿色。
+
+### 63.2 分层证据矩阵
+
+| 层级 | 实际证据 | 主要意义 | 主要盲区 |
+| --- | --- | --- | --- |
+| 函数/handler | 前端 25/25；认证专项 19/19；媒体 10/10 与独立 SDK 1/1 | 指定输入、边界、失败副作用 | 浏览器时序、外部服务 |
+| 独立连接 | 会话/工作流/撤销持久性 | 不依赖 writer 清理仍可见 | 所有 API 与全部隔离级别 |
+| 独立进程 | knowledge claim/kill/recovery/双 worker | 恢复与重复处理约束 | 其他 worker、收费副作用 |
+| 真实产品 | 本机 9 组，表格专项后 10 组；36 路由壳 | UI、代理、API、DB、worker 协同 | 所有按钮、真实提供商 |
+| 容器 | minimal/full Nginx 产品与完整运行 fixture | 镜像运行依赖与入口 | 公网、真实平台反爬 |
+| 跨平台 CI | Linux 与 Windows 双 Python；依赖与契约 | 持续安装、回归、漂移发现 | 未来版本和稳定兼容承诺 |
+
+数字只属于具体执行时点。表格专项的 10 组不自动覆盖媒体新代码，认证专项的 19 项也不代表全部后端测试总数。合并依据是最新提交的全部 CI，不是从不同 commit 各取一个绿色 job 拼出一个看似完整的结果。
+
+## 64. 后续优化的验收合同
+
+后续路线不按“再加十个模块”安排，而按风险和可验证合同推进。每个合同包括前提、动作、可观察结果与禁止扩大解释的边界。
+
+### 64.1 P0：仍需优先收敛的可靠性
+
+1. **其余写 API 的事务审计。** 列出 profile、删除、编排修改等写路径，在返回成功前用独立连接检查状态。外部文件删除与数据库删除分开建模，不能通过简单添加 commit 就声称跨系统原子。
+2. **actions/orchestration/media 进程恢复。** 在领取、远端发送、响应收到、回执提交前后分别 kill，检查不会永久 running 或重复收费。引入 fencing 前先明确谁有资格更新状态，旧 worker 恢复后不能覆盖新 owner。
+3. **核心按钮负向矩阵。** 对每个业务动作列确认/取消、401/403、断网、超时、重复点击及冲突；两用户同文档与跨租户访问要实际经过 UI 和 API。路由壳检查作为基础门禁继续保留。
+4. **固定跨域 fixture。** 用本地可控来源贯穿采集、内容、事件、分析、报告、通知、回执，断言同一证据标识在链路上不丢失。没有真实模型时使用明确 fixture，不把固定输出宣称语义推理正确。
+5. **版本约束与镜像固定。** 针对 Linux/Windows、Python 3.10/3.11 生成可复现约束并持续验证；镜像 digest 定期更新。pip freeze 是运行库存，不天然等于经维护的跨平台锁文件。
+
+### 64.2 P1：减少重复代码，但保留业务差异
+
+collector 与 crawler 可共享安全 HTTP、预算和清洗工具，但持久化资讯与临时讨论样本的留存、授权和结果契约不同。通知、平台 webhook 和 connector 可共享投递技术，不应合并为同一种业务权限。抽象是否值得引入，要看减少了多少实际分支与重复失败处理，而不是类名是否更统一。
+
+大型 Vue 页面应先提取请求状态和明确 DTO，优先消除权限、工作流、知识 API 的高风险 any。类型生成需要 API schema 与后端响应都正确，不能生成类型后强制断言来消除红线。组件拆分后用同一 fixture 比较 DOM、网络副作用、取消和错误行为，防止“代码更整齐但交互退化”。
+
+测试分层可降低 CI 等待，但需要实测哪一部分是 schema 初始化、密码哈希、依赖安装或测试本身。并行测试必须隔离数据库、端口和 storage；不能删除慢测后报告“性能优化”。SDK 后续补真实 HTTP、分页、版本兼容和发布流水线，构建通过只是入口。
+
+### 64.3 P2/P3：质量、恢复与治理
+
+真实源 canary 应把代码故障、源停机、限流和账号权限区分开。模型评测先固定证据集、问题、拒答标签和人工标注规范，再记录模型版本、温度、费用与输出；不能用系统自己的静态评分评价自己。通知和 SSO 等提供商测试由获授权账号及 secret 注入触发，未提供密钥的使用者仍可运行本地核心链路。
+
+trace_id 应贯穿请求、任务、模型和投递，但指标标签不得直接放入用户邮箱、任意 URL 或高基数 request id。备份恢复需要同时考虑数据库、原文件、向量、对象、配置与版本；定义 RPO/RTO 后才能说是否达到目标。v1 之前建立支持周期、弃用策略、威胁模型与维护者职责，让后来的贡献者知道哪些行为不能随意改变。
+
+## 65. 局限、反例与结论
+
+本轮最重要的反例，是“测试很多但响应仍可能先于提交”。它说明覆盖数量不是可靠性的充分条件，关键在于是否覆盖正确的观察边界。另一个反例是“任务失败但远端可能已收费”，说明二元 success/failed 不能承载全部事实；unknown 是对知识边界的诚实表达，而不是一个可以无限搁置的终点。
+
+本文仍有明确局限：缺少真实提供商矩阵，缺少完整性能与无障碍基线，只有部分 worker 的进程恢复实验，数据库迁移只验证限定核心表。截图是受控环境，fixture 不是现实行动，检索分数不是模型事实准确率，源码中出现治理术语也不等于拥有对应的分布式或形式化保证。
+
+因此当前合理发布形式仍是本地 `v0.x` 开发者预览。开源的价值在于让安装、实现、失败和限制都可检查，而不是在 README 上把实验模块称为完整产品。之后每一个“完成”标记，都应能沿着文档找到代码、实验、结果和独立 PR；如果无法找到，应当把它重新标为未验证。

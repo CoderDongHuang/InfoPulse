@@ -1,5 +1,15 @@
 # Release Checklist
 
+## Scope: local developer preview versus production
+
+InfoPulse currently targets a local `v0.x` developer preview. Publishing source code is not production certification. The production gates below remain requirements, not a claim that they have passed. Real provider credentials may remain empty; unavailable integrations must report their limits and must not simulate success.
+
+For each preview PR, record its exact scope, tests, environment, artifact paths and remaining limitations in the [roadmap evidence](./audits/2026-10-13-roadmap-progress.md). Only mark that scope complete after actual verification. Merge only the checked head after all Release Gate and CodeQL jobs pass; do not reuse results from an older commit.
+
+Current automated coverage includes Linux backend tests, Windows Python 3.10/3.11 full dependencies/tests, the 354-path API schema snapshot, frontend tests/types/build/bundle budgets, SDK build, dependency audits, Linux dual-version PostgreSQL/browser acceptance and minimal/full container acceptance. The full image additionally runs real Chromium and synthetic ffmpeg fixtures. PostgreSQL populated migration/recovery coverage is explicitly limited to the documented 14 core tables and knowledge worker.
+
+Unchecked roadmap items are not waived by these jobs: all-button negative UI cases, other worker recovery, full populated migration coverage, external provider quality, backup restore, load/SLO targets and governance need their own evidence. The production commands below may change data or call configured services; do not run them against an unknown or personal environment just to fill a checklist.
+
 ## Automated gate
 
 - Backend compile and all unit/security tests pass with external AI keys disabled.

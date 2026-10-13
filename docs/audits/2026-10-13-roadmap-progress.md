@@ -99,3 +99,9 @@ npm run build
 首次 [Release Gate 38351461978](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38351461978) 的完整/最小生产容器通过，但开发服务器下两个 Python 产品环境均捕获 `page_errors: ["cancel"]`。原有报告删除 handler 没有处理 MessageBox 取消时的 Promise rejection；生产 Vue 的异常行为差异使本机生产预览没有将其上报为 pageerror。现已只处理预期的 cancel/close，其他异常继续传播，新增直接执行实际 handler 的回归；未忽略浏览器错误。其他模块的取消操作尚需逐页验收。
 
 修复提交 `f2b872a` 的 [Release Gate 38352699229](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699229) 与 [CodeQL 38352699244](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699244) 全部通过，包含开发服务器的两个 Python 环境及两个生产容器环境。文档证据补充后仍以最新提交的 checks 为合并条件。
+
+文档提交 `150c65a` 的 [Release Gate 38353290271](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38353290271) 中 Python 3.10 产品验收在 WS 等待 connected/pong 时失败，其余门禁通过。日志显示票据 POST 成功后连接被接受，但未收到消息。票据创建没有响应前提交，独立 WS 连接可能看不到尚未提交的票据；同时文档创建也存在相同边界。两个接口现在成功响应前提交，新增文件数据库的独立连接可见性、审计同事务持久化和两种提交失败回归。WS 验收记录提前关闭的状态码，不再将关闭误报为等待超时；没有加入重试或放宽成功标准。
+
+本机隔离配置下后端全量 **193/193** 通过（补充协作事务测试之前的完整集合，702.690 秒）；新增回归结果和最新 CI 仍分别记录，不能将旧提交全绿当作当前 head 已通过。
+
+补充协作事务、协作业务和多模态回归 **9/9** 通过（63.325 秒）；实际 PostgreSQL WS / 容器链路仍以本次提交的 CI 为准。

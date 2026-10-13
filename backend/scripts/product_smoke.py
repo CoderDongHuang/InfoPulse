@@ -109,6 +109,7 @@ async def run(base_url, output, browser_channel=None):
                 if (value.type === 'pong') { clearTimeout(timer); socket.close(); resolve(value.type); }
               };
               socket.onerror = () => { clearTimeout(timer); reject(new Error('WebSocket error')); };
+              socket.onclose = event => { clearTimeout(timer); reject(new Error(`WebSocket closed before pong: ${event.code}`)); };
             })""", {"id": document["id"], "ticket": ticket["ticket"]})
             assert result == "pong"
             change = await api("POST", "/multimodal/collaboration/documents/" + document["id"] + "/changes", {"base_version": 1, "client_id": "smoke-client", "client_sequence": 1, "operations": [{"op": "set", "path": "/graph", "value": graph}]})

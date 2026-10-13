@@ -117,3 +117,7 @@ npm run build
 CI 设置 UTF-8，并关闭采集、模型凭据、调度器及后台 worker；不访问个人配置或业务数据库。本机已有 Python 3.10 的 **193/193** 全量及补充事务 **9/9** 回归证据；Windows Python 3.11、干净解析安装和新迁移链路以本次 CI 的实际结果为准。
 
 边界：此项验证 Python 包安装、代码导入、后端逻辑及 SQLite 空库迁移，不验证 Windows Chromium/ffmpeg、Windows PostgreSQL worker kill、所有浏览器按钮或完整备份恢复。依赖版本清单只是证据，不是约束/锁文件；多平台版本约束、镜像 digest 仍独立待完成。
+
+本机独立运行 API 契约检查，**354 paths** 匹配；在唯一临时目录内执行 SQLite 空库 head → revision 13 → head 通过，未读取个人配置。首次 [Release Gate 38355919678](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38355919678) 的两项 Windows job 失败，其余 job 通过：Python 3.11 完整运行 196 项，其中知识库相关 9 项报 `invalid storage key`。生产 `Storage.__init__` 已 resolve 根目录，但测试夹具替换 `storage.local` 时使用未规范化的临时路径，Windows 的短路径别名/目录解析使它与 resolved 子路径的 parents 不等。夹具改为同样 resolve，不修改或放松生产越界判断；新增实际本地存储嵌套读写、删除、绝对路径/遍历/根目录拒绝回归。修复后的 Windows 全量结果仍待 CI，失败不能被勾选为完成。
+
+Python 3.10 同样完整执行 196 项并出现同 9 项夹具错误（870.954 秒），无其他测试失败。修复后本机知识、生命周期、本地存储回归 **14/14** 通过（62.769 秒），`git diff --check` 通过。生产存储逻辑未修改；仍需新提交的 Windows 两版本全量证明。

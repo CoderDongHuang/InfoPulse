@@ -27,7 +27,7 @@ class KnowledgeLifecycleTests(unittest.IsolatedAsyncioTestCase):
 
             async def stage(identifier, data):
                 storage = Storage()
-                storage.local = Path(self.tmp.name)
+                storage.local = Path(self.tmp.name).resolve()
                 storage.put("staging/" + identifier, data)
                 staged.append(identifier)
 

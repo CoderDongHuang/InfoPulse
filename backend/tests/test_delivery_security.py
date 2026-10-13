@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 from fastapi import FastAPI
@@ -16,6 +16,7 @@ from app.api.platform import replay, test_webhook as render_webhook
 from app.core.database import Base
 from app.core import llm
 from app.middleware.rate_limit import RateLimitMiddleware, consume_window
+from app.middleware import rate_limit
 from app.models.platform import WebhookDelivery, WebhookEndpoint
 from app.services.platform import cipher, process_webhook_once, verify_webhook
 from app.core.security import create_access_token
@@ -40,10 +41,18 @@ class LimiterTests(unittest.IsolatedAsyncioTestCase):
                 @app.post("/api/v1/auth/login")
                 async def login():
                     return {"ok": True}
-                async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://testserver") as client:
-                    responses = [await client.post("/api/v1/auth/login") for _ in range(11)]
-                self.assertEqual([r.status_code for r in responses], [200] * 10 + [429])
-                self.assertIn("retry-after", responses[-1].headers)
+                # Replace only this module's clock binding, not the shared time module.
+                # All 11 requests must belong to one fixed minute, even on a slow runner.
+                clock = SimpleNamespace(time=Mock(return_value=239))
+                with patch.object(rate_limit, "time", clock):
+                    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://testserver") as client:
+                        responses = [await client.post("/api/v1/auth/login") for _ in range(11)]
+                        self.assertEqual([r.status_code for r in responses], [200] * 10 + [429])
+                        self.assertEqual(responses[-1].headers["retry-after"], "1")
+                        clock.time.return_value = 240
+                        next_window = [await client.post("/api/v1/auth/login") for _ in range(11)]
+                        self.assertEqual([r.status_code for r in next_window], [200] * 10 + [429])
+                        self.assertEqual(next_window[-1].headers["retry-after"], "60")
             finally:
                 await engine.dispose()
 

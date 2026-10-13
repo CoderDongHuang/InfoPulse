@@ -15,7 +15,7 @@ class KnowledgeTests(unittest.IsolatedAsyncioTestCase):
   self.engine=create_async_engine("sqlite+aiosqlite:///:memory:")
   async with self.engine.begin() as c:await c.run_sync(Base.metadata.create_all)
   self.sessions=async_sessionmaker(self.engine,expire_on_commit=False)
-  self.tmp=tempfile.TemporaryDirectory();self.old=storage.local;storage.local=Path(self.tmp.name)
+  self.tmp=tempfile.TemporaryDirectory();self.old=storage.local;storage.local=Path(self.tmp.name).resolve()
  async def asyncTearDown(self):storage.local=self.old;self.tmp.cleanup();await self.engine.dispose()
  async def seed(self,db,text="OpenAI released a secure Agent SDK"):
   u1=User(username="owner",email="owner@x.test",password_hash="x");u2=User(username="other",email="other@x.test",password_hash="x");db.add_all([u1,u2]);await db.flush();base=KnowledgeBase(user_id=u1.id,name="Private research");db.add(base);await db.flush();doc=KnowledgeDocument(knowledge_base_id=base.id,user_id=u1.id,filename="notes.md",source_type="upload",mime_type="text/markdown",byte_size=len(text));db.add(doc);await db.flush();await process_document(db,doc,text.encode());return u1,u2,base,doc

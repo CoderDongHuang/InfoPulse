@@ -1894,6 +1894,102 @@ with patch.object(rate_limit, "time", clock):
     # 新窗口应恢复额度；再次耗尽后 Retry-After 为 60。
 ```
 
-这里替换模块的 `time` 绑定，避免 patch 共享的 `time.time` 影响日志或其他库。并发计数仍使用真实文件 SQLite 的 20 个 session，只允许 5 次成功；HTTP 边界也在两个窗口各发 11 次并检查 Retry-After。专项 **6/6** 通过，独立修复 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71) 仍需最新完整 CI，详细失败证据见 [R10 报告](../audits/2026-10-13-rate-limit-clock.md)。
+这里替换模块的 `time` 绑定，避免 patch 共享的 `time.time` 影响日志或其他库。并发计数仍使用真实文件 SQLite 的 20 个 session，只允许 5 次成功；HTTP 边界也在两个窗口各发 11 次并检查 Retry-After。专项 **6/6** 通过，独立修复 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71) 的最新完整 CI 通过后已正常合并，详细失败及合并证据见 [R10 报告](../audits/2026-10-13-rate-limit-clock.md)。
 
 固定分钟并不等于任意滚动 60 秒：窗口边缘可连续使用两个分钟的额度。这是算法本身的限制，应公开说明；未来改成令牌桶或滑动窗口时，需要新的业务合同和相同边界的回归。确定性测试的目的，是让时间作为受控实验输入，而不是让测试脱离真实数据库或删除失败路径。
+
+## 67. 实验预算：完整测试与 CI 时限之间的关系
+
+实验可重复除了需要固定输入，还需要足够的资源预算。在最终文档提交 `847de1d` 上，Linux、产品、容器、前端、SDK 与 CodeQL 全部通过，两个 Windows job 却在 30 分钟被取消。取消前的日志给出了区分性能预算不足和业务失败的依据：Python 3.10 已输出 `Ran 217 tests in 1702.129s`；Python 3.11 在 11:36:30 仍输出正常通过项，随后在夹具初始化中收到 runner 终止。
+
+### 67.1 预算应覆盖哪个边界
+
+`timeout-minutes` 限制整个 job，而非仅 unittest。对于当前 Windows 门禁，实际总时长是：
+
+```text
+T_job = T_checkout + T_python_setup + T_install + T_pip_check
+      + T_compile + T_full_suite + T_contract + T_migrations
+      + T_dependency_inventory + T_artifact + T_cleanup
+```
+
+单测试阶段 1702.129 秒约为 28.4 分钟，距离原 30 分钟只剩约 1.6 分钟；前后的安装与验收会消耗这一余量。另一个成功运行更快并不能证明预算充足，hosted runner 的 I/O、缓存命中与资源竞争也会影响时长。
+
+| 观察 | 能得出的结论 | 不能得出的结论 |
+| --- | --- | --- |
+| 最后仍持续输出 `ok` | 测试有进度，不是从开始就卡住 | 整个 suite 以及后续步骤均通过 |
+| 已输出 `Ran 217 tests` | 测试阶段已跑完完整集合 | 契约、迁移、制品已完成 |
+| runner 报 canceled | 当前 head 的门禁未完成 | 业务断言必然失败或可忽略 |
+| 旧 head 更快且成功 | 环境耗时存在浮动 | 可以代替当前 head 合并证据 |
+
+### 67.2 最小修正与验收
+
+独立 [PR #72](https://github.com/CoderDongHuang/InfoPulse/pull/72) 将 Windows job 调整为有限的 45 分钟，为实际约 30 分钟的总时长保留约 50% 余量。Linux 和其他 job 预算不变；两个 Python 版本、完整依赖、全部测试、契约和迁移继续保留：
+
+```yaml
+windows-backend:
+  runs-on: windows-latest
+  timeout-minutes: 45
+  strategy:
+    fail-fast: false
+    matrix:
+      python: ["3.10", "3.11"]
+```
+
+本机使用 YAML parser 比较修改前后的完整对象，只允许这一字段从 30 变为 45，防止同时误改命令、权限或矩阵。结构比较只能证明修改范围，无法证明实际运行；仍须最新提交的两个 Windows job 真正跑完，所有其他门禁同样通过，才允许正常合并。具体日志与结果见 [R11 报告](../audits/2026-10-13-windows-budget.md) 的独立 PR。
+
+### 67.3 后续性能工作
+
+增加预算不等于提升性能，也不完成测试分层。后续应逐项测量 schema 初始化、数据库事务、密码哈希、安装缓存与业务用例，把 unit / integration / e2e 按责任拆分；独立 fixture、端口与 storage 是并行化的前提。分片需要核对全部测试恰好被执行一次，以及跨数据库、进程和平台用例没有被漏掉。若只删除慢测或接受 canceled，就改变了验收合同，不能报告为性能优化。
+
+## 68. 资料更新：将持久性合同推广到普通写接口
+
+认证专项的结论不能自动推广到每个写 API。继续审计发现 `PUT /api/v1/auth/me` 仍直接返回服务结果；服务只执行 flush / refresh，因此响应模型里虽然已有新 username、email 和 avatar，另一请求却可能读到旧资料。它和令牌竞态属于同一事务边界问题，但资料更新没有签发新会话，测试合同必须按其业务行为另行定义。
+
+### 68.1 API 与服务的责任
+
+采用与认证签发一致的责任边界：服务构造更新并校验响应，API 对成功提交负责。实际 handler 的关键代码为：
+
+```python
+try:
+    profile = await auth_service.update_user(db, current_user.id, data)
+except ValueError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+await db.commit()
+return profile
+```
+
+先构造响应对象，再提交，避免响应验证错误发生在不必要的成功写入之后。提交失败直接传播，不返回成功 profile。没有给 service 添加 commit，调用者仍可以在一个上层事务中组合多个操作，也没有全局改变数据库依赖与流式 API 生命周期。
+
+### 68.2 有区分能力的测试
+
+新增四项回归使用文件 SQLite 与实际 endpoint、service、ORM、JWT、认证依赖。关键观察发生在 writer 保持打开时：
+
+```python
+async with sessions() as writer:
+    user = await writer.get(User, user_id)
+    profile = await update_me(
+        UserUpdateRequest(
+            username="new-name",
+            email="new@example.com",
+            avatar_url="/avatar.png",
+        ),
+        user,
+        writer,
+    )
+    # 没有测试端 commit，也没有响应后的依赖清理。
+    async with sessions() as reader:
+        persisted = await get_current_user(credentials, reader)
+        assert persisted.username == profile.username
+        assert persisted.email == profile.email
+        assert persisted.avatar_url == profile.avatar_url
+```
+
+同时检查原 access token 仍可认证、refresh jti 没有被修改、管理员和启用状态保持，确保修改资料不会偷偷改变会话合同。第二项只注入 commit 异常，要求 endpoint 不返回结果，rollback 后独立连接仍看到原资料。第三项验证不存在的用户仍返回 404 且不尝试提交。第四项直接调用 service，要求没有自行提交，独立 reader 仍看到旧资料，证明没有破坏组合事务。
+
+本机 Windows Python 3.10 新增四项与原认证、撤销、签发合计 **18/18** 通过，耗时 142.729 秒；API 契约 **354 paths** 一致。独立 [PR #73](https://github.com/CoderDongHuang/InfoPulse/pull/73) 在最新 head 跑完整 CI，并在依赖 PR #72 正常合并后再合并。完整复现与结果见 [R12 报告](../audits/2026-10-13-profile-durability.md)。
+
+### 68.3 仍然不能扩大解释的边界
+
+本项只修正提交时序，没有证明资料 schema 的所有输入边界。显式 null、非法邮箱、大小写冲突和并发唯一性仍需独立处理。账户删除尤其不能直接照搬：知识删除服务可能先提交软删除，再操作外部文件；最后用户删除失败时，前面的副作用已经发生。要保证一致性，需要明确可恢复状态、外部清理任务与 legal hold 合同，不能在末尾多写一个 commit 就宣称整体原子。
+
+事务专项逐个推进的意义在于让每个结论都有自己的观察点和反例。完整后端集合从历史 217 项增加到含资料回归的 221 项后，应使用新提交的实际运行记录，而不是将旧总数当成最终验证。未完成的领域继续保留在路线图；每次扩展覆盖都需要真实测试与独立合并证据。

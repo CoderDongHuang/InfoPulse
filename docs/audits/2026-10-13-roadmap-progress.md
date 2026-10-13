@@ -182,9 +182,9 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 ## R09：文档、证据与长篇博客同步
 
-状态：README、文档索引、发布清单及博客已更新；新增第 56–65 节，明确历史时点、独立连接/进程、普通异常/进程 kill、fixture/真实副作用的区别。博客约 6.7 万字符（不是中文词数），五张未加工真实截图保存于 `docs/blog-assets/2026-10-13/`，均有来源说明。
+状态：README、文档索引、发布清单及博客已更新；新增第 56–68 节，明确历史时点、独立连接/进程、普通异常/进程 kill、fixture/真实副作用、实验时钟与 CI 预算的区别。博客约 7.1 万字符（不是中文词数），五张未加工真实截图保存于 `docs/blog-assets/2026-10-13/`，均有来源说明。
 
-本机最终校验 10 份相关 Markdown、84 个本地链接及代码围栏闭合通过（包含后续 R10）；5 张 PNG 全部解码验证，并逐图人工视觉检查。复现命令与现有脚本参数、隔离 compose 的数据库/端口核对。独立 [PR #70](https://github.com/CoderDongHuang/InfoPulse/pull/70) 同样执行完整 CI，不通过文档标签绕过门禁；最新合并证据以 PR 为准。
+本机最终文档校验 **12 份 Markdown、93 个本地链接**及代码围栏闭合通过；最终输出与 CI/合并证据保存在 PR #70。5 张 PNG 全部解码验证，并逐图人工视觉检查。复现命令与现有脚本参数、隔离 compose 的数据库/端口核对。独立 [PR #70](https://github.com/CoderDongHuang/InfoPulse/pull/70) 同样执行完整 CI，不通过文档标签绕过门禁；最新合并证据以 PR 为准。
 
 集成提交 `b8e27f5` 的本机认证/媒体组合回归 **30/30**（226.387 秒）、前端 **25/25**、API 契约 **354 paths** 与构建预算通过。隔离 PostgreSQL 16 + Vite dev + Edge 产品 **10/10**，三类错误列表均为空，结果为 `acceptance-artifacts/roadmap-integrated/result.json`；该原始目录不提交业务数据。其 [Release Gate 38374700051](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374700051) 和 [CodeQL 38374700017](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374700017) 全部通过，Linux 全量 **217/217**。随后同步 main 和补充本文合并证据，仍需最新 head 的门禁，不能沿用旧提交通过状态。
 
@@ -194,4 +194,16 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 最终文档提交 `a7f0c59` 的 [Release Gate 38380603890](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38380603890) 中 Windows Python 3.10 完整运行 217 项，216 项通过；限流 HTTP 回归第一条请求在 10:18:59，后续进入 10:19:00，因此预期第 11 条 429 却得到 200。生产采用固定分钟窗口，测试错误依赖所有请求恰好位于同一分钟。没有重跑原失败以隐藏它。
 
-独立 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71) 只替换测试中的限流模块时钟绑定，保留真实 middleware、SQLite 事务和并发计数；补充 239 秒额度耗尽、240 秒恢复额度、两个 Retry-After 的明确断言。本机限流/签名投递/模型预算专项 **6/6**，23.998 秒。范围与限制见 [R10 报告](./2026-10-13-rate-limit-clock.md)。本项须最新 head 全部门禁通过后独立合并，再合并文档 PR；不把测试修复解释为改用了滚动窗口算法。
+独立 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71) 只替换测试中的限流模块时钟绑定，保留真实 middleware、SQLite 事务和并发计数；补充 239 秒额度耗尽、240 秒恢复额度、两个 Retry-After 的明确断言。本机限流/签名投递/模型预算专项 **6/6**，23.998 秒。head `4d8ac9f` 的 [Release Gate 38386828324](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828324) 与 [CodeQL 38386828656](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828656) 全部通过后正常合并，main 为 `159f1c1`。范围与限制见 [R10 报告](./2026-10-13-rate-limit-clock.md)，未修改生产算法。
+
+## R11：Windows 全量门禁预算
+
+状态：时限修正与本机 YAML 全结构比较通过；独立 [PR #72](https://github.com/CoderDongHuang/InfoPulse/pull/72) 以最新 head 的完整 CI 为合并前提，最终测试与合并记录见该 PR。只将 Windows job 的 30 分钟预算改为 45 分钟，保留完整依赖、测试命令、两个 Python 版本、迁移、契约与失败传播。
+
+文档 head `847de1d` 的 Release Gate 38387941056 两个 Windows job 被 30 分钟时限取消；3.10 单测试阶段已完成 217 项，1702.129 秒，后续步骤尚未结束；3.11 直到取消前持续通过。取消未当作成功，不用旧 head rerun 替代修正，详见 [运行预算报告](./2026-10-13-windows-budget.md)。P1 的测试分层/并行仍待完成。
+
+## R12：资料更新响应前持久化
+
+状态：资料更新事务专项实现完成，本机新增四项与认证回归 **18/18**（142.729 秒），API 契约 **354 paths** 一致；独立 [PR #73](https://github.com/CoderDongHuang/InfoPulse/pull/73) 以最新 head 全部门禁通过为合并条件，最终证据见该 PR。
+
+`PUT /auth/me` 构造响应后提交才返回；服务继续不自行 commit。独立文件 SQLite 连接立即可见 username/email/avatar，原令牌仍有效；提交失败不返回新资料，用户不存在保持 404，服务单独调用不泄露未提交数据。测试不读取个人配置、不使用业务库。字段验证、大小写唯一性、账户删除跨存储一致性及其他领域事务未由此完成，详见 [资料事务报告](./2026-10-13-profile-durability.md)。

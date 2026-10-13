@@ -1,0 +1,5 @@
+# Overlay only the isolated audit stack, never the user's production compose.
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile

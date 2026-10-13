@@ -180,6 +180,13 @@ jobs:
   container-acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [minimal, full]
+    env:
+      COMPOSE_FILE: ${{ matrix.image == 'full' && 'docker-compose.audit.yml:docker-compose.audit-full.yml' || 'docker-compose.audit.yml' }}
+      COMPOSE_PROJECT_NAME: infopulse-audit
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -188,7 +195,13 @@ jobs:
       - run: pip install 'playwright>=1.59.0,<2.0.0'
       - run: python -m playwright install --with-deps chromium
       - name: Build and run isolated container stack
-        run: docker compose -p infopulse-audit -f docker-compose.audit.yml up --build --wait --wait-timeout 180 -d
+        run: docker compose up --build --wait --wait-timeout 180 -d
+      - name: Full Chromium and media runtime acceptance
+        if: matrix.image == 'full'
+        run: docker compose exec -T backend python -m scripts.full_runtime_smoke --output /tmp/full-runtime.json
+      - name: Collect optional runtime evidence
+        if: always() && matrix.image == 'full'
+        run: docker compose cp backend:/tmp/full-runtime.json full-runtime.json
       - name: Wait for Nginx-to-API route
         run: |
           for attempt in $(seq 1 90); do
@@ -203,14 +216,15 @@ jobs:
         run: python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --output ../container-acceptance-artifacts
       - name: Collect container diagnostics
         if: always()
-        run: docker compose -p infopulse-audit -f docker-compose.audit.yml logs --no-color > container-acceptance.log
+        run: docker compose logs --no-color > container-acceptance.log
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: container-acceptance
+          name: container-acceptance-${{ matrix.image }}
           path: |
             container-acceptance-artifacts/
             container-acceptance.log
+            full-runtime.json
       - name: Stop isolated containers
         if: always()
-        run: docker compose -p infopulse-audit -f docker-compose.audit.yml down
+        run: docker compose down

@@ -23,6 +23,7 @@
 - [x] 完整 Chromium 镜像构建与 browser crawler/media 可选运行依赖验收；真实 Chromium / ffmpeg 合成 fixture 通过，不扩展为真实采集源或模型质量承诺，见逐项验收记录 R01。
 - [x] PostgreSQL 14 张核心表带数据迁移往返与独立 knowledge worker 进程中断、有效 lease、过期恢复、双 worker 竞争验收，见逐项验收记录 R02。
 - [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration/media worker 中断恢复；不能把 knowledge 验收扩展为全部 worker。
+- [x] 媒体普通异常回滚部分证据、源读取失败记录终态、模型调用后失败标 unknown 并拒绝重放，见 R07；进程中断/lease 恢复仍待单独验收。
 - [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
 - [x] Windows Python 3.10/3.11 持续 CI：完整 Python 依赖入口、pip check、全量后端测试、API 契约、SQLite 迁移；R04 两版本最新 CI 均通过，完整范围见逐项验收记录。
 - [ ] 多平台版本约束文件和镜像 digest 维护；安装清单不等于版本锁定。

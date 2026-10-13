@@ -157,3 +157,21 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 本机 `npm run build` 类型检查、生产构建、包体预算通过，JS raw 502,997 / gzip 173,243，CSS raw 136,414 字节。隔离 PostgreSQL + Vite dev + Edge 产品验收 **10/10** 通过，新增展示专用 GET fixture 打开非空行动详情，检查三个表头、序号/渠道/状态各列和无直接子 tr，截图单独保存 `action-step-table.png`。产品脚本还将 `cannot be child of` 控制台信息视为失败，防止再次只巡检空状态而错过模板缺陷。错误列表为空。
 
 这一 fixture 只替代两条 GET 展示请求，拒绝拦截写请求，结束即撤除；不创建、批准或执行真实行动，不将展示验收当成 dispatch/outbox 的端到端验收。其余九组真实产品检查继续通过。复现命令与 R05 相同，仅输出目录改为 `../acceptance-artifacts/action-table`。
+
+## R07：媒体失败原子性与不确定模型调用
+
+状态：以下普通异常范围实现并通过本机专项测试；独立 PR 最新 head 门禁通过后合并。进程中断恢复并未由本项覆盖。
+
+原代码在 try 之外读取源文件，文件丢失后 run 永远保持 running；except 又直接 commit，可能发布第一条 OCR/视频帧而后续处理失败，下一次重试撞 ordinal 唯一键，数据库 flush 失败后还可能触发 PendingRollbackError。
+
+读取移入异常边界，使用线程执行同步存储操作。处理成功时证据、元数据、ModelUsage 与终态同事务提交并清 lease；失败先 rollback，再刷新持久化对象，独立提交终态，不把未发布元数据/证据/usage 留在数据库。视频普通失败会尝试清理本次生成但未发布的帧，并保留清理异常日志；这是尽力清理，不是对象存储和数据库分布式事务。
+
+进入视觉/转写 adapter 后的任何错误保守标为 `unknown`，提示人工核对提供商结果。队列只认领 queued，普通 retry 只接受 failed，unknown 两条路径都拒绝；不自动重发可能已经扣费的请求。源丢失、模型路由缺失等调用前的确定本地失败仍为 failed，可在修正后显式重试。现有 actual_cost 字段是估算，unknown 的默认零值不代表免费；后续需真实账单/回执核对和人工解决流程。
+
+同时关闭媒体 OpenAI SDK 默认的传输重试（`max_retries=0`），避免任务层拒绝重试但 SDK 已在内部重放。新增 adapter 构造参数回归，不请求外部服务；本机单独 **1/1** 通过（10.268 秒），与前述 10 项错误恢复回归分开记录。
+
+本机隔离 Windows Python 3.10 文件 SQLite 的新 6 项与原媒体 4 项合计 **10/10** 通过（205.814 秒）。真实数据库事务、独立连接可见性和唯一约束生效；提供商用 mock，无付费调用。覆盖：源丢失终态及修复后显式重试成功；路由失败不调用模型；超时 unknown、worker 不重放和 API retry 返回 409；第二条 OCR 非法时第一条回滚；真实重复 ordinal 导致 IntegrityError 后仍可持久化 unknown；第二视频帧失败回滚证据、清理两帧并关闭临时目录。原成功图像 bbox/PII/usage 行为保持。
+
+复现（backend，隔离配置）：`python -m unittest tests.test_media_failures tests.test_multimodal -v`。失败回归需持久化 queued fixture，再由实际 process_media_once 认领；测试不会自行补成功提交。
+
+边界：旧版本已经提交的部分证据未自动删改，进程硬退出可能留下 running / 帧文件；claim 并发、lease 过期、旧 worker 写回 fencing、PostgreSQL kill/重启与 S3 清理仍是后续专项。未将总路线图的 worker 恢复项勾选完成。

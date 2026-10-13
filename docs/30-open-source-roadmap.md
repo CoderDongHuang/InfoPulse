@@ -21,7 +21,8 @@
 
 - [x] 最小容器栈真实构建与 Nginx UI/大于 1 MiB 上传/WS 握手；GitHub Linux CI 已通过，见验收报告。
 - [x] 完整 Chromium 镜像构建与 browser crawler/media 可选运行依赖验收；真实 Chromium / ffmpeg 合成 fixture 通过，不扩展为真实采集源或模型质量承诺，见逐项验收记录 R01。
-- [ ] PostgreSQL 降级/升级的数据保留与独立 worker 中断恢复集成矩阵，不能只看 SQLite。
+- [x] PostgreSQL 14 张核心表带数据迁移往返与独立 knowledge worker 进程中断、有效 lease、过期恢复、双 worker 竞争验收，见逐项验收记录 R02。
+- [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration/media worker 中断恢复；不能把 knowledge 验收扩展为全部 worker。
 - [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
 - [ ] Windows 持续 CI、多平台版本约束文件和镜像 digest 维护。
 - [ ] 所有核心按钮、401/断网/取消/超时、两用户协作、跨租户负向 UI 测试；路由巡检不等于按钮验收。

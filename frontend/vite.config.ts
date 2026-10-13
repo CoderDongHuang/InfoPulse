@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
 
+    build: {
+      manifest: true,
+    },
+
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

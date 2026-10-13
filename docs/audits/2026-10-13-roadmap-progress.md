@@ -33,7 +33,7 @@ docker compose -p infopulse-audit -f docker-compose.audit.yml -f docker-compose.
 
 ## R02：PostgreSQL 带数据迁移 / 独立知识 worker 恢复
 
-状态：以下明确范围本机与 Linux Python 3.10/3.11 CI 均通过；独立 [PR #63](https://github.com/CoderDongHuang/InfoPulse/pull/63) 按全部门禁通过后合并的流程提交。
+状态：以下明确范围本机与 Linux Python 3.10/3.11 CI 均通过；独立 [PR #63](https://github.com/CoderDongHuang/InfoPulse/pull/63) 已在全部门禁通过后合并，主分支提交为 `2161117`。
 
 使用专用 localhost 审计服务器创建唯一临时数据库，结束后删除该临时库；不清空或迁移服务器已有数据库。不读取个人 .env、模型凭据或知识目录。脚本拒绝业务库、非本机服务器和非 audit 用户，删除操作只接受生成的唯一库名。
 
@@ -48,6 +48,8 @@ docker compose -p infopulse-audit -f docker-compose.audit.yml -f docker-compose.
 
 代码提交 `4eca4bb` 的 [Release Gate 38348236028](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348236028) 与 [CodeQL 38348235951](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348235951) 全部通过，包含两个 Python 产品环境、完整/最小容器、后端、前端、SDK 与漏洞门禁。文档补充提交仍需通过最新 head 的同一门禁后才能合并。
 
+最终提交 `1d1a30b` 的 [Release Gate 38348652259](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348652259) 与 [CodeQL 38348652277](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348652277) 全部通过后正常 squash 合并，没有跳过门禁。
+
 复现（backend；先用隔离 compose 启动 postgres）：
 
 ```powershell
@@ -56,3 +58,50 @@ python -m unittest tests.test_recovery_harness tests.test_knowledge tests.test_k
 ```
 
 重要限制：降级会删除 revision 30–33 的 dispatch_jobs、auth_sessions、api_rate_limits 以及新增字段。本验收只证明 revision 29 已有核心数据保留，**不是全业务无损回滚保证**。仍须停 worker、备份数据库和文件、核对迁移版本，不能将脚本指向业务库。actions 的不确定投递不能自动重放；media / orchestration 恢复、其他领域表、完整备份恢复、RPO/RTO 仍为待完成事项。
+
+## R03：前端按需组件与包体预算
+
+状态：本机测试和生产构建浏览器验收完成；独立 [PR #64](https://github.com/CoderDongHuang/InfoPulse/pull/64) 按最新 head 全部门禁通过后合并的流程提交。
+
+现有路由已使用动态 import，图标也已明确导入。主要问题是入口 `app.use(ElementPlus)` 注册整个库并导入全量 CSS。本轮只注册实际使用的 19 种组件，保留 `v-loading` 指令以及程序调用的 Message / MessageBox 样式。官方组件样式入口会带入内部依赖，避免只导入表面样式造成下拉/遮罩缺失。
+
+构建使用同一工作区、同一已安装依赖（Vite 8.1.3、Node 22），基线为 `2161117`。统计所有 Vite manifest 的静态入口、递归 imports 及 CSS 的并集，共享依赖去重；gzip/Brotli 按单个资源压缩后累加，单位为字节。
+
+| 指标 | 修改前 | 修改后 | 变化 |
+| --- | ---: | ---: | ---: |
+| 静态入口 JS 原始体积 | 1,099,167 | 503,002 | -54.2% |
+| 静态入口 JS gzip | 355,166 | 173,251 | -51.2% |
+| 静态入口 JS Brotli | 293,334 | 149,826 | -48.9% |
+| 静态入口 CSS 原始体积 | 368,917 | 136,414 | -63.0% |
+| 静态入口 CSS gzip | 50,745 | 19,963 | -60.7% |
+
+以上为初版按需构建；补充取消处理后的静态 JS raw/CSS raw 不变，JS gzip 为 173,242、Brotli 为 149,868 字节，路由 chunk 的修复不会因动态拆分而改变静态图统计规则。
+
+预算为 JS raw ≤ 600,000、JS gzip ≤ 200,000、CSS raw ≤ 160,000 字节；超出预算构建返回非零。预算约留 15–20% 空间，不能靠改 chunk 名称、拆 vendor 或提高 Vite 告警阈值绕过统计。所有执行 `npm run build` 的 CI 和 Docker 构建都会检查，frontend job 保存 `bundle-budget.json` 制品。
+
+本机验证：
+
+- `npm test`：初版 **9/9** 通过，补充取消确认回归后 **12/12** 通过，含静态依赖图递归/循环/去重/多入口、超限拒绝、缺失 manifest 拒绝、全部 Vue 组件注册/样式覆盖、loading 指令、SSE、取消/关闭无删除、确认后单次删除与失败不冒充成功。
+- `npm run build`：类型检查、生产构建与新预算通过；第三方 VueUse PURE 注释位置警告仍存在，未隐藏或调高告警阈值。
+- 隔离 SQLite + 本机 Vite **preview 生产产物** + Edge 的产品脚本：**8/8** 通过，新增真实 API 请求阻塞下的 loading 样式、选择日报筛选、打开确认框并取消删除、确认报告仍存在。原有上传/检索、WS、36 路由、移动布局和撤销登录继续通过。
+- JSON 记录 `completed: true`，page_errors / server_errors / component_errors 均为空。初版新增脚本误将 create 响应当成包含 title，随后取消按钮误用了中文默认标签；已按实际契约及默认英文按钮修正，失败没有通过重试屏蔽。
+
+复现（frontend）：
+
+```powershell
+npm test
+npm run build
+# 生成 dist/bundle-budget.json；超限会导致 build 失败
+```
+
+浏览器截图保存于 CI 产品验收制品（`components-desktop.png`、知识桌面/移动图），本机证据在忽略的 `acceptance-artifacts/bundle` 中。动态路由、认证页图片、首屏 LCP/INP、冷缓存网络测量未纳入当前预算；本轮减少传输体积，不宣称已证明某个加载耗时或全核心按钮完成。
+
+首次 [Release Gate 38351461978](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38351461978) 的完整/最小生产容器通过，但开发服务器下两个 Python 产品环境均捕获 `page_errors: ["cancel"]`。原有报告删除 handler 没有处理 MessageBox 取消时的 Promise rejection；生产 Vue 的异常行为差异使本机生产预览没有将其上报为 pageerror。现已只处理预期的 cancel/close，其他异常继续传播，新增直接执行实际 handler 的回归；未忽略浏览器错误。其他模块的取消操作尚需逐页验收。
+
+修复提交 `f2b872a` 的 [Release Gate 38352699229](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699229) 与 [CodeQL 38352699244](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38352699244) 全部通过，包含开发服务器的两个 Python 环境及两个生产容器环境。文档证据补充后仍以最新提交的 checks 为合并条件。
+
+文档提交 `150c65a` 的 [Release Gate 38353290271](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38353290271) 中 Python 3.10 产品验收在 WS 等待 connected/pong 时失败，其余门禁通过。日志显示票据 POST 成功后连接被接受，但未收到消息。票据创建没有响应前提交，独立 WS 连接可能看不到尚未提交的票据；同时文档创建也存在相同边界。两个接口现在成功响应前提交，新增文件数据库的独立连接可见性、审计同事务持久化和两种提交失败回归。WS 验收记录提前关闭的状态码，不再将关闭误报为等待超时；没有加入重试或放宽成功标准。
+
+本机隔离配置下后端全量 **193/193** 通过（补充协作事务测试之前的完整集合，702.690 秒）；新增回归结果和最新 CI 仍分别记录，不能将旧提交全绿当作当前 head 已通过。
+
+补充协作事务、协作业务和多模态回归 **9/9** 通过（63.325 秒）；实际 PostgreSQL WS / 容器链路仍以本次提交的 CI 为准。

@@ -148,6 +148,16 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 随后 `7ba193a` 的 [Release Gate 38370214003](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38370214003) 中 Python 3.11 产品失败：UI 退出跳转后旧令牌 GET `/auth/me` 仍返回 200。前端已等待 logout API，后端撤销仍在响应后提交。logout 现在 204 之前 commit；新增文件 SQLite 独立连接验证访问/refresh 同时立即拒绝，以及 commit 失败不返回成功且不持久化撤销。认证专项 **6/6** 通过（19.188 秒），重启隔离 PostgreSQL 后 Edge 产品 **9/9** 通过，错误数组为空，证据为 `acceptance-artifacts/dialogs-revocation/result.json`。原 ASGITransport 回归会等待整个应用调用完成，包含依赖清理，无法证明真实网络上的响应前持久性，因此保留原测试并补上不同层次的验证。注册、登录、refresh 和其他领域事务边界仍需后续专项审计。
 
+## R06：行动执行步骤表格结构
+
+状态：实现及本机验收完成，独立 PR 最新 head 全部门禁通过后合并。
+
+开发服务器巡检发现 `ActionLoopView` 把 tr 直接放在 table 下，Vue 报 HTML 嵌套告警；浏览器自动补 tbody 可能导致实际 DOM 与 Vue 预期不同。表头和步骤行改用明确的 thead / tbody，保持字段和操作逻辑。
+
+本机 `npm run build` 类型检查、生产构建、包体预算通过，JS raw 502,997 / gzip 173,243，CSS raw 136,414 字节。隔离 PostgreSQL + Vite dev + Edge 产品验收 **10/10** 通过，新增展示专用 GET fixture 打开非空行动详情，检查三个表头、序号/渠道/状态各列和无直接子 tr，截图单独保存 `action-step-table.png`。产品脚本还将 `cannot be child of` 控制台信息视为失败，防止再次只巡检空状态而错过模板缺陷。错误列表为空。
+
+这一 fixture 只替代两条 GET 展示请求，拒绝拦截写请求，结束即撤除；不创建、批准或执行真实行动，不将展示验收当成 dispatch/outbox 的端到端验收。其余九组真实产品检查继续通过。复现命令与 R05 相同，仅输出目录改为 `../acceptance-artifacts/action-table`。
+
 ## R07：媒体失败原子性与不确定模型调用
 
 状态：以下普通异常范围实现并通过本机专项测试；独立 PR 最新 head 门禁通过后合并。进程中断恢复并未由本项覆盖。

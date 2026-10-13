@@ -33,7 +33,7 @@ docker compose -p infopulse-audit -f docker-compose.audit.yml -f docker-compose.
 
 ## R02：PostgreSQL 带数据迁移 / 独立知识 worker 恢复
 
-状态：以下明确范围本机完成；Python 3.10/3.11 CI 同步验证，只有全部门禁通过才合并。
+状态：以下明确范围本机与 Linux Python 3.10/3.11 CI 均通过；独立 [PR #63](https://github.com/CoderDongHuang/InfoPulse/pull/63) 按全部门禁通过后合并的流程提交。
 
 使用专用 localhost 审计服务器创建唯一临时数据库，结束后删除该临时库；不清空或迁移服务器已有数据库。不读取个人 .env、模型凭据或知识目录。脚本拒绝业务库、非本机服务器和非 audit 用户，删除操作只接受生成的唯一库名。
 
@@ -44,7 +44,9 @@ docker compose -p infopulse-audit -f docker-compose.audit.yml -f docker-compose.
 5. 重启不修改知识处理逻辑的 worker，验证 attempts=2、ready、唯一活动版本与非空分块、staging 清理。
 6. 两个独立 worker 均初始化后提交新任务，验证 attempts=1、版本数=1，不重复索引。
 
-本机 PostgreSQL 16 / Windows Python 3.10 的 4 组集成检查通过；另有 harness 安全边界单元测试与知识生命周期回归。CI 每次在 Linux Python 3.10 / 3.11 执行同一脚本，保存 `postgres-recovery.json` 的逐表摘要及 worker 日志。
+本机 PostgreSQL 16 / Windows Python 3.10 的 4 组集成检查通过；harness 安全边界单元测试与知识生命周期回归共 **15/15** 通过。CI 每次在 Linux Python 3.10 / 3.11 执行同一脚本，保存 `postgres-recovery.json` 的逐表摘要及 worker 日志。
+
+代码提交 `4eca4bb` 的 [Release Gate 38348236028](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348236028) 与 [CodeQL 38348235951](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38348235951) 全部通过，包含两个 Python 产品环境、完整/最小容器、后端、前端、SDK 与漏洞门禁。文档补充提交仍需通过最新 head 的同一门禁后才能合并。
 
 复现（backend；先用隔离 compose 启动 postgres）：
 

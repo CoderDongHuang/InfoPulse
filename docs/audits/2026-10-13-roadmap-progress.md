@@ -160,7 +160,7 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 ## R07：媒体失败原子性与不确定模型调用
 
-状态：以下普通异常范围实现并通过本机专项测试；独立 [PR #68](https://github.com/CoderDongHuang/InfoPulse/pull/68) 仅在最新 head 全部门禁通过后合并，实时合并证据见 PR。进程中断恢复并未由本项覆盖。
+状态：以下普通异常范围完成；独立 [PR #68](https://github.com/CoderDongHuang/InfoPulse/pull/68) 的 head `cbe7dcb` 通过 [Release Gate 38374321538](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374321538) 与 [CodeQL 38374321541](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374321541) 全部门禁后合并，main 提交 `1653bc0`。进程中断恢复并未由本项覆盖。
 
 原代码在 try 之外读取源文件，文件丢失后 run 永远保持 running；except 又直接 commit，可能发布第一条 OCR/视频帧而后续处理失败，下一次重试撞 ordinal 唯一键，数据库 flush 失败后还可能触发 PendingRollbackError。
 
@@ -178,12 +178,14 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 ## R08：认证令牌响应前持久化
 
-状态：注册、登录、SSO exchange 和 refresh 四个 API 的专项实现完成，19/19 本机回归及真实 PostgreSQL + Edge 产品 9/9 通过；独立 [PR #69](https://github.com/CoderDongHuang/InfoPulse/pull/69) 最新 head 全部门禁通过后合并。完整实验与限制见 [认证事务报告](./2026-10-13-auth-durability.md)。不把这里的 SSO 夹具扩展为真实身份提供商验收。
+状态：注册、登录、SSO exchange 和 refresh 四个 API 的专项实现完成，19/19 本机回归及真实 PostgreSQL + Edge 产品 9/9 通过；独立 [PR #69](https://github.com/CoderDongHuang/InfoPulse/pull/69) 的 head `e6937b1` 通过 [Release Gate 38374328468](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374328468) 与 [CodeQL 38374328484](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374328484) 全部门禁后合并，main 提交 `bf27447`。完整实验与限制见 [认证事务报告](./2026-10-13-auth-durability.md)。不把这里的 SSO 夹具扩展为真实身份提供商验收。
 
 ## R09：文档、证据与长篇博客同步
 
 状态：README、文档索引、发布清单及博客已更新；新增第 56–65 节，明确历史时点、独立连接/进程、普通异常/进程 kill、fixture/真实副作用的区别。博客约 6.7 万字符（不是中文词数），五张未加工真实截图保存于 `docs/blog-assets/2026-10-13/`，均有来源说明。
 
-本机校验 9 份相关 Markdown、77 个本地链接及代码围栏闭合通过；5 张 PNG 全部解码验证，并逐图人工视觉检查。复现命令与现有脚本参数、隔离 compose 的数据库/端口核对。文档 PR 同样执行完整 CI，不通过文档标签绕过门禁。
+本机最终校验 9 份相关 Markdown、81 个本地链接及代码围栏闭合通过；5 张 PNG 全部解码验证，并逐图人工视觉检查。复现命令与现有脚本参数、隔离 compose 的数据库/端口核对。独立 [PR #70](https://github.com/CoderDongHuang/InfoPulse/pull/70) 同样执行完整 CI，不通过文档标签绕过门禁；最新合并证据以 PR 为准。
+
+集成提交 `b8e27f5` 的本机认证/媒体组合回归 **30/30**（226.387 秒）、前端 **25/25**、API 契约 **354 paths** 与构建预算通过。隔离 PostgreSQL 16 + Vite dev + Edge 产品 **10/10**，三类错误列表均为空，结果为 `acceptance-artifacts/roadmap-integrated/result.json`；该原始目录不提交业务数据。其 [Release Gate 38374700051](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374700051) 和 [CodeQL 38374700017](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38374700017) 全部通过，Linux 全量 **217/217**。随后同步 main 和补充本文合并证据，仍需最新 head 的门禁，不能沿用旧提交通过状态。
 
 保留后续未完成项，不把整份路线图勾选完成；真实第三方密钥、备份恢复、其他 worker、完整 UI 负向矩阵仍需独立证据。查看当前勾选范围请使用 [路线图](../30-open-source-roadmap.md)，而不是旧博客中的设计目标。

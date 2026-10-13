@@ -110,7 +110,7 @@ npm run build
 
 ## R04：Windows 后端持续验收
 
-状态：实现并准备独立 PR；首次 Windows CI 尚待验证，路线图暂不勾选完成。
+状态：以下范围的 Windows 两版本及其他 CI 门禁均通过；独立 [PR #65](https://github.com/CoderDongHuang/InfoPulse/pull/65) 以最新 head 全部门禁通过为合并条件。
 
 原门禁主要运行于 Linux，本机 Windows 的一次成功不能代替持续兼容验证。新增 `windows-latest` Python 3.10/3.11 矩阵，从 checkout 安装完整 `requirements.txt`（包括可选浏览器 Python 包），执行 pip check、全模块编译、完整 unittest、API 契约快照，以及独立空 SQLite 库 head → revision 13 → head。每条 native 命令独立 step，失败立即影响 job，不能被下一条命令的退出码覆盖。两个 Python job 互不取消，保存各自依赖清单，详细执行证据在 Actions 日志。
 
@@ -121,3 +121,5 @@ CI 设置 UTF-8，并关闭采集、模型凭据、调度器及后台 worker；�
 本机独立运行 API 契约检查，**354 paths** 匹配；在唯一临时目录内执行 SQLite 空库 head → revision 13 → head 通过，未读取个人配置。首次 [Release Gate 38355919678](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38355919678) 的两项 Windows job 失败，其余 job 通过：Python 3.11 完整运行 196 项，其中知识库相关 9 项报 `invalid storage key`。生产 `Storage.__init__` 已 resolve 根目录，但测试夹具替换 `storage.local` 时使用未规范化的临时路径，Windows 的短路径别名/目录解析使它与 resolved 子路径的 parents 不等。夹具改为同样 resolve，不修改或放松生产越界判断；新增实际本地存储嵌套读写、删除、绝对路径/遍历/根目录拒绝回归。修复后的 Windows 全量结果仍待 CI，失败不能被勾选为完成。
 
 Python 3.10 同样完整执行 196 项并出现同 9 项夹具错误（870.954 秒），无其他测试失败。修复后本机知识、生命周期、本地存储回归 **14/14** 通过（62.769 秒），`git diff --check` 通过。生产存储逻辑未修改；仍需新提交的 Windows 两版本全量证明。
+
+修复提交 `7d03678` 的 [Release Gate 38358918583](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918583) 与 [CodeQL 38358918582](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918582) 全部通过：Windows Python 3.10 job 15 分 32 秒、3.11 job 12 分 52 秒，包含完整 **198 项** unittest、API 契约、SQLite 迁移、pip check 和模块编译。Linux 后端、两个产品环境、完整/最小容器、前端、SDK 与漏洞门禁也通过。文档补充后仍检查最新 head，不将旧 head 证据替代合并门禁。

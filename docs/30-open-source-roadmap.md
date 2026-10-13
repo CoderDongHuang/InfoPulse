@@ -24,7 +24,7 @@
 - [x] PostgreSQL 14 张核心表带数据迁移往返与独立 knowledge worker 进程中断、有效 lease、过期恢复、双 worker 竞争验收，见逐项验收记录 R02。
 - [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration/media worker 中断恢复；不能把 knowledge 验收扩展为全部 worker。
 - [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
-- [ ] Windows Python 3.10/3.11 持续 CI：完整 Python 依赖入口、pip check、全量后端测试、API 契约、SQLite 迁移；R04 正在等待首次 CI 验收。
+- [x] Windows Python 3.10/3.11 持续 CI：完整 Python 依赖入口、pip check、全量后端测试、API 契约、SQLite 迁移；R04 两版本最新 CI 均通过，完整范围见逐项验收记录。
 - [ ] 多平台版本约束文件和镜像 digest 维护；安装清单不等于版本锁定。
 - [ ] 所有核心按钮、401/断网/取消/超时、两用户协作、跨租户负向 UI 测试；路由巡检不等于按钮验收。
 - [x] 每次 PR 的 npm/pip 漏洞门禁与 Python CycloneDX/JSON artifact；本轮升级旧 setuptools 后通过，零已知漏洞不等于未来为零。

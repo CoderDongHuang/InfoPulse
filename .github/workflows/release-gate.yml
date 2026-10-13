@@ -50,7 +50,9 @@ jobs:
 
   windows-backend:
     runs-on: windows-latest
-    timeout-minutes: 30
+    # Full regression alone took 28.4 minutes on a hosted runner. Include
+    # dependency setup, contracts, migrations and diagnostics in the job budget.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:

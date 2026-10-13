@@ -129,6 +129,9 @@ jobs:
           alembic upgrade head
           alembic downgrade 20260804_0029
           alembic upgrade head
+      - name: Populated PostgreSQL migration and process recovery
+        working-directory: backend
+        run: python -m scripts.postgres_recovery_smoke --output ../acceptance-artifacts/recovery
       - name: Start isolated API and Vite proxy
         run: |
           (cd backend && python -m scripts.acceptance_server --database-url postgresql+asyncpg://audit:audit-local-only@127.0.0.1:15432/infopulse_audit > audit-product-api.log 2>&1) &

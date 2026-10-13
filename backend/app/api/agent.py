@@ -25,7 +25,7 @@ async def message_dict(db,m):
 async def listing(user:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":x.id,"title":x.title,"event_id":x.event_id,"updated_at":x.updated_at} for x in (await db.scalars(select(Conversation).where(Conversation.user_id==user.id,Conversation.deleted_at.is_(None)).order_by(Conversation.updated_at.desc()))).all()]
 @router.post("",status_code=201)
 async def create(p:ConversationCreate,user:User=Depends(get_current_user),db=Depends(get_db)):
- c=Conversation(user_id=user.id,title=p.title,event_id=p.event_id,context_config=p.context_config);db.add(c);await db.flush();return {"id":c.id,"title":c.title,"event_id":c.event_id,"context_config":c.context_config}
+ c=Conversation(user_id=user.id,title=p.title,event_id=p.event_id,context_config=p.context_config);db.add(c);await db.commit();return {"id":c.id,"title":c.title,"event_id":c.event_id,"context_config":c.context_config}
 @router.get("/{cid}")
 async def detail(cid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
  c=await owned(db,cid,user.id);msgs=(await db.scalars(select(AgentMessage).where(AgentMessage.conversation_id==cid).order_by(AgentMessage.created_at))).all();return {"id":c.id,"title":c.title,"event_id":c.event_id,"context_config":c.context_config,"messages":[await message_dict(db,x) for x in msgs]}
@@ -33,9 +33,12 @@ async def detail(cid:str,user:User=Depends(get_current_user),db=Depends(get_db))
 async def update(cid:str,p:ConversationUpdate,user:User=Depends(get_current_user),db=Depends(get_db)):
  c=await owned(db,cid,user.id)
  for k,v in p.model_dump(exclude_none=True).items():setattr(c,k,v)
+ await db.commit()
  return {"id":c.id,"title":c.title,"context_config":c.context_config}
 @router.delete("/{cid}",status_code=204)
-async def remove(cid:str,user:User=Depends(get_current_user),db=Depends(get_db)):(await owned(db,cid,user.id)).deleted_at=datetime.now(timezone.utc)
+async def remove(cid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
+ (await owned(db,cid,user.id)).deleted_at=datetime.now(timezone.utc)
+ await db.commit()
 @router.post("/{cid}/messages")
 async def send(cid:str,p:MessageCreate,request:Request,user:User=Depends(get_current_user),db=Depends(get_db)):
  c=await owned(db,cid,user.id);u=AgentMessage(conversation_id=cid,role="user",content=p.content,status="completed");a=AgentMessage(conversation_id=cid,role="assistant",status="streaming");db.add_all([u,a]);c.updated_at=datetime.now(timezone.utc);await db.commit()
@@ -68,6 +71,7 @@ async def feedback(cid:str,mid:str,p:FeedbackCreate,user:User=Depends(get_curren
  f=await db.scalar(select(MessageFeedback).where(MessageFeedback.message_id==mid,MessageFeedback.user_id==user.id))
  if f:f.rating=p.rating;f.reason=p.reason
  else:db.add(MessageFeedback(message_id=mid,user_id=user.id,**p.model_dump()))
+ await db.commit()
  return {"message_id":mid,"rating":p.rating}
 
 @router.post("/{cid}/messages/{mid}/retry")

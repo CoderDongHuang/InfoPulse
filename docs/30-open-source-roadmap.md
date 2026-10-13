@@ -1,6 +1,6 @@
 # InfoPulse 开源优化路线图
 
-更新日期：2026-10-09。当前定位是本地开发者预览，不是所有模块正式完工。`[x]` 仅表示下述明确范围完成；`[ ]` 表示待完成。详细问题与测试对应见 [修复验收报告](./audits/2026-10-09-remediation.md)，实验边界见 [能力矩阵](./32-capability-matrix.md)。
+更新日期：2026-10-13。当前定位是本地开发者预览，不是所有模块正式完工。`[x]` 仅表示下述明确范围完成；`[ ]` 表示待完成。详细问题与测试对应见 [修复验收报告](./audits/2026-10-09-remediation.md) 和 [逐项验收记录](./audits/2026-10-13-roadmap-progress.md)，实验边界见 [能力矩阵](./32-capability-matrix.md)。
 
 ## 本轮缺陷收敛
 
@@ -20,7 +20,7 @@
 ## P0：发布可靠性，下一批
 
 - [x] 最小容器栈真实构建与 Nginx UI/大于 1 MiB 上传/WS 握手；GitHub Linux CI 已通过，见验收报告。
-- [ ] 完整 Chromium 采集镜像构建与 browser crawler/media 可选运行依赖验收；不以最小镜像代替。
+- [x] 完整 Chromium 镜像构建与 browser crawler/media 可选运行依赖验收；真实 Chromium / ffmpeg 合成 fixture 通过，不扩展为真实采集源或模型质量承诺，见逐项验收记录 R01。
 - [ ] PostgreSQL 降级/升级的数据保留与独立 worker 中断恢复集成矩阵，不能只看 SQLite。
 - [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
 - [ ] Windows 持续 CI、多平台版本约束文件和镜像 digest 维护。

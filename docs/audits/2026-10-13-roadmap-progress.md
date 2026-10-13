@@ -124,13 +124,17 @@ Python 3.10 同样完整执行 196 项并出现同 9 项夹具错误（870.954 �
 
 修复提交 `7d03678` 的 [Release Gate 38358918583](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918583) 与 [CodeQL 38358918582](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918582) 全部通过：Windows Python 3.10 job 15 分 32 秒、3.11 job 12 分 52 秒，包含完整 **198 项** unittest、API 契约、SQLite 迁移、pip check 和模块编译。Linux 后端、两个产品环境、完整/最小容器、前端、SDK 与漏洞门禁也通过。文档补充后仍检查最新 head，不将旧 head 证据替代合并门禁。
 
+最终提交 `3a03617` 的 [Release Gate 38362658709](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38362658709) 和 [CodeQL 38362658745](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38362658745) 全部通过后，PR #65 正常 squash 合并，main 为 `2133100`；没有跳过 Windows 全量门禁。
+
 ## R05：多页面对话框取消与写入边界
 
-状态：以下范围实现并通过本机实际测试；独立 PR 的最新 head 仍须通过全部 CI 才合并。
+状态：以下范围实现并通过本机实际测试；独立 [PR #66](https://github.com/CoderDongHuang/InfoPulse/pull/66) 的最新 head 仍须通过全部 CI 才合并。
 
 R03 产品测试发现报告删除的取消 rejection；逐页检查发现同样模式还存在于历史、订阅、多模态、知识库、图谱和预警页面。统一 `runDialog` 只将 Element Plus 的 `cancel` / `close` 转为正常退出；其他对话框错误及 API 错误继续传播。所有当前 MessageBox 操作都通过这一入口，取消后不调用写 API、不刷新、不清空选中对象；图谱 2/3 步输入在任何一步退出后立即终止。证据约束与确认后的实际参数保持不变。
 
 测试直接用 TypeScript parser 提取页面实际 handler，并执行实际 helper，模拟对话框及 API 边界；不复制业务逻辑。新增 13 项，包含 12 个领域操作的每一步 cancel/close、确认仅写一次、非预期错误及 API 失败传播、失败不刷新/不报成功，以及图谱无来源证据拒绝写入。报告已有 3 项继续通过，前端完整 **25/25** 通过。
+
+提交 `500c22a` 的 [Release Gate 38363697572](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38363697572) 与 [CodeQL 38363697676](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38363697676) 全部通过。随后将基分支衔接已合并的 main，仍以新 head 门禁为合并条件，不能沿用改基前通过结果。
 
 `npm run build` 的类型、生产构建、静态入口预算通过：JS raw 502,997 / gzip 173,247、CSS raw 136,414 字节。第三方 PURE 注释警告仍未隐藏。
 

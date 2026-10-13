@@ -1,6 +1,6 @@
 # R10：固定窗口限流的确定性测试
 
-日期：2026-10-13。状态：修复已实现，本机专项 **6/6** 通过（23.998 秒，Windows Python 3.10）；仍需独立 PR 最新提交完整 CI 通过后合并。本项只改变测试夹具，不改变生产限流。
+日期：2026-10-13。状态：已完成并正常合并 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71)。head `4d8ac9f` 的 [Release Gate 38386828324](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828324) 与 [CodeQL 38386828656](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828656) 全部通过，main 为 `159f1c1`。本机专项 **6/6** 通过（23.998 秒，Windows Python 3.10）。本项只改变测试夹具，不改变生产限流。
 
 ## 实际失败与根因
 

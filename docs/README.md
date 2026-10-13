@@ -13,6 +13,11 @@
 7. [依赖升级政策](./31-dependency-upgrade-policy.md)：自动更新、major 迁移和兼容性门禁。
 8. [能力与验证矩阵](./32-capability-matrix.md)：beta、实验功能、外部依赖和实际保证。
 9. [2026-10-09 修复验收报告](./audits/2026-10-09-remediation.md)：问题编号、完成状态、测试证据与剩余路线。
+10. [2026-10-13 路线图逐项验收](./audits/2026-10-13-roadmap-progress.md)：容器、迁移、worker、Windows、前端与媒体的修复及独立 PR 证据。
+11. [固定窗口限流测试 R10](./audits/2026-10-13-rate-limit-clock.md)：墙钟跨分钟的真实失败、确定性夹具与边界回归。
+12. [认证令牌持久性专项](./audits/2026-10-13-auth-durability.md)：签发与刷新响应前提交、独立连接和失败原子性。
+13. [Windows CI 预算 R11](./audits/2026-10-13-windows-budget.md)：真实时限取消、完整回归与有限预算。
+14. [资料更新持久性 R12](./audits/2026-10-13-profile-durability.md)：成功响应前提交、独立连接与失败回归。
 
 ## 产品与开发
 

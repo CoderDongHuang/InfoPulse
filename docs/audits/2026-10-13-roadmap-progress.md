@@ -145,3 +145,19 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 复现：`frontend` 执行 `npm test`、`npm run build`；隔离验收服务运行后，在 `backend` 执行 `python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --browser-channel msedge --output ../acceptance-artifacts/dialogs`。CI 在两个 Python 产品环境及两个容器环境运行同一浏览器验收。当前单元模拟不能替代其余六页面全部按钮的浏览器操作；401/断网/超时、两用户协作、跨租户 UI 仍未标记完成。
 
 改基后的 `b76c355` 在 [Release Gate 38367992804](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38367992804) 的 Python 3.10 产品验收失败：工作流 POST 201 后立即打开协作文档收到 404 `Workflow not found`。工作流创建仍只 flush，依赖响应后才 commit；现将工作流、初始版本、活动版本引用与审计在成功响应前同事务提交，不增加等待或重试。新增独立 SQLite 连接读取与真实协作资源校验、提交失败不得成功返回两项回归；首次测试传错上下文参数已修正，完整协作事务/协作/编排 **12/12** 通过（101.785 秒）。重启隔离 PostgreSQL 16 服务后 Edge + Vite dev 产品 **9/9** 通过，三类错误数组为空，证据为 `acceptance-artifacts/dialogs-transaction/result.json`。仍需修复后最新 head 的 CI；其他编排写操作的事务边界未由此全部证明。
+
+## R07：媒体失败原子性与不确定模型调用
+
+状态：以下普通异常范围实现并通过本机专项测试；独立 PR 最新 head 门禁通过后合并。进程中断恢复并未由本项覆盖。
+
+原代码在 try 之外读取源文件，文件丢失后 run 永远保持 running；except 又直接 commit，可能发布第一条 OCR/视频帧而后续处理失败，下一次重试撞 ordinal 唯一键，数据库 flush 失败后还可能触发 PendingRollbackError。
+
+读取移入异常边界，使用线程执行同步存储操作。处理成功时证据、元数据、ModelUsage 与终态同事务提交并清 lease；失败先 rollback，再刷新持久化对象，独立提交终态，不把未发布元数据/证据/usage 留在数据库。视频普通失败会尝试清理本次生成但未发布的帧，并保留清理异常日志；这是尽力清理，不是对象存储和数据库分布式事务。
+
+进入视觉/转写 adapter 后的任何错误保守标为 `unknown`，提示人工核对提供商结果。队列只认领 queued，普通 retry 只接受 failed，unknown 两条路径都拒绝；不自动重发可能已经扣费的请求。源丢失、模型路由缺失等调用前的确定本地失败仍为 failed，可在修正后显式重试。现有 actual_cost 字段是估算，unknown 的默认零值不代表免费；后续需真实账单/回执核对和人工解决流程。
+
+本机隔离 Windows Python 3.10 文件 SQLite 的新 6 项与原媒体 4 项合计 **10/10** 通过（205.814 秒）。真实数据库事务、独立连接可见性和唯一约束生效；提供商用 mock，无付费调用。覆盖：源丢失终态及修复后显式重试成功；路由失败不调用模型；超时 unknown、worker 不重放和 API retry 返回 409；第二条 OCR 非法时第一条回滚；真实重复 ordinal 导致 IntegrityError 后仍可持久化 unknown；第二视频帧失败回滚证据、清理两帧并关闭临时目录。原成功图像 bbox/PII/usage 行为保持。
+
+复现（backend，隔离配置）：`python -m unittest tests.test_media_failures tests.test_multimodal -v`。失败回归需持久化 queued fixture，再由实际 process_media_once 认领；测试不会自行补成功提交。
+
+边界：旧版本已经提交的部分证据未自动删改，进程硬退出可能留下 running / 帧文件；claim 并发、lease 过期、旧 worker 写回 fencing、PostgreSQL kill/重启与 S3 清理仍是后续专项。未将总路线图的 worker 恢复项勾选完成。

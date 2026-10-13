@@ -1,5 +1,5 @@
 """Real multimodal ingestion, processing, evidence and safety pipeline."""
-import asyncio,base64,hashlib,io,json,re,shutil,socket,subprocess,tempfile
+import asyncio,base64,hashlib,io,json,logging,re,shutil,socket,subprocess,tempfile
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from PIL import Image
@@ -77,31 +77,54 @@ def video_parts(data,suffix):
 def evidence(db,asset,ordinal,kind,text,metadata=None,**locator):
  value=text.strip();metadata=metadata or {};fingerprint={**locator,"metadata":metadata};row=MediaEvidence(organization_id=asset.organization_id,asset_id=asset.id,ordinal=ordinal,evidence_type=kind,text=value,content_hash=hashlib.sha256((kind+value+json.dumps(fingerprint,sort_keys=True,default=str)).encode()).hexdigest(),start_ms=locator.pop("start_ms",None),end_ms=locator.pop("end_ms",None),frame_number=locator.pop("frame_number",None),bbox=locator.pop("bbox",[]),speaker=locator.pop("speaker",""),confidence=locator.pop("confidence",0),storage_key=locator.pop("storage_key",""),metadata_json={**metadata,**locator});db.add(row)
 async def process_asset(db,asset,run):
- data=storage.get(asset.storage_key);run.status="running";run.stage="metadata";run.progress=10;ordinal=0;all_text=[]
+ # Evidence, metadata and usage must publish together. A failed flush must be
+ # rolled back before recording the terminal state in a fresh transaction.
+ provider_started=False;ordinal=0;all_text=[];frame_keys=[]
+ async def call_vision(*args):
+  nonlocal provider_started
+  provider_started=True
+  return await vision(*args)
+ async def call_transcribe(*args):
+  nonlocal provider_started
+  provider_started=True
+  return await transcribe(*args)
  try:
+  data=await asyncio.to_thread(storage.get,asset.storage_key);run.status="running";run.stage="metadata";run.progress=10
   if asset.media_type=="image":
-   image=Image.open(io.BytesIO(data));asset.width,asset.height=image.size;asset.perceptual_hash=perceptual_hash(data);model,cost=await route_for(db,asset,"vision");run.model_routes={"vision":model};run.estimated_cost_cents=cost;result=await vision(data,asset.mime_type,model)
+   image=Image.open(io.BytesIO(data));asset.width,asset.height=image.size;asset.perceptual_hash=perceptual_hash(data);model,cost=await route_for(db,asset,"vision");run.model_routes={"vision":model};run.estimated_cost_cents=cost;result=await call_vision(data,asset.mime_type,model)
    for item in result.get("ocr",[]):evidence(db,asset,ordinal,"ocr",str(item.get("text","")),bbox=item.get("bbox",[]),confidence=float(item.get("confidence",0) or 0));ordinal+=1;all_text.append(str(item.get("text","")))
    chart=result.get("chart") or {}
    if chart:evidence(db,asset,ordinal,"chart",json.dumps(chart,ensure_ascii=False),metadata=chart);ordinal+=1
    if result.get("summary"):evidence(db,asset,ordinal,"visual_summary",str(result["summary"]));ordinal+=1
   elif asset.media_type=="audio":
    model,cost=await route_for(db,asset,"transcription");run.model_routes={"transcription":model};run.estimated_cost_cents=cost
-   for item in await transcribe(data,asset.filename,model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
+   for item in await call_transcribe(data,asset.filename,model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
   else:
    temp,meta,frames,audio=await asyncio.to_thread(video_parts,data,Path(asset.filename).suffix.lower())
    try:
     asset.duration_ms=int(float(meta.get("format",{}).get("duration",0))*1000);video_stream=next((x for x in meta.get("streams",[]) if x.get("codec_type")=="video"),{});asset.width=video_stream.get("width");asset.height=video_stream.get("height");vision_model,vision_cost=await route_for(db,asset,"video_vision");run.model_routes={"video_vision":vision_model}
     for index,frame in frames:
-     frame_key=f"media/{asset.organization_id}/{asset.id}/frames/{index:06d}.jpg";storage.put(frame_key,frame);result=await vision(frame,"image/jpeg",vision_model);text="\n".join(str(x.get("text","")) for x in result.get("ocr",[]) if x.get("text"));summary=str(result.get("summary","") or "");evidence(db,asset,ordinal,"video_frame",(text+"\n"+summary).strip(),start_ms=(index-1)*settings.MEDIA_FRAME_INTERVAL_SECONDS*1000,frame_number=index,storage_key=frame_key,metadata={"chart":result.get("chart")});ordinal+=1;all_text.extend([text,summary])
+     frame_key=f"media/{asset.organization_id}/{asset.id}/frames/{index:06d}.jpg";frame_keys.append(frame_key);await asyncio.to_thread(storage.put,frame_key,frame);result=await call_vision(frame,"image/jpeg",vision_model);text="\n".join(str(x.get("text","")) for x in result.get("ocr",[]) if x.get("text"));summary=str(result.get("summary","") or "");evidence(db,asset,ordinal,"video_frame",(text+"\n"+summary).strip(),start_ms=(index-1)*settings.MEDIA_FRAME_INTERVAL_SECONDS*1000,frame_number=index,storage_key=frame_key,metadata={"chart":result.get("chart")});ordinal+=1;all_text.extend([text,summary])
     if audio:
      audio_model,audio_cost=await route_for(db,asset,"transcription");run.model_routes={**run.model_routes,"transcription":audio_model}
-     for item in await transcribe(audio,"audio.wav",audio_model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
+     for item in await call_transcribe(audio,"audio.wav",audio_model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
      run.estimated_cost_cents=vision_cost+audio_cost
     else:run.estimated_cost_cents=vision_cost
    finally:temp.cleanup()
-  findings=[*asset.safety_findings,*pii_findings("\n".join(all_text))];asset.safety_findings=findings;asset.safety_status="review_required" if findings or (asset.media_type in {"audio","video"} and not asset.consent_confirmed) else "passed";asset.status="ready";asset.error_message="";run.status="succeeded";run.stage="completed";run.progress=100;run.actual_cost_cents=run.estimated_cost_cents;run.finished_at=now();db.add(ModelUsage(user_id=asset.user_id,organization_id=asset.organization_id,workspace_id=asset.workspace_id,feature="multimodal",model_name=",".join(run.model_routes.values()),cost=run.actual_cost_cents/100));await db.commit()
- except Exception as exc:asset.status="failed";asset.error_message=str(exc)[:1000];run.status="failed";run.error_message=str(exc)[:2000];run.finished_at=now();await db.commit();raise
+  findings=[*asset.safety_findings,*pii_findings("\n".join(all_text))];asset.safety_findings=findings;asset.safety_status="review_required" if findings or (asset.media_type in {"audio","video"} and not asset.consent_confirmed) else "passed";asset.status="ready";asset.error_message="";run.status="succeeded";run.stage="completed";run.progress=100;run.actual_cost_cents=run.estimated_cost_cents;run.finished_at=now();run.lease_owner=None;run.lease_until=None;db.add(ModelUsage(user_id=asset.user_id,organization_id=asset.organization_id,workspace_id=asset.workspace_id,feature="multimodal",model_name=",".join(run.model_routes.values()),cost=run.actual_cost_cents/100));await db.commit()
+ except Exception as exc:
+  await db.rollback()
+  await db.refresh(asset);await db.refresh(run)
+  # Once a provider request started, neither its delivery nor billing is known
+  # on failure. Existing retry only accepts failed assets, so unknown is blocked.
+  status="unknown" if provider_started else "failed"
+  message=("Provider outcome requires manual reconciliation: " if provider_started else "")+str(exc)
+  asset.status=status;asset.error_message=message[:1000];run.status=status;run.error_message=message[:2000];run.finished_at=now();run.lease_owner=None;run.lease_until=None
+  await db.commit()
+  for key in frame_keys:
+   try:await asyncio.to_thread(storage.remove,key)
+   except Exception:logging.getLogger(__name__).exception("Unable to remove unpublished media frame")
+  raise
 async def process_media_once(asset_id=None,sessions=None):
  async with (sessions or _get_sessionmaker())() as db:
   q=select(MediaProcessingRun).where(MediaProcessingRun.status=="queued")

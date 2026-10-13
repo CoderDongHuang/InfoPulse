@@ -128,7 +128,7 @@ Python 3.10 同样完整执行 196 项并出现同 9 项夹具错误（870.954 �
 
 ## R05：多页面对话框取消与写入边界
 
-状态：以下范围实现并通过本机实际测试；独立 [PR #66](https://github.com/CoderDongHuang/InfoPulse/pull/66) 的最新 head 仍须通过全部 CI 才合并。
+状态：以下范围完成；独立 [PR #66](https://github.com/CoderDongHuang/InfoPulse/pull/66) 的最终 head `df8a753` 通过 [Release Gate 38371505306](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38371505306) 与 [CodeQL 38371505311](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38371505311) 全部门禁后合并，main 提交 `643e235`。下文保留中间失败及修复过程，不把旧失败删除或靠 rerun 掩盖。
 
 R03 产品测试发现报告删除的取消 rejection；逐页检查发现同样模式还存在于历史、订阅、多模态、知识库、图谱和预警页面。统一 `runDialog` 只将 Element Plus 的 `cancel` / `close` 转为正常退出；其他对话框错误及 API 错误继续传播。所有当前 MessageBox 操作都通过这一入口，取消后不调用写 API、不刷新、不清空选中对象；图谱 2/3 步输入在任何一步退出后立即终止。证据约束与确认后的实际参数保持不变。
 
@@ -150,7 +150,7 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 ## R06：行动执行步骤表格结构
 
-状态：实现及本机验收完成，独立 PR 最新 head 全部门禁通过后合并。
+状态：以下范围完成；独立 [PR #67](https://github.com/CoderDongHuang/InfoPulse/pull/67) 的 head `97f7fa7` 通过 [Release Gate 38371632652](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38371632652) 与 [CodeQL 38371632664](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38371632664) 全部门禁后合并，main 提交 `be87a99`。
 
 开发服务器巡检发现 `ActionLoopView` 把 tr 直接放在 table 下，Vue 报 HTML 嵌套告警；浏览器自动补 tbody 可能导致实际 DOM 与 Vue 预期不同。表头和步骤行改用明确的 thead / tbody，保持字段和操作逻辑。
 
@@ -160,7 +160,7 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 ## R07：媒体失败原子性与不确定模型调用
 
-状态：以下普通异常范围实现并通过本机专项测试；独立 PR 最新 head 门禁通过后合并。进程中断恢复并未由本项覆盖。
+状态：以下普通异常范围实现并通过本机专项测试；独立 [PR #68](https://github.com/CoderDongHuang/InfoPulse/pull/68) 仅在最新 head 全部门禁通过后合并，实时合并证据见 PR。进程中断恢复并未由本项覆盖。
 
 原代码在 try 之外读取源文件，文件丢失后 run 永远保持 running；except 又直接 commit，可能发布第一条 OCR/视频帧而后续处理失败，下一次重试撞 ordinal 唯一键，数据库 flush 失败后还可能触发 PendingRollbackError。
 
@@ -175,3 +175,15 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 复现（backend，隔离配置）：`python -m unittest tests.test_media_failures tests.test_multimodal -v`。失败回归需持久化 queued fixture，再由实际 process_media_once 认领；测试不会自行补成功提交。
 
 边界：旧版本已经提交的部分证据未自动删改，进程硬退出可能留下 running / 帧文件；claim 并发、lease 过期、旧 worker 写回 fencing、PostgreSQL kill/重启与 S3 清理仍是后续专项。未将总路线图的 worker 恢复项勾选完成。
+
+## R08：认证令牌响应前持久化
+
+状态：注册、登录、SSO exchange 和 refresh 四个 API 的专项实现完成，19/19 本机回归及真实 PostgreSQL + Edge 产品 9/9 通过；独立 [PR #69](https://github.com/CoderDongHuang/InfoPulse/pull/69) 最新 head 全部门禁通过后合并。完整实验与限制见 [认证事务报告](./2026-10-13-auth-durability.md)。不把这里的 SSO 夹具扩展为真实身份提供商验收。
+
+## R09：文档、证据与长篇博客同步
+
+状态：README、文档索引、发布清单及博客已更新；新增第 56–65 节，明确历史时点、独立连接/进程、普通异常/进程 kill、fixture/真实副作用的区别。博客约 6.7 万字符（不是中文词数），五张未加工真实截图保存于 `docs/blog-assets/2026-10-13/`，均有来源说明。
+
+本机校验 9 份相关 Markdown、77 个本地链接及代码围栏闭合通过；5 张 PNG 全部解码验证，并逐图人工视觉检查。复现命令与现有脚本参数、隔离 compose 的数据库/端口核对。文档 PR 同样执行完整 CI，不通过文档标签绕过门禁。
+
+保留后续未完成项，不把整份路线图勾选完成；真实第三方密钥、备份恢复、其他 worker、完整 UI 负向矩阵仍需独立证据。查看当前勾选范围请使用 [路线图](../30-open-source-roadmap.md)，而不是旧博客中的设计目标。

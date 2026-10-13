@@ -1,6 +1,6 @@
 # R08：认证令牌签发的持久性边界
 
-日期：2026-10-13。状态：实现和本机专项测试完成；推送后必须通过最新 head 的完整 CI 才可合并。对应 [路线图](../30-open-source-roadmap.md)。
+日期：2026-10-13。状态：实现和本机专项测试完成；独立 [PR #69](https://github.com/CoderDongHuang/InfoPulse/pull/69) 必须通过最新 head 的完整 CI 才可合并，实时合并证据见 PR。对应 [路线图](../30-open-source-roadmap.md)。
 
 ## 问题与修复范围
 

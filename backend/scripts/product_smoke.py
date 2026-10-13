@@ -13,7 +13,7 @@ async def run(base_url, output, browser_channel=None):
     if urlparse(base_url).hostname not in {"localhost", "127.0.0.1"}:
         raise ValueError("Acceptance writes are restricted to localhost")
     output.mkdir(parents=True, exist_ok=True)
-    checks, errors, server_errors = [], [], []
+    checks, errors, server_errors, component_errors = [], [], [], []
     completed = False
     username = "smoke-" + uuid.uuid4().hex[:10]
     password = "Acceptance-test-123!"
@@ -22,6 +22,8 @@ async def run(base_url, output, browser_channel=None):
         context = await browser.new_context(viewport={"width": 1440, "height": 1000})
         page = await context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("console", lambda message: component_errors.append(message.text)
+                if "Failed to resolve component" in message.text or "Failed to resolve directive" in message.text else None)
         page.on("response", lambda response: server_errors.append(f"{response.status} {urlparse(response.url).path}") if response.status >= 500 else None)
         try:
             await page.goto(base_url + "/knowledge")
@@ -61,6 +63,38 @@ async def run(base_url, output, browser_channel=None):
             await expect(page.locator(".el-message")).to_have_count(0, timeout=10000)
             await page.screenshot(path=str(output / "knowledge-desktop.png"), full_page=True)
             checks.append("UI create, upload, automatic index refresh and cited search")
+
+            report_title = "Acceptance component fixture"
+            report = await api("POST", "/reports", {"title": report_title, "report_type": "daily"}, expected=201)
+            release_reports = asyncio.Event()
+
+            async def hold_reports(route):
+                await release_reports.wait()
+                await route.continue_()
+
+            await page.route("**/api/v1/reports", hold_reports)
+            try:
+                await page.goto(base_url + "/reports")
+                mask = page.locator(".report-list .el-loading-mask")
+                await expect(mask).to_be_visible()
+                assert await mask.evaluate("element => getComputedStyle(element).position === 'absolute'"), "loading CSS missing"
+                release_reports.set()
+                await expect(mask).to_have_count(0)
+            finally:
+                release_reports.set()
+                await page.unroute("**/api/v1/reports", hold_reports)
+            await expect(page.get_by_role("heading", name=report_title)).to_be_visible()
+            await page.locator(".filters .el-select").click()
+            await page.get_by_role("option", name="日报", exact=True).click()
+            await page.locator(".report-list article").filter(has_text=report_title).get_by_title("删除", exact=True).click()
+            box = page.locator(".el-message-box")
+            await expect(box).to_be_visible()
+            assert await box.evaluate("element => getComputedStyle(element).backgroundColor !== 'rgba(0, 0, 0, 0)'"), "message box CSS missing"
+            await box.get_by_role("button", name="Cancel", exact=True).click()
+            await expect(box).not_to_be_visible()
+            assert (await api("GET", "/reports/" + report["id"]))["id"] == report["id"]
+            await page.screenshot(path=str(output / "components-desktop.png"), full_page=True)
+            checks.append("component styles, held-request loading, select and cancelled confirmation")
 
             graph = {"nodes": [{"id": "start", "type": "start"}, {"id": "end", "type": "end"}], "edges": [{"source": "start", "target": "end"}]}
             workflow = await api("POST", "/orchestration/workflows", {"name": "Acceptance workflow", "graph": graph}, expected=201)
@@ -108,11 +142,12 @@ async def run(base_url, output, browser_channel=None):
             checks.append("UI logout revokes server session and UI login works")
             assert not errors, errors
             assert not server_errors, server_errors
+            assert not component_errors, component_errors
             completed = True
         finally:
             if not completed:
                 await page.screenshot(path=str(output / "failure.png"), full_page=True)
-            (output / "result.json").write_text(json.dumps({"completed": completed, "checks": checks, "page_errors": errors, "server_errors": server_errors}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            (output / "result.json").write_text(json.dumps({"completed": completed, "checks": checks, "page_errors": errors, "server_errors": server_errors, "component_errors": component_errors}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             await browser.close()
     print(json.dumps({"passed": len(checks), "checks": checks}, ensure_ascii=False))
 

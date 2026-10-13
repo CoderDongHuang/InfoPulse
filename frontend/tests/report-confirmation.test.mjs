@@ -13,15 +13,21 @@ assert.ok(handler, 'report delete handler missing')
 const compiled = ts.transpileModule(handler.getText(ast), {
   compilerOptions: { target: ts.ScriptTarget.ES2022 },
 }).outputText
+const dialog = ts.transpileModule(readFileSync(new URL('../src/utils/dialog.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+}).outputText
 
 function scenario(confirm, deleteReport = async () => {}) {
   const calls = []
   const context = {
+    exports: {},
     ElMessageBox: { confirm },
     reportsApi: { remove: async id => { calls.push(['delete', id]); await deleteReport() } },
     ElMessage: { success: () => calls.push(['success']) },
     load: async () => calls.push(['reload']),
   }
+  vm.runInNewContext(dialog, context)
+  context.runDialog = context.exports.runDialog
   vm.runInNewContext(compiled, context)
   return { calls, execute: () => context.remove({ id: 'owned-report', title: 'Fixture' }) }
 }

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { graphApi } from "@/api/graph";
+import { runDialog } from "@/utils/dialog";
 const route = useRoute(),
   router = useRouter(),
   id = String(route.params.id),
@@ -85,16 +86,19 @@ async function rebuild() {
   }
 }
 async function addEntity() {
-  const name = await ElMessageBox.prompt("实体名称", "人工添加实体", {
+  const name = await runDialog(() => ElMessageBox.prompt("实体名称", "人工添加实体", {
     inputPattern: /\S+/,
     inputErrorMessage: "请输入名称",
-  });
-  const kind = await ElMessageBox.prompt(
+  }));
+  if (!name) return;
+  const kind = await runDialog(() => ElMessageBox.prompt(
     "类型：person/company/organization/product/project/location/industry/policy/event",
     "实体类型",
     { inputValue: "organization" },
-  );
-  const aliases = await ElMessageBox.prompt("可选，多个别名使用逗号分隔", "实体别名", { inputValue: "" });
+  ));
+  if (!kind) return;
+  const aliases = await runDialog(() => ElMessageBox.prompt("可选，多个别名使用逗号分隔", "实体别名", { inputValue: "" }));
+  if (!aliases) return;
   await graphApi.addEntity(id, {
     name: name.value,
     entity_type: kind.value,
@@ -106,8 +110,10 @@ async function addEntity() {
 }
 async function merge() {
   if (graph.value.nodes.length < 2) return;
-  const source = await ElMessageBox.prompt("输入待合并实体名称", "合并实体");
-  const target = await ElMessageBox.prompt("输入保留实体名称", "合并实体");
+  const source = await runDialog(() => ElMessageBox.prompt("输入待合并实体名称", "合并实体"));
+  if (!source) return;
+  const target = await runDialog(() => ElMessageBox.prompt("输入保留实体名称", "合并实体"));
+  if (!target) return;
   const a = graph.value.nodes.find((x: any) => x.name === source.value),
     b = graph.value.nodes.find((x: any) => x.name === target.value);
   if (!a || !b) {
@@ -122,9 +128,12 @@ async function merge() {
 }
 async function addRelation() {
   if (graph.value.nodes.length < 2) return;
-  const source = await ElMessageBox.prompt("输入起点实体名称", "添加实体关系");
-  const target = await ElMessageBox.prompt("输入终点实体名称", "添加实体关系");
-  const relation = await ElMessageBox.prompt("例如：发布、投资、隶属、关联政策", "关系类型");
+  const source = await runDialog(() => ElMessageBox.prompt("输入起点实体名称", "添加实体关系"));
+  if (!source) return;
+  const target = await runDialog(() => ElMessageBox.prompt("输入终点实体名称", "添加实体关系"));
+  if (!target) return;
+  const relation = await runDialog(() => ElMessageBox.prompt("例如：发布、投资、隶属、关联政策", "关系类型"));
+  if (!relation) return;
   const a = graph.value.nodes.find((x: any) => x.name === source.value);
   const b = graph.value.nodes.find((x: any) => x.name === target.value);
   if (!a || !b) { ElMessage.error("未找到实体"); return; }

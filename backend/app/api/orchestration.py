@@ -81,7 +81,10 @@ async def create_workflow(p:WorkflowCreate,ctx:TenantContext=Depends(get_tenant_
     require_permission(ctx,"agents.manage");check_workspace(ctx,p.workspace_id)
     try:graph=validate_graph(p.graph)
     except ValueError as exc:raise HTTPException(422,str(exc))
-    row=Workflow(organization_id=ctx.organization.id,workspace_id=p.workspace_id,name=p.name,description=p.description,created_by=user.id);db.add(row);await db.flush();version=WorkflowVersion(organization_id=ctx.organization.id,workflow_id=row.id,version=1,graph=graph,change_note=p.change_note,created_by=user.id);db.add(version);await db.flush();row.active_version_id=version.id;audit(db,ctx.organization.id,"workflow.created",actor_id=user.id,details={"workflow_id":row.id});return {**workflow_view(row),"version":1}
+    row=Workflow(organization_id=ctx.organization.id,workspace_id=p.workspace_id,name=p.name,description=p.description,created_by=user.id);db.add(row);await db.flush();version=WorkflowVersion(organization_id=ctx.organization.id,workflow_id=row.id,version=1,graph=graph,change_note=p.change_note,created_by=user.id);db.add(version);await db.flush();row.active_version_id=version.id;audit(db,ctx.organization.id,"workflow.created",actor_id=user.id,details={"workflow_id":row.id})
+    # Collaboration opens on a separate connection immediately after this response.
+    await db.commit()
+    return {**workflow_view(row),"version":1}
 @router.get("/workflows/{workflow_id}")
 async def workflow_detail(workflow_id:str,ctx:TenantContext=Depends(get_tenant_context),db:AsyncSession=Depends(get_db)):
     require_permission(ctx,"agents.read");row=await workflow_owned(db,ctx,workflow_id);versions=(await db.scalars(select(WorkflowVersion).where(WorkflowVersion.workflow_id==row.id).order_by(WorkflowVersion.version.desc()))).all();return {**workflow_view(row),"versions":[{"id":x.id,"version":x.version,"graph":x.graph,"change_note":x.change_note,"created_at":x.created_at} for x in versions]}

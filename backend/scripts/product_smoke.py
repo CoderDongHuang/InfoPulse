@@ -64,6 +64,38 @@ async def run(base_url, output, browser_channel=None):
             await page.screenshot(path=str(output / "knowledge-desktop.png"), full_page=True)
             checks.append("UI create, upload, automatic index refresh and cited search")
 
+            writes = []
+
+            def record_knowledge_write(request):
+                # Search uses POST for its query body but does not mutate knowledge data.
+                path = urlparse(request.url).path
+                if request.method in {"POST", "DELETE", "PATCH", "PUT"} and "/api/v1/knowledge" in path and not path.endswith("/search-test"):
+                    writes.append(f"{request.method} {urlparse(request.url).path}")
+
+            page.on("request", record_knowledge_write)
+            try:
+                for trigger in [
+                    page.get_by_role("button", name="新建知识库", exact=True),
+                    page.get_by_role("button", name="网页", exact=True),
+                    page.get_by_title("删除知识库", exact=True),
+                    page.get_by_title("删除文档", exact=True),
+                ]:
+                    await trigger.click()
+                    box = page.locator(".el-message-box")
+                    await expect(box).to_be_visible()
+                    await box.get_by_role("button", name="Cancel", exact=True).click()
+                    await expect(box).not_to_be_visible()
+                # A real follow-up interaction ensures all cancellation handlers settled.
+                await page.get_by_placeholder("输入检索问题").press("Enter")
+                await expect(page.locator(".result")).to_contain_text("acceptance.md")
+                assert not writes, f"cancelled knowledge operation sent a write: {writes}"
+                await expect(page.get_by_role("heading", name="Acceptance Knowledge")).to_be_visible()
+                await expect(page.locator(".doc .ready")).to_be_visible()
+                await page.screenshot(path=str(output / "knowledge-cancellation.png"), full_page=True)
+            finally:
+                page.remove_listener("request", record_knowledge_write)
+            checks.append("knowledge create/import/base-delete/document-delete cancellation sends no writes")
+
             report_title = "Acceptance component fixture"
             report = await api("POST", "/reports", {"title": report_title, "report_type": "daily"}, expected=201)
             release_reports = asyncio.Event()

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { workflowApi } from '@/api/workflows'
+import { runDialog } from '@/utils/dialog'
 
 const router = useRouter()
 const loading = ref(false)
@@ -33,7 +34,7 @@ async function load() {
   finally { loading.value = false }
 }
 async function remove(id: string) {
-  await ElMessageBox.confirm('删除后无法恢复，是否继续？', '删除报告', { type: 'warning' })
+  if (!await runDialog(() => ElMessageBox.confirm('删除后无法恢复，是否继续？', '删除报告', { type: 'warning' }))) return
   await workflowApi.deleteHistory(id)
   items.value = items.value.filter(item => item.id !== id)
 }

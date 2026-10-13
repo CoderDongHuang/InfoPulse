@@ -156,6 +156,8 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 进入视觉/转写 adapter 后的任何错误保守标为 `unknown`，提示人工核对提供商结果。队列只认领 queued，普通 retry 只接受 failed，unknown 两条路径都拒绝；不自动重发可能已经扣费的请求。源丢失、模型路由缺失等调用前的确定本地失败仍为 failed，可在修正后显式重试。现有 actual_cost 字段是估算，unknown 的默认零值不代表免费；后续需真实账单/回执核对和人工解决流程。
 
+同时关闭媒体 OpenAI SDK 默认的传输重试（`max_retries=0`），避免任务层拒绝重试但 SDK 已在内部重放。新增 adapter 构造参数回归，不请求外部服务；与错误恢复回归分开记录。
+
 本机隔离 Windows Python 3.10 文件 SQLite 的新 6 项与原媒体 4 项合计 **10/10** 通过（205.814 秒）。真实数据库事务、独立连接可见性和唯一约束生效；提供商用 mock，无付费调用。覆盖：源丢失终态及修复后显式重试成功；路由失败不调用模型；超时 unknown、worker 不重放和 API retry 返回 409；第二条 OCR 非法时第一条回滚；真实重复 ordinal 导致 IntegrityError 后仍可持久化 unknown；第二视频帧失败回滚证据、清理两帧并关闭临时目录。原成功图像 bbox/PII/usage 行为保持。
 
 复现（backend，隔离配置）：`python -m unittest tests.test_media_failures tests.test_multimodal -v`。失败回归需持久化 queued fixture，再由实际 process_media_once 认领；测试不会自行补成功提交。

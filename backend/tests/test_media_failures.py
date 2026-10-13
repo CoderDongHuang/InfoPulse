@@ -20,6 +20,13 @@ from tests.test_multimodal import png
 
 
 class MediaFailureTests(unittest.IsolatedAsyncioTestCase):
+    def test_media_sdk_does_not_implicitly_replay_uncertain_requests(self):
+        from app.services import multimodal
+        with patch.object(multimodal.settings, 'LLM_API_KEY', 'fixture-not-a-real-key'), \
+             patch('app.services.multimodal.AsyncOpenAI') as sdk:
+            multimodal.client()
+        self.assertEqual(sdk.call_args.kwargs['max_retries'], 0)
+
     async def asyncSetUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.engine = create_async_engine('sqlite+aiosqlite:///' + str(Path(self.tmp.name) / 'media.db'))

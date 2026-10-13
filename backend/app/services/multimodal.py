@@ -51,7 +51,9 @@ async def route_for(db,asset,task):
  return model,cost
 def client():
  if not settings.LLM_API_KEY:raise RuntimeError("multimodal model credential is not configured")
- return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE)
+ # A transport timeout cannot prove the provider did not process or bill the
+ # request. Reconciliation owns retries; disable the SDK's implicit replay.
+ return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE,max_retries=0)
 async def vision(data,mime,model):
  encoded=base64.b64encode(data).decode();prompt="Extract only visible evidence. Return strict JSON: {ocr:[{text,bbox:[x,y,w,h],confidence}], chart:{type,title,series,findings}, summary}. Do not infer hidden values. Empty arrays when unsupported."
  response=await client().chat.completions.create(model=model,messages=[{"role":"user","content":[{"type":"text","text":prompt},{"type":"image_url","image_url":{"url":f"data:{mime};base64,{encoded}"}}]}],temperature=0,max_tokens=3000,response_format={"type":"json_object"});return json.loads(response.choices[0].message.content or "{}")

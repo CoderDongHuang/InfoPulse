@@ -74,25 +74,32 @@ async def sso_exchange(
     if not membership:
         membership = OrganizationMember(organization_id=org.id, user_id=user.id, role_key="member"); db.add(membership)
     elif membership.status != "active": raise HTTPException(status_code=403, detail="Organization membership is inactive")
-    return await auth_service._generate_tokens(user, db)
+    tokens = await auth_service._generate_tokens(user, db)
+    # Identity, membership and session must be durable before tokens leave the API.
+    await db.commit()
+    return tokens
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(data: UserRegisterRequest, db: AsyncSession = Depends(get_db)):
     """Register a new account. Returns access + refresh tokens."""
     try:
-        return await auth_service.register_user(db, data)
+        tokens = await auth_service.register_user(db, data)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    await db.commit()
+    return tokens
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(data: UserLoginRequest, db: AsyncSession = Depends(get_db)):
     """Login with username/email + password. Returns tokens."""
     try:
-        return await auth_service.login_user(db, data.username, data.password)
+        tokens = await auth_service.login_user(db, data.username, data.password)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    await db.commit()
+    return tokens
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -118,11 +125,14 @@ async def refresh(payload: RefreshTokenRequest, db: AsyncSession = Depends(get_d
     claimed=await db.execute(update(AuthSession).where(AuthSession.id==sid,AuthSession.user_id==current_user.id,AuthSession.refresh_jti==token_payload["jti"],AuthSession.revoked_at.is_(None),AuthSession.expires_at>at).values(refresh_jti=jti,expires_at=at+timedelta(days=get_settings().REFRESH_TOKEN_EXPIRE_DAYS)))
     if claimed.rowcount!=1:raise HTTPException(401,"Refresh token already used, expired or revoked")
     token_data["sid"]=sid
-    return TokenResponse(
+    tokens = TokenResponse(
         access_token=create_access_token(token_data),
         refresh_token=create_refresh_token({**token_data,"jti":jti}),
         token_type="bearer",
     )
+    # Persist single-use consumption before exposing the replacement credentials.
+    await db.commit()
+    return tokens
 
 
 @router.post("/logout", status_code=204)

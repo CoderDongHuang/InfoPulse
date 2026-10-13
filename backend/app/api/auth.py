@@ -161,9 +161,12 @@ async def update_me(
 ):
     """Update the current user's profile."""
     try:
-        return await auth_service.update_user(db, current_user.id, data)
+        profile = await auth_service.update_user(db, current_user.id, data)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    # Return the new profile only after another connection can observe it.
+    await db.commit()
+    return profile
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

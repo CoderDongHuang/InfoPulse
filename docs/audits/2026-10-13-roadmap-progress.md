@@ -146,6 +146,8 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 
 改基后的 `b76c355` 在 [Release Gate 38367992804](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38367992804) 的 Python 3.10 产品验收失败：工作流 POST 201 后立即打开协作文档收到 404 `Workflow not found`。工作流创建仍只 flush，依赖响应后才 commit；现将工作流、初始版本、活动版本引用与审计在成功响应前同事务提交，不增加等待或重试。新增独立 SQLite 连接读取与真实协作资源校验、提交失败不得成功返回两项回归；首次测试传错上下文参数已修正，完整协作事务/协作/编排 **12/12** 通过（101.785 秒）。重启隔离 PostgreSQL 16 服务后 Edge + Vite dev 产品 **9/9** 通过，三类错误数组为空，证据为 `acceptance-artifacts/dialogs-transaction/result.json`。仍需修复后最新 head 的 CI；其他编排写操作的事务边界未由此全部证明。
 
+随后 `7ba193a` 的 [Release Gate 38370214003](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38370214003) 中 Python 3.11 产品失败：UI 退出跳转后旧令牌 GET `/auth/me` 仍返回 200。前端已等待 logout API，后端撤销仍在响应后提交。logout 现在 204 之前 commit；新增文件 SQLite 独立连接验证访问/refresh 同时立即拒绝，以及 commit 失败不返回成功且不持久化撤销。认证专项 **6/6** 通过（19.188 秒），重启隔离 PostgreSQL 后 Edge 产品 **9/9** 通过，错误数组为空，证据为 `acceptance-artifacts/dialogs-revocation/result.json`。原 ASGITransport 回归会等待整个应用调用完成，包含依赖清理，无法证明真实网络上的响应前持久性，因此保留原测试并补上不同层次的验证。注册、登录、refresh 和其他领域事务边界仍需后续专项审计。
+
 ## R06：行动执行步骤表格结构
 
 状态：实现及本机验收完成，独立 PR 最新 head 全部门禁通过后合并。

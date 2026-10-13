@@ -79,7 +79,7 @@ python -m unittest tests.test_recovery_harness tests.test_knowledge tests.test_k
 
 本机验证：
 
-- `npm test`：**9/9** 通过，含静态依赖图递归/循环/去重/多入口、超限拒绝、缺失 manifest 拒绝、全部 Vue 组件注册/样式覆盖、loading 指令、SSE 回归。
+- `npm test`：初版 **9/9** 通过，补充取消确认回归后 **12/12** 通过，含静态依赖图递归/循环/去重/多入口、超限拒绝、缺失 manifest 拒绝、全部 Vue 组件注册/样式覆盖、loading 指令、SSE、取消/关闭无删除、确认后单次删除与失败不冒充成功。
 - `npm run build`：类型检查、生产构建与新预算通过；第三方 VueUse PURE 注释位置警告仍存在，未隐藏或调高告警阈值。
 - 隔离 SQLite + 本机 Vite **preview 生产产物** + Edge 的产品脚本：**8/8** 通过，新增真实 API 请求阻塞下的 loading 样式、选择日报筛选、打开确认框并取消删除、确认报告仍存在。原有上传/检索、WS、36 路由、移动布局和撤销登录继续通过。
 - JSON 记录 `completed: true`，page_errors / server_errors / component_errors 均为空。初版新增脚本误将 create 响应当成包含 title，随后取消按钮误用了中文默认标签；已按实际契约及默认英文按钮修正，失败没有通过重试屏蔽。
@@ -93,3 +93,5 @@ npm run build
 ```
 
 浏览器截图保存于 CI 产品验收制品（`components-desktop.png`、知识桌面/移动图），本机证据在忽略的 `acceptance-artifacts/bundle` 中。动态路由、认证页图片、首屏 LCP/INP、冷缓存网络测量未纳入当前预算；本轮减少传输体积，不宣称已证明某个加载耗时或全核心按钮完成。
+
+首次 [Release Gate 38351461978](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38351461978) 的完整/最小生产容器通过，但开发服务器下两个 Python 产品环境均捕获 `page_errors: ["cancel"]`。原有报告删除 handler 没有处理 MessageBox 取消时的 Promise rejection；生产 Vue 的异常行为差异使本机生产预览没有将其上报为 pageerror。现已只处理预期的 cancel/close，其他异常继续传播，新增直接执行实际 handler 的回归；未忽略浏览器错误。其他模块的取消操作尚需逐页验收。

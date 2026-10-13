@@ -13,7 +13,17 @@ async function load() { loading.value = true; try { [reports.value, templates.va
 function sourceConfig() { const q = route.query; return { event_ids: q.event_id ? [String(q.event_id)] : [], analysis_ids: q.analysis_id ? [String(q.analysis_id)] : [], message_ids: q.message_id ? [String(q.message_id)] : [], content_ids: q.content_ids ? String(q.content_ids).split(',').filter(Boolean) : [], include_favorites: q.favorites === '1' } }
 function start(template: any) { draft.value = { title: `${template.name} ${new Date().toLocaleDateString()}`, report_type: template.id }; dialog.value = true }
 async function create() { if (!draft.value.title.trim()) return; creating.value = true; try { const result = await reportsApi.create({ ...draft.value, source_config: sourceConfig() }); dialog.value = false; await router.push(`/reports/${result.id}`) } finally { creating.value = false } }
-async function remove(item: any) { await ElMessageBox.confirm(`删除“${item.title}”？`, '删除报告'); await reportsApi.remove(item.id); ElMessage.success('报告已删除'); await load() }
+async function remove(item: any) {
+  try {
+    await ElMessageBox.confirm(`删除“${item.title}”？`, '删除报告')
+  } catch (action) {
+    if (action === 'cancel' || action === 'close') return
+    throw action
+  }
+  await reportsApi.remove(item.id)
+  ElMessage.success('报告已删除')
+  await load()
+}
 async function copy(item: any) { const detail = await reportsApi.detail(item.id); const created = await reportsApi.create({ title: `${item.title}（副本）`, report_type: item.report_type, source_config: detail.source_config }); await reportsApi.saveVersion(created.id, { content_markdown: detail.current_version.content_markdown, structured_content: detail.current_version.structured_content, citation_content_ids: detail.current_version.citations.map((c: any) => c.content_id) }); await router.push(`/reports/${created.id}`) }
 onMounted(load)
 </script>

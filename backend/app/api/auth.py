@@ -133,6 +133,8 @@ async def logout(current_user: User = Depends(get_current_user), credentials=Dep
     payload=verify_token(credentials.credentials)
     session=await db.get(AuthSession,payload["sid"])
     session.revoked_at=datetime.now(timezone.utc)
+    # A successful logout must already invalidate the token on other connections.
+    await db.commit()
 
 
 @router.get("/me", response_model=UserResponse)

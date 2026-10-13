@@ -123,3 +123,19 @@ CI 设置 UTF-8，并关闭采集、模型凭据、调度器及后台 worker；�
 Python 3.10 同样完整执行 196 项并出现同 9 项夹具错误（870.954 秒），无其他测试失败。修复后本机知识、生命周期、本地存储回归 **14/14** 通过（62.769 秒），`git diff --check` 通过。生产存储逻辑未修改；仍需新提交的 Windows 两版本全量证明。
 
 修复提交 `7d03678` 的 [Release Gate 38358918583](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918583) 与 [CodeQL 38358918582](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38358918582) 全部通过：Windows Python 3.10 job 15 分 32 秒、3.11 job 12 分 52 秒，包含完整 **198 项** unittest、API 契约、SQLite 迁移、pip check 和模块编译。Linux 后端、两个产品环境、完整/最小容器、前端、SDK 与漏洞门禁也通过。文档补充后仍检查最新 head，不将旧 head 证据替代合并门禁。
+
+## R05：多页面对话框取消与写入边界
+
+状态：以下范围实现并通过本机实际测试；独立 PR 的最新 head 仍须通过全部 CI 才合并。
+
+R03 产品测试发现报告删除的取消 rejection；逐页检查发现同样模式还存在于历史、订阅、多模态、知识库、图谱和预警页面。统一 `runDialog` 只将 Element Plus 的 `cancel` / `close` 转为正常退出；其他对话框错误及 API 错误继续传播。所有当前 MessageBox 操作都通过这一入口，取消后不调用写 API、不刷新、不清空选中对象；图谱 2/3 步输入在任何一步退出后立即终止。证据约束与确认后的实际参数保持不变。
+
+测试直接用 TypeScript parser 提取页面实际 handler，并执行实际 helper，模拟对话框及 API 边界；不复制业务逻辑。新增 13 项，包含 12 个领域操作的每一步 cancel/close、确认仅写一次、非预期错误及 API 失败传播、失败不刷新/不报成功，以及图谱无来源证据拒绝写入。报告已有 3 项继续通过，前端完整 **25/25** 通过。
+
+`npm run build` 的类型、生产构建、静态入口预算通过：JS raw 502,997 / gzip 173,247、CSS raw 136,414 字节。第三方 PURE 注释警告仍未隐藏。
+
+Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9/9** 通过：知识库新建、网页导入、删除库、删除文档分别打开真实弹框并取消；记录请求并断言没有知识数据写入，文档 ready 和库名仍可见，再检索来源。报告取消、真实大文件上传/检索、WS、协作草稿、36 路由、移动端、登录撤销均通过，`page_errors` / `server_errors` / `component_errors` 为空。截图单独保存为制品 `knowledge-cancellation.png`。
+
+首次新增检测误把携带查询体的 POST `/search-test` 计为写入，实际返回检索结果；随后按接口语义排除这一只读查询并重新运行，未忽略真实数据写入或浏览器错误。没有真实第三方调用或个人配置读取。
+
+复现：`frontend` 执行 `npm test`、`npm run build`；隔离验收服务运行后，在 `backend` 执行 `python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --browser-channel msedge --output ../acceptance-artifacts/dialogs`。CI 在两个 Python 产品环境及两个容器环境运行同一浏览器验收。当前单元模拟不能替代其余六页面全部按钮的浏览器操作；401/断网/超时、两用户协作、跨租户 UI 仍未标记完成。

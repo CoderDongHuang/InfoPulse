@@ -4,7 +4,7 @@
 
 ## R01：完整 Chromium / 媒体镜像
 
-状态：完整容器已运行通过；修复产品验收发现的事务竞态后待完整门禁复验。
+状态：完整容器运行依赖验收完成；独立 [PR #62](https://github.com/CoderDongHuang/InfoPulse/pull/62) 在全部门禁通过后合并。
 
 - `docker-compose.audit-full.yml` 仅覆盖隔离测试栈的后端 Dockerfile，不读取个人配置，不修改生产栈。
 - Release Gate 分别构建 minimal / full 镜像，两者都运行 Nginx 产品验收。
@@ -26,3 +26,5 @@ docker compose -p infopulse-audit -f docker-compose.audit.yml -f docker-compose.
 证据：CI 的 `container-acceptance-full` 制品包含 JSON、产品截图与容器日志。`completed: true` 只证明本地可选运行依赖及合成 fixture；真实网站登录、限流、站点变更、OCR/转录模型准确率仍是 P2 待验收内容。
 
 首次 [Release Gate 38346096716](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38346096716) 中 full/minimal 容器均通过，full 的 JSON 有 5 项运行检查；Python 3.11 产品验收发现创建 Agent 会话后立即查询偶发 404。根因是 handler 只 flush，事务提交依赖响应后的清理阶段。会话创建、更新、删除、反馈改为成功响应前显式提交；新增独立数据库连接可见性与提交失败回归，不通过重试或忽略 pageerror 隐藏问题。
+
+修复后本机 Agent 事务、Agent 业务、媒体、工作流共 **15/15** 回归通过；最终 Release Gate / CodeQL 状态及合并证据以 PR checks 为准。其他 API 中依赖 teardown 的事务提交仍需按领域审计，不能由这 4 个写操作的修复推定全项目已无竞态。

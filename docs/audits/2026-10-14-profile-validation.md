@@ -1,6 +1,6 @@
 # R13：资料输入边界与身份冲突
 
-日期：2026-10-14。状态：实现与本机专项验收完成；独立 PR 最新 head 全部 CI 通过后合并，最终证据以 PR 为准。
+日期：2026-10-14。状态：本项完成。[PR #74](https://github.com/CoderDongHuang/InfoPulse/pull/74) 的最新 head `a7e3cea` 通过 [Release Gate 38550277691](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550277691) 和 CodeQL 全部门禁，正常合并至 main，合并提交 `3de9ace`。Windows 3.10/3.11 job 分别耗时 38 分 55 秒 / 27 分 45 秒；此前取消记录保留下文，不能替代此次通过结果。
 
 ## 缺陷与修正
 
@@ -24,8 +24,6 @@ OpenAPI 审查范围仅 PUT /auth/me 的 409 和 UserUpdateRequest：optional �
 Windows Python 3.10 的资料校验、资料事务、认证与签发组合回归 **24/24** 通过，455.472 秒。API 契约 **354 paths**、编译和差异检查通过。前端 **25/25**、vue-tsc、Vite 与静态入口预算通过，JS raw 502,997、CSS raw 136,414 字节。沙箱内 Node 子进程出现 EPERM 后，经授权在沙箱外重跑原命令成功；没有把这一环境错误记作产品通过。
 
 隔离配置下，在 backend 运行 `python -m unittest tests.test_profile_validation tests.test_profile_transactions tests.test_auth tests.test_auth_issuance_transactions -v`；frontend 运行 `npm test`、`npm run build`。个人配置、业务数据库与付费提供商不参与验收。
-
-## 完成范围
 
 ## CI 预算修正
 

@@ -229,3 +229,24 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 ## R16：历史用户名与邮箱登录歧义
 
 状态：实现与本机专项验收完成，最新 head CI 通过后独立合并。含 @ 的输入仅查邮箱，其余仅查用户名，避免历史资料与另一账户邮箱同时匹配。真实双账户 HTTP 检查 access/refresh 身份、错误密码与缺失身份；新增一项与认证/签发 **13/13**（104.976 秒）。历史账户仍可通过自己的邮箱进入，不自动改名，详见 [R16](./2026-10-14-login-namespace.md)。
+
+## R17：本轮文档与工程博客
+
+状态：文档实现与本机校验完成，独立文档 PR 同样需要最新 head 全部门禁，不以文档变更跳过 CI。博客增加第 69–73 节，解释 R13–R16 的输入合同、数据库竞争、迁移维护窗口、历史身份歧义、分片与精确覆盖，以及仍未完成的删除、worker 恢复和跨域链路。当前约 7.8 万字符，不称为中文词数或新增篇幅。
+
+新增独立 [身份边界工程图](../blog-assets/2026-10-14/identity-boundaries.svg)，图片单独存放并说明来源，不充作产品截图。本机 17 份 Markdown、110 个本地链接与代码围栏校验通过；SVG XML 解析、Edge 无界面浏览器渲染及目视检查通过，文字与连线无裁切。路线图更新 Windows 串行预算的历史状态，当前以 R15 分片配置为准。
+
+## 2026-10-14 独立合并与集成结果
+
+以下四项已分别推送、通过最新 head 的完整门禁并正常合并 main；没有使用 admin、跳过检查或强制推送。R14–R16 按依赖顺序改指向 main，每次查询的 PR 合并提交仍是已验证的同一提交，未引入新的文件内容。各专项首行已补最终证据，本节补齐上文历史状态。
+
+| 项目 | PR | 通过 CI 的 head | main 合并提交 | Release Gate |
+| --- | --- | --- | --- | --- |
+| R13 资料输入合同 | [#74](https://github.com/CoderDongHuang/InfoPulse/pull/74) | a7e3cea | 3de9ace | [38550277691](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550277691) |
+| R14 数据库身份唯一性 | [#75](https://github.com/CoderDongHuang/InfoPulse/pull/75) | 1b1cd65 | 9192a8d | [38550391271](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550391271) |
+| R15 分片及覆盖门禁 | [#76](https://github.com/CoderDongHuang/InfoPulse/pull/76) | 048b4fa | 4ce7a9b | [38550460396](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550460396) |
+| R16 历史登录身份 | [#77](https://github.com/CoderDongHuang/InfoPulse/pull/77) | 92a6afd | fd1f87a | [38550471530](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550471530) |
+
+下载 R15、R16 的 backend-coverage 制品并核对 completed=true：R15 三环境各 237 项；加入 R16 后三环境各 **238 项**。R16 最长测试组分别为 Linux 3.11 **96.079 秒**、Windows 3.10 **775.905 秒**、Windows 3.11 **738.123 秒**，不含安装和 discovery，不与旧串行异机时长直接计算提速比。前端、SDK、双 PostgreSQL 产品环境、minimal/full 容器、依赖漏洞审计和双语言 CodeQL 均通过。
+
+文档与博客由独立 [PR #78](https://github.com/CoderDongHuang/InfoPulse/pull/78) 提交；补入上述合并记录后，仍要求最终 head 的完整 CI，通过与合并证据以该 PR 为准。本轮未完成账户删除跨存储一致性、其他 worker 的进程中断恢复、完整跨域 fixture、全按钮负向 UI、真实第三方验收和稳定版本承诺，路线图对应项保持 `[ ]`。

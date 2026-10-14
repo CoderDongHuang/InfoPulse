@@ -1,6 +1,6 @@
 # R16：历史身份数据与登录命名空间
 
-日期：2026-10-14。状态：实现与本机专项验收完成；独立 PR 最新 head 全部 CI 通过后合并。
+日期：2026-10-14。状态：本项完成。[PR #77](https://github.com/CoderDongHuang/InfoPulse/pull/77) 的最新 head `92a6afd` 通过 [Release Gate 38550471530](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550471530) 和 CodeQL 全部门禁；改指向 main 后已测试的合并提交保持不变，正常合并提交 `fd1f87a`。下载 CI 覆盖制品核对三个环境各 **238/238**、四组、每项恰一次。
 
 旧版资料 API 接受含 @ 的用户名，可以与另一账户的邮箱相同。即使两字段各自 lower() 唯一，原登录 OR 查询仍匹配两个用户，触发 MultipleResultsFound。不能用 first() 任取一个账户，否则可能让一个身份遮蔽另一个。
 

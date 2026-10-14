@@ -29,7 +29,7 @@
 - [x] 媒体普通异常回滚部分证据、源读取失败记录终态、模型调用后失败标 unknown 并拒绝重放，见 R07；进程中断/lease 恢复仍待单独验收。
 - [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
 - [x] Windows Python 3.10/3.11 持续 CI：完整 Python 依赖入口、pip check、全量后端测试、API 契约、SQLite 迁移；R04 两版本最新 CI 均通过，完整范围见逐项验收记录。
-- [x] Windows job 预算修正为 45 分钟，包含完整依赖安装、全量回归、契约和迁移；本机结构验证通过，实际 CI 与独立合并证据见 [R11](./audits/2026-10-13-windows-budget.md) 的 PR。没有删减测试；P1 的分层并行优化仍待完成。
+- [x] Windows 回归预算与完整覆盖：R11 的 45 分钟串行预算是历史修正；R13 后临时增至 60 分钟，R15 再拆为 unit 与三个 integration 分片，安装/契约/迁移独立保留。当前配置与验收见 [R15](./audits/2026-10-14-test-layers.md)，历史取消原因见 [R13](./audits/2026-10-14-profile-validation.md)。没有删减测试；耗时平衡仍可优化。
 - [x] 资料更新字段校验、规范化、显式 null 拒绝和 409 冲突响应，见 [R13](./audits/2026-10-14-profile-validation.md)。并发大小写唯一性数据库约束另行验收。
 - [x] 账户身份数据库 lower() 唯一性约束、存量冲突阻止升级和 PostgreSQL 并发写入验收，见 [R14](./audits/2026-10-14-identity-uniqueness.md)。Unicode 跨数据库排序规则不在本次保证内。
 - [x] 登录按邮箱/用户名命名空间消除历史 @ 用户名遮蔽邮箱问题，真实双账户 HTTP 验证身份及错误密码，见 [R16](./audits/2026-10-14-login-namespace.md)。历史账户可用自己的邮箱登录，不自动改名。

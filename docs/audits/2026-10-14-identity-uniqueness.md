@@ -1,6 +1,6 @@
 # R14：身份唯一性、存量迁移与并发写入
 
-日期：2026-10-14。状态：实现与本机专项验收完成；最终发布依据为独立 PR 最新 head 的完整 CI 和合并记录。
+日期：2026-10-14。状态：本项完成。[PR #75](https://github.com/CoderDongHuang/InfoPulse/pull/75) 的最新 head `1b1cd65` 通过 [Release Gate 38550391271](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550391271) 和 CodeQL 全部门禁；改指向 main 后已测试的合并提交保持不变，正常合并提交 `9192a8d`。双 Python PostgreSQL 产品环境均执行实际身份迁移与竞争写入验收。
 
 ## 问题与设计
 

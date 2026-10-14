@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
+  <title id="title">Identity boundaries: request, database and login</title>
+  <desc id="desc">Request validation produces 422, service conflicts produce 409, lower expression indexes serialize competing identities, commit precedes success, and login selects email or username namespace.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#57738c"/></marker></defs>
+  <rect width="1200" height="660" rx="20" fill="#f4f7fb"/>
+  <g font-family="Segoe UI, Arial, sans-serif" fill="#183047">
+    <text x="55" y="57" font-size="28" font-weight="700">Identity correctness requires three independent boundaries</text>
+    <text x="55" y="88" font-size="16" fill="#50677b">Engineering diagram · R13 / R14 / R16 · 2026-10-14 · not a product screenshot</text>
+    <g stroke="#a4bdcf" stroke-width="2" fill="#fff">
+      <rect x="55" y="130" width="320" height="195" rx="14"/>
+      <rect x="440" y="130" width="320" height="195" rx="14"/>
+      <rect x="825" y="130" width="320" height="195" rx="14"/>
+      <rect x="55" y="405" width="510" height="190" rx="14"/>
+      <rect x="635" y="405" width="510" height="190" rx="14"/>
+    </g>
+    <g font-size="22" font-weight="700">
+      <text x="78" y="167">1. Request contract</text><text x="463" y="167">2. Database authority</text><text x="848" y="167">3. Login namespace</text>
+      <text x="78" y="443">Observed outcomes</text><text x="658" y="443">Legacy migration safety</text>
+    </g>
+    <g font-size="18">
+      <text x="78" y="205">Omitted = preserve</text><text x="78" y="237">Explicit null = 422</text><text x="78" y="269">Trim; validate; normalize</text><text x="78" y="301">Username cannot contain @</text>
+      <text x="463" y="205">unique lower(username)</text><text x="463" y="237">unique lower(email)</text><text x="463" y="269">Race: one commit, one conflict</text><text x="463" y="301">Success only after commit</text>
+      <text x="848" y="205">Input contains @ → email</text><text x="848" y="237">Otherwise → username</text><text x="848" y="269">Verify password and status</text><text x="848" y="301">Never choose an arbitrary match</text>
+      <text x="78" y="481">422 / 409 leave stored profile unchanged</text><text x="78" y="513">Independent readers see successful updates</text><text x="78" y="545">Tokens identify the expected account</text><text x="78" y="577">Database lower() ≠ universal Unicode casefold</text>
+      <text x="658" y="481">Check BOTH fields before creating either index</text><text x="658" y="513">Stop on collision; preserve account data</text><text x="658" y="545">Owners resolve identities before retrying</text><text x="658" y="577">PostgreSQL table lock requires a write window</text>
+    </g>
+  </g>
+  <g stroke="#57738c" stroke-width="3" fill="none" marker-end="url(#arrow)"><path d="M 378 220 H 433"/><path d="M 763 220 H 818"/><path d="M 210 328 V 396"/><path d="M 982 328 V 396"/></g>
+</svg>

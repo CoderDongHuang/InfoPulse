@@ -35,6 +35,12 @@ export interface RegisterRequest {
   password: string
 }
 
+export interface ProfileUpdateRequest {
+  username?: string
+  email?: string
+  avatar_url?: string
+}
+
 // --- API Calls ---
 export const authApi = {
   async logout(token: string): Promise<void> {
@@ -60,7 +66,7 @@ export const authApi = {
     return res.data
   },
 
-  async updateMe(data: Partial<RegisterRequest>): Promise<UserResponse> {
+  async updateMe(data: ProfileUpdateRequest): Promise<UserResponse> {
     const res = await request.put('/auth/me', data)
     return res.data
   },

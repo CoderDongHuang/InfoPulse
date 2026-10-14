@@ -18,6 +18,7 @@
 12. [认证令牌持久性专项](./audits/2026-10-13-auth-durability.md)：签发与刷新响应前提交、独立连接和失败原子性。
 13. [Windows CI 预算 R11](./audits/2026-10-13-windows-budget.md)：真实时限取消、完整回归与有限预算。
 14. [资料更新持久性 R12](./audits/2026-10-13-profile-durability.md)：成功响应前提交、独立连接与失败回归。
+15. [资料输入校验 R13](./audits/2026-10-14-profile-validation.md)：省略与 null、身份规范化、409 冲突和真实 HTTP 回归。
 
 ## 产品与开发
 

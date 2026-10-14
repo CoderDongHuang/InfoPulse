@@ -2907,6 +2907,7 @@
               }
             }
           },
+          "409": {},
           "422": {
             "content": {
               "application/json": {
@@ -31427,38 +31428,18 @@
       "UserUpdateRequest": {
         "properties": {
           "avatar_url": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "maxLength": 500,
+            "type": "string"
           },
           "email": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "format": "email",
+            "maxLength": 100,
+            "type": "string"
           },
           "username": {
-            "anyOf": [
-              {
-                "maxLength": 50,
-                "minLength": 3,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "maxLength": 50,
+            "minLength": 3,
+            "type": "string"
           }
         },
         "type": "object"

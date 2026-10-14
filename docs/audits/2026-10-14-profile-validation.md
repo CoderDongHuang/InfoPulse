@@ -25,8 +25,6 @@ Windows Python 3.10 的资料校验、资料事务、认证与签发组合回归
 
 隔离配置下，在 backend 运行 `python -m unittest tests.test_profile_validation tests.test_profile_transactions tests.test_auth tests.test_auth_issuance_transactions -v`；frontend 运行 `npm test`、`npm run build`。个人配置、业务数据库与付费提供商不参与验收。
 
-## 完成范围
-
 ## CI 预算修正
 
 首个 head `737fd5f` 的 [Release Gate 38542482659](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38542482659) 中 Windows 3.11 通过，Windows 3.10 完整执行 229 项耗时 2616.649 秒（43.61 分钟），随后 job 在 45 分钟预算取消，契约/迁移未完整验收。取消不能当作通过，也不采用旧 head 原样重跑掩盖失败。临时将旧串行 Windows job 预算增至 60 分钟，所有依赖、回归、契约、迁移和失败传播保持；后续独立 R15 采用完整分片解决反馈时长。最终需要预算修正后最新 head 的完整门禁。

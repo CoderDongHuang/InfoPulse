@@ -1993,3 +1993,164 @@ async with sessions() as writer:
 本项只修正提交时序，没有证明资料 schema 的所有输入边界。显式 null、非法邮箱、大小写冲突和并发唯一性仍需独立处理。账户删除尤其不能直接照搬：知识删除服务可能先提交软删除，再操作外部文件；最后用户删除失败时，前面的副作用已经发生。要保证一致性，需要明确可恢复状态、外部清理任务与 legal hold 合同，不能在末尾多写一个 commit 就宣称整体原子。
 
 事务专项逐个推进的意义在于让每个结论都有自己的观察点和反例。完整后端集合从历史 217 项增加到含资料回归的 221 项后，应使用新提交的实际运行记录，而不是将旧总数当成最终验证。未完成的领域继续保留在路线图；每次扩展覆盖都需要真实测试与独立合并证据。
+
+## 69. 从“能够更新资料”到完整身份合同
+
+本节记录 2026-10-14 的实现与实验，不能将前文的历史待办当作本节之后仍未修复，也不能把本节的四个专项扩展为整个产品已正式完成。对应独立变更为 [R13 / PR #74](https://github.com/CoderDongHuang/InfoPulse/pull/74)、[R14 / PR #75](https://github.com/CoderDongHuang/InfoPulse/pull/75)、[R15 / PR #76](https://github.com/CoderDongHuang/InfoPulse/pull/76) 与 [R16 / PR #77](https://github.com/CoderDongHuang/InfoPulse/pull/77)，最终 CI 和合并状态应查对应 PR 的最新 head。
+
+### 69.1 为什么事务修好之后还有漏洞
+
+R12 保证成功资料在响应前提交，但事务不会替我们定义输入含义。一个请求完全可能成功提交错误身份；另一个请求可能因为 null 触发非空约束，返回服务器错误。正确性至少包含三个相互独立的命题：请求值符合身份合同、数据库在竞争下仍保持唯一、登录能够唯一解析到预期账户。只有其中一个成立，不能推出其他两个。
+
+![资料输入、数据库唯一性与登录命名空间](../blog-assets/2026-10-14/identity-boundaries.svg)
+
+图 69-1 是工程说明图，图片独立保存在博客资源目录，不是产品截图。箭头代表约束的依赖，底部说明了可观察结果与迁移前提。图片刻意保留 Unicode 和维护窗口限制，不把尚未验证的性质画成绿灯。
+
+### 69.2 省略与 null 是两种不同操作
+
+对部分资料更新，`{}` 表示没有修改字段；`{"email": null}` 是主动给字段赋空值。原模型把两者都声明为 Optional，存储层却不接受空邮箱，API 和数据库的合同因此不一致。修正后的规则为：省略保留、显式 null 返回 422、头像空字符串表示清空。
+
+```python
+class UserUpdateRequest(BaseModel):
+    model_config = ConfigDict(json_schema_extra=profile_schema)
+    username: str | SkipJsonSchema[None] = Field(None, min_length=3, max_length=50)
+    email: EmailStr | SkipJsonSchema[None] = Field(None, max_length=100)
+    avatar_url: str | SkipJsonSchema[None] = Field(None, max_length=500)
+
+    @field_validator("username", "email", "avatar_url", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("省略字段以保留原值；清空头像请使用空字符串")
+        return value
+```
+
+None 在这里是内部省略哨兵，不是外部接受值。默认值不触发 supplied-value validator，服务使用 `model_dump(exclude_unset=True)`，因此空 patch 不写字段。SkipJsonSchema 避免把内部哨兵公布为可接受 JSON 类型；额外 schema 处理移除默认 null。运行时行为与 OpenAPI 一起改变，不能只修 Python 校验而留下客户端误导。
+
+用户名还需要先 trim 再验证长度。若长度检查先运行，`" a "` 会以三个字符通过，然后被清理为一个字符。注册与更新共用规范化逻辑，并禁止 @，邮箱则用 EmailStr 校验后转小写。头像沿用原字符串合同，本项没有引入图片抓取或新的网络副作用。前端资料 DTO 单独定义，避免复用注册类型时意外带 password 或漏掉 avatar_url。
+
+### 69.3 422、409 和 500 的区分
+
+422 表示请求本身不能写入；409 表示格式正确的身份已被其他账户占用；提交失败仍应传播为失败，不能为了“友好”返回成功。资料服务在写字段前排除当前账户进行大小写查重，并在 flush 遇到唯一冲突时 rollback 后返回领域冲突异常。API 将这一异常映射为 409，用户不存在仍保持 404。
+
+服务没有增加 commit。业务组合仍可由上层事务控制；实际资料 API 在响应前提交。预检负责常见冲突的可解释反馈，数据库负责竞争时的最终裁决，两者用途不同。
+
+新增四项 schema 和四项真实 HTTP 回归。HTTP 使用实际 JWT、鉴权依赖、ORM 与文件 SQLite，测试依赖不替 API 提交；非法输入、重复身份和竞争 flush 失败后，另一连接必须仍读到原资料。合法输入、本人大小写变体、空 patch 和清空头像则必须立即可见。本机与既有认证/事务组合 **24/24** 通过，455.472 秒；前端 **25/25**、类型检查、构建与 **354 paths** 契约同步通过。
+
+## 70. 唯一性迁移是一项数据治理操作
+
+### 70.1 查重不能代替唯一约束
+
+考虑两个连接同时检查 SharedUser 尚未存在。它们都获得“可用”，随后分别写 SharedUser 和 SHAREDUSER。原区分大小写的唯一约束允许两者提交，登录的 lower 查询却可能返回两行。无论服务检查写得多仔细，只要检查和写入之间存在并发窗口，就需要数据库约束兜底。
+
+实际模型和迁移 0034 增加：
+
+```python
+op.create_index("uq_users_username_lower", "users", [sa.text("lower(username)")], unique=True)
+op.create_index("uq_users_email_lower", "users", [sa.text("lower(email)")], unique=True)
+```
+
+对于已有账户，索引创建不仅是 DDL，还提出“重复身份属于谁”的治理问题。不能自动删掉后一条、给后一条加后缀，或把邮箱大小写重复直接合并。账户可能拥有报告、组织、会话和隐私数据，字符串重复不证明它们属于同一个人。
+
+### 70.2 先检查全部字段，再创建任何索引
+
+迁移分别按 lower(username) 和 lower(email) 分组寻找重复，两项全部通过后才创建任一索引。PostgreSQL 持有 SHARE ROW EXCLUSIVE 表锁，阻止预检和创建之间出现新写入。失败提示指出冲突字段和人工解决要求，不输出具体身份值，也不改变账户记录。
+
+SQLite 的迁移测试直接调用实际 revision，检查升级、降级、再升级和两个冲突分支。PostgreSQL 则使用随机命名临时库，先升级到 33，写入两账户，再分别制造用户名或邮箱冲突；升级失败后完整字段快照、Alembic version 和索引状态都不能改变。修正冲突后升级并执行实际资料 API 的 409 检查。
+
+```python
+outcomes = await asyncio.gather(
+    writer("a", "SharedUser"),
+    writer("b", "SHAREDUSER"),
+)
+assert sorted(outcomes) == ["committed", "conflict"]
+```
+
+代码只展示竞争断言；实际脚本为每个 writer 建立独立 asyncpg 连接，用事件同步开始，每个 UPDATE 有独立数据库事务和超时预算。相同实验也对邮箱执行。测试结果为每次一提交、一唯一冲突，而不是两个 mock 按预设值返回。之后 head → 33 → head 的带数据往返必须保留全部身份字段。
+
+本机 SQLite **2/2**（0.037 秒），PostgreSQL 16 五组检查全部完成，脚本同时接入 Python 3.10/3.11 的产品 CI。随机临时库在 finally 删除，本机验收容器结束后关闭，卷保留。
+
+### 70.3 这项约束仍然有哪些不足
+
+lower() 是数据库操作，不是跨语言、跨排序规则的通用 Unicode casefold。SQLite 默认 lower 的能力与 PostgreSQL 排序规则可能不同，Python `.lower()` 也不能被当作完全相同的定义。本次实验使用 ASCII 大小写，没有声称所有国际化身份已统一。若将来定义规范化 identity_key，必须同时讨论存量转换、冲突政策、显示名和登录名分离、规则版本及索引变更。
+
+表锁与普通索引创建会阻塞写入，因此指南明确要求维护窗口和副本演练。大型表的在线索引创建涉及事务限制和失败索引清理，需要独立设计；不能简单在当前迁移加 CONCURRENTLY 就宣称无停机。降级删除新增索引后，大小写竞争保护消失，也需要作为回退风险说明。
+
+## 71. 字段内唯一不等于登录无歧义
+
+一个更隐蔽的反例来自旧数据：账户 A 的 email 是 `owner@example.com`，账户 B 的旧 username 恰好为同一字符串，但 B 的 email 是 `legacy@example.com`。两个字段内部都唯一，因此 0034 升级可以通过；原登录 OR 查询却匹配两个账户。
+
+新注册与资料规则禁止 @ 用户名，但历史值不会自动消失。把 scalar_one_or_none 换成 first 只会把报错变成任意选择账户，没有解决合同。R16 按输入划分命名空间：
+
+```python
+identity = User.email if "@" in username else User.username
+result = await db.execute(
+    select(User).where(func.lower(identity) == username.lower())
+)
+user = result.scalar_one_or_none()
+```
+
+邮箱形输入仅按邮箱认证，其余按用户名认证；密码与启用状态继续校验。历史账户 B 仍可通过自己的邮箱登录，随后修改用户名，不自动改名、不丢失数据。这是一次有明确兼容影响的安全修正，弃用说明记录了替代入口。
+
+真实双账户 HTTP 回归覆盖六种请求。每次成功都分别解析 access 和 refresh token，要求 sub 为指定用户；尝试使用 B 的密码登录 A 的邮箱必须 401，缺失邮箱和用户名也必须无令牌。只断言 200 不足以证明认证正确，验证最终身份才是这一实验的关键。专项与认证/签发组合 **13/13**（104.976 秒）通过，完整三环境 CI 在独立 PR 上继续执行。
+
+## 72. 完整回归如何并行，同时证明没有少跑
+
+### 72.1 超时也是需要保留的实验结果
+
+R13 初始 head 的 Windows 3.10 实际执行 229 项，2616.649 秒，随后 45 分钟 job 预算取消，后续契约和迁移没有完整验收。Windows 3.11 则通过。这不是测试断言失败，也不能算完整门禁通过。先将旧串行预算临时提高到 60 分钟，保留原失败和新 head 的重新验收；R15 再用独立分片方案解决反馈时长。
+
+### 72.2 分类按夹具，而不是按文件名或方法长度
+
+unit 类经过人工审阅，不使用数据库/文件 fixture。含 HTTP、ORM 或持久化夹具的类整体归 integration，即使其中一个方法仅校验字符串。未分类的新类默认 integration，避免开发者增加复杂测试时因漏维护白名单而完全不执行。
+
+以完整类名的 SHA256 映射三个分片，同类留在同一进程，保留类夹具和方法顺序。每个 job 独立安装依赖、使用临时存储及测试数据库。e2e 仍是独立 PostgreSQL 浏览器与容器验收，不把某个文件名中的 e2e 当作完整产品证据。
+
+```python
+class_id = identifier.rsplit(".", 1)[0]
+index = int.from_bytes(
+    hashlib.sha256(class_id.encode()).digest()[:8], "big"
+) % shard_count + 1
+```
+
+稳定分配易复现，但不天然平衡耗时。当前 55 unit、49/59/74 integration 的条数不均，最长片反而是 59 项，说明数量不能代替耗时。后续可以用已记录的逐项耗时做类级分配，但应保持可审查、可复现的计划，不能临时改分片绕过失败。
+
+### 72.3 两层完整性证明
+
+runner 发现完整集合后保存 discovered、partitions 和 planned，completed 初始为 false。执行结束保存实际 IDs、逐项秒数和失败列表。导入失败、重复发现、过期分类、空选择、漏跑、skip 或 expectedFailure 都不能通过；list-only 只是计划，没有验收含义。
+
+```python
+complete = Counter(result.executed) == Counter(report["planned"])
+success = (
+    result.wasSuccessful()
+    and complete
+    and not result.skipped
+    and not result.expectedFailures
+)
+```
+
+第二层由独立汇总 job 核对每个指定环境的四份原始 JSON：环境和分片必须齐全，各自发现集合及分区一致，计划等于该分区，实际执行等于计划。合并四组后，每个发现项必须恰好出现一次。一个 job 没运行、没有上传、只上传初始化报告，或重复执行同一片，都不能让总门禁通过。
+
+六项新增回归故意构造重复发现、失败导入、漏组、缺环境、伪计划、skip 和 expectedFailure，检查门禁确实拒绝它们。这些测试验证的是防止“绿色但少跑”的机制，而不是简单复制业务实现。
+
+### 72.4 本机测量和解释限制
+
+| 层 | 项数 | 测试阶段秒数 | 结果 |
+| --- | ---: | ---: | --- |
+| unit | 55 | 0.035 | 全通过 |
+| integration-1 | 49 | 296.694 | 全通过 |
+| integration-2 | 59 | 495.463 | 全通过 |
+| integration-3 | 74 | 398.742 | 全通过 |
+| 汇总覆盖 | 237 | 不以求和代表墙钟时长 | 每项恰好一次 |
+
+本机为 Windows Python 3.10，三个集成进程同时启动，最长测试阶段约 8.26 分钟。表格不包含安装和 discovery，不应与历史 hosted runner 的 43.61 分钟直接计算加速比；测试集合也不同。CI 在 Linux 3.11、Windows 3.10、Windows 3.11 各跑四组，共 12 个回归 job，并保存自己环境的统计。
+
+并行减少关键路径等待，但增加重复安装与计算成本。当前预算保留，待积累实际分片统计再收紧。跨平台完整依赖、SQLite 往返、契约、PostgreSQL 双版本产品、两种容器和漏洞审计继续保留，没有用删测试换数字。
+
+## 73. 下一阶段：恢复、删除与跨域 fixture
+
+完成四个专项后，项目仍定位 v0.x 开发者预览。现有源码可以公开研究和本地使用，不等于所有模块具备稳定版保证。下一批优先处理账户删除的可恢复状态和 legal hold、媒体/行动/编排 worker 中断恢复、全按钮负向 UI、固定跨域业务 fixture 和 SDK 真实 HTTP 合同。真实模型、SMTP、S3、SSO 与消息平台需要独立提供商环境，不填写虚构密钥。
+
+账户删除尤需先明确数据合同：外部文件与数据库不能通过一个本地事务共同原子提交。若先删文件再提交用户，数据库失败时文件已丢；若先提交再删文件，存储失败时可能留下孤儿。应考虑可恢复删除请求、授权与 hold 预检、后台幂等清理、逐对象结果和人工核对，再分别设计失败、重启和并发 worker 的观察点。这个方向当前仍是设计要求，没有在路线图勾成已完成。
+
+审计的价值是让完成范围可被反驳和复核：合法请求成功时查独立 reader；竞争唯一性时用独立连接；认证时查 token sub；并行时查实际执行 inventory；迁移失败时查数据、version 和两个索引。每个结论都有明确观察对象，比“运行没有报错”更适合开源项目的长期维护。

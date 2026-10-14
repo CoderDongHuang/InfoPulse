@@ -37,7 +37,7 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
             | (func.lower(User.email) == str(data.email).lower())
         )
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         raise ValueError("用户名或邮箱已被注册")
 
     # Create user
@@ -85,6 +85,10 @@ async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
     return result.scalar_one_or_none()
 
 
+class ProfileConflictError(ValueError):
+    """A profile identity is already assigned to another account."""
+
+
 async def update_user(db: AsyncSession, user_id: str, data: UserUpdateRequest) -> UserResponse:
     """Update user profile fields."""
     user = await get_user_by_id(db, user_id)
@@ -92,10 +96,22 @@ async def update_user(db: AsyncSession, user_id: str, data: UserUpdateRequest) -
         raise ValueError("User not found")
 
     update_data = data.model_dump(exclude_unset=True)
+    conditions = [func.lower(getattr(User, key)) == value.lower()
+                  for key, value in update_data.items() if key in {"username", "email"}]
+    if conditions:
+        from sqlalchemy import or_
+        conflict = await db.scalar(select(User.id).where(User.id != user_id, or_(*conditions)).limit(1))
+        if conflict:
+            raise ProfileConflictError("用户名或邮箱已被注册")
     for key, value in update_data.items():
         setattr(user, key, value)
 
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        # The database remains the authority when another writer wins the race.
+        await db.rollback()
+        raise ProfileConflictError("用户名或邮箱已被注册") from exc
     await db.refresh(user)
     return UserResponse.model_validate(user)
 

@@ -153,7 +153,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=UserResponse, responses={409: {"description": "Username or email already registered"}})
 async def update_me(
     data: UserUpdateRequest,
     current_user: User = Depends(get_current_user),
@@ -162,6 +162,8 @@ async def update_me(
     """Update the current user's profile."""
     try:
         profile = await auth_service.update_user(db, current_user.id, data)
+    except auth_service.ProfileConflictError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     # Return the new profile only after another connection can observe it.

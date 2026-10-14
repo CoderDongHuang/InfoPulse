@@ -8,6 +8,8 @@ For each preview PR, record its exact scope, tests, environment, artifact paths 
 
 Current automated coverage includes Linux backend tests, Windows Python 3.10/3.11 full dependencies/tests, the 354-path API schema snapshot, frontend tests/types/build/bundle budgets, SDK build, dependency audits, Linux dual-version PostgreSQL/browser acceptance and minimal/full container acceptance. The full image additionally runs real Chromium and synthetic ffmpeg fixtures. PostgreSQL populated migration/recovery coverage is explicitly limited to the documented 14 core tables and knowledge worker.
 
+Backend regression is classified into a reviewed unit layer and three deterministic integration shards in each of Linux 3.11, Windows 3.10 and Windows 3.11. The coverage job requires every discovered test exactly once per environment and rejects missing artifacts, skipped cases and incomplete execution. Contracts/migrations remain separate; PostgreSQL identity uniqueness has its own populated migration and competing-writer audit. See [R15](./audits/2026-10-14-test-layers.md) and [R14](./audits/2026-10-14-identity-uniqueness.md) for measured results and boundaries.
+
 Unchecked roadmap items are not waived by these jobs: all-button negative UI cases, other worker recovery, full populated migration coverage, external provider quality, backup restore, load/SLO targets and governance need their own evidence. The production commands below may change data or call configured services; do not run them against an unknown or personal environment just to fill a checklist.
 
 ## Automated gate

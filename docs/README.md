@@ -21,6 +21,7 @@
 15. [资料输入校验 R13](./audits/2026-10-14-profile-validation.md)：省略与 null、身份规范化、409 冲突和真实 HTTP 回归。
 16. [身份唯一性 R14](./audits/2026-10-14-identity-uniqueness.md)：带数据迁移、冲突修复流程和 PostgreSQL 竞争写入。
 17. [测试分层 R15](./audits/2026-10-14-test-layers.md)：完整 discovery、确定性分片、逐项耗时与三环境覆盖门禁。
+18. [登录命名空间 R16](./audits/2026-10-14-login-namespace.md)：历史用户名遮蔽邮箱的回归与兼容入口。
 
 ## 产品与开发
 

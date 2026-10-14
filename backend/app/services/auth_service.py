@@ -62,11 +62,12 @@ async def register_user(db: AsyncSession, data: UserRegisterRequest) -> TokenRes
 
 async def login_user(db: AsyncSession, username: str, password: str) -> TokenResponse:
     """Authenticate user and return JWT tokens."""
+    # New usernames cannot contain @. Legacy profiles may still have one:
+    # resolve email-shaped input only in the email namespace, without renaming
+    # old accounts or letting another account's username shadow an email.
+    identity = User.email if "@" in username else User.username
     result = await db.execute(
-        select(User).where(
-            (func.lower(User.username) == username.lower())
-            | (func.lower(User.email) == username.lower())
-        )
+        select(User).where(func.lower(identity) == username.lower())
     )
     user = result.scalar_one_or_none()
 

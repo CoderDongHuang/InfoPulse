@@ -1,6 +1,6 @@
 # R13：资料输入边界与身份冲突
 
-日期：2026-10-14。状态：实现与本机专项验收完成；独立 PR 最新 head 全部 CI 通过后合并，最终证据以 PR 为准。
+日期：2026-10-14。状态：本项完成。[PR #74](https://github.com/CoderDongHuang/InfoPulse/pull/74) 的最新 head `a7e3cea` 通过 [Release Gate 38550277691](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550277691) 和 CodeQL 全部门禁，正常合并至 main，合并提交 `3de9ace`。Windows 3.10/3.11 job 分别耗时 38 分 55 秒 / 27 分 45 秒；此前取消记录保留下文，不能替代此次通过结果。
 
 ## 缺陷与修正
 

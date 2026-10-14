@@ -1,6 +1,6 @@
 # R15：测试分层、并行执行与完整覆盖门禁
 
-日期：2026-10-14。状态：实现与完整本机分片验收完成；独立 PR 最新 head 的 CI 与合并记录为最终依据。
+日期：2026-10-14。状态：本项完成。[PR #76](https://github.com/CoderDongHuang/InfoPulse/pull/76) 的最新 head `048b4fa` 通过 [Release Gate 38550460396](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38550460396) 和 CodeQL 全部门禁；改指向 main 后已测试的合并提交保持不变，正常合并提交 `4ce7a9b`。CI 覆盖制品核对 Linux 3.11、Windows 3.10、Windows 3.11 各 **237/237**、四组、每项恰一次。后续 R16 新增一项，完整集合增至 238，不能混同两个历史时点。
 
 ## 原因与分类
 
@@ -8,7 +8,7 @@ R11 将 Windows job 预算增至 45 分钟，解决了完整回归被取消的�
 
 新 runner 每次发现完整测试集合，将人工审阅的无数据库/文件夹具类归为 unit，所有未分类新测试默认 integration。含数据库或 HTTP fixture 的类整体保留在集成层，不能因方法短就称为单元测试。以完整类名 SHA256 固定分到三个集成分片，同类保持一个进程、方法顺序保持稳定。
 
-当前 237 项：unit 55、integration-1 49、integration-2 59、integration-3 74。新增六项门禁测试覆盖确定性、类归属、发现失败/重复/过期分类、漏跑/skip/expectedFailure、缺失环境/分片和伪覆盖。
+R15 验收时 237 项：unit 55、integration-1 49、integration-2 59、integration-3 74。新增六项门禁测试覆盖确定性、类归属、发现失败/重复/过期分类、漏跑/skip/expectedFailure、缺失环境/分片和伪覆盖；新测试随 discovery 自动加入，数量不是 runner 的硬编码目标。
 
 ## CI 结构
 

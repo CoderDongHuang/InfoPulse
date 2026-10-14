@@ -7,7 +7,7 @@ SQLAlchemy ORM model for the `users` table.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -23,6 +23,10 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    __table_args__ = (
+        Index("uq_users_username_lower", func.lower(username), unique=True),
+        Index("uq_users_email_lower", func.lower(email), unique=True),
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str] = mapped_column(String(500), default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

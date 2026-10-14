@@ -196,6 +196,9 @@ jobs:
       - name: Populated PostgreSQL migration and process recovery
         working-directory: backend
         run: python -m scripts.postgres_recovery_smoke --output ../acceptance-artifacts/recovery
+      - name: Populated identity migration and competing writers
+        working-directory: backend
+        run: python -m scripts.identity_uniqueness_smoke --output ../acceptance-artifacts/identity
       - name: Start isolated API and Vite proxy
         run: |
           (cd backend && python -m scripts.acceptance_server --database-url postgresql+asyncpg://audit:audit-local-only@127.0.0.1:15432/infopulse_audit > audit-product-api.log 2>&1) &

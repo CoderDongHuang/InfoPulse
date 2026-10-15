@@ -19,7 +19,7 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #aab5c2; border-radius: 4px; }
-::selection { color: #fff; background: #237f78; }
+::selection { color: #fff; background: #2563eb; }
 
 @media (max-width: 768px) {
   .page-shell { width: min(100% - 24px, 1440px); padding-top: 18px; }

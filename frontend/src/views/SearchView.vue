@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { intelligenceApi, type SavedSearch, type SearchItem } from '@/api/intelligence'
 import { sourceApi, type DataSource } from '@/api/sources'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingState from '@/components/common/LoadingState.vue'
 
-const query = ref('')
+const route = useRoute()
+const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const filters = reactive({ source: '', type: '', language: '', sentiment: '', sort: 'relevance' })
-const items = ref<SearchItem[]>([]), total = ref(0), page = ref(1), loading = ref(false)
+const items = ref<SearchItem[]>([]), total = ref(0), page = ref(1), loading = ref(true)
+const searchError = ref(''), metadataError = ref('')
 const sources = ref<DataSource[]>([]), saved = ref<SavedSearch[]>([])
 const detail = ref<any>(null), detailLoading = ref(false), saveOpen = ref(false), saveName = ref('')
 const eventOpen = ref(false), selectedContent = ref<SearchItem | null>(null)
@@ -21,9 +24,16 @@ function params() {
 }
 async function search(reset = false) {
   if (reset) page.value = 1
-  loading.value = true
+  loading.value = true; searchError.value = ''
   try { const data = await intelligenceApi.search(params()); items.value = data.items; total.value = data.total }
+  catch { searchError.value = '搜索失败，请检查连接后重试；这不表示没有匹配内容。' }
   finally { loading.value = false }
+}
+async function loadMetadata() {
+  const [sourceResult, savedResult] = await Promise.allSettled([sourceApi.list(), intelligenceApi.savedSearches()])
+  if (sourceResult.status === 'fulfilled') sources.value = sourceResult.value
+  if (savedResult.status === 'fulfilled') saved.value = savedResult.value
+  metadataError.value = sourceResult.status === 'rejected' || savedResult.status === 'rejected' ? '部分来源筛选或已保存搜索读取失败，仍可继续搜索。' : ''
 }
 async function openDetail(item: SearchItem) {
   detailLoading.value = true; detail.value = { title: item.title }
@@ -45,13 +55,20 @@ async function createEvent() {
   eventOpen.value = false; ElMessage.success(`事件“${event.title}”已创建`); await search()
 }
 function date(value: string | null) { return value ? new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '时间未知' }
-onMounted(async () => { [sources.value, saved.value] = await Promise.all([sourceApi.list(), intelligenceApi.savedSearches()]); await search() })
+onMounted(() => { void loadMetadata(); void search() })
 </script>
 
 <template>
-  <div class="search-page"><header class="search-hero"><div class="page-shell"><p class="eyebrow">RESEARCH SEARCH</p><h1>搜索中心</h1><form class="search-box" @submit.prevent="search(true)"><el-icon><Search /></el-icon><input v-model="query" placeholder="搜索标题、正文、实体或自然语言问题" /><button type="submit">搜索</button></form><div v-if="saved.length" class="saved"><span>已保存</span><button v-for="item in saved" :key="item.id" type="button" @click="applySaved(item)">{{ item.name }}<i @click.stop="removeSaved(item.id)">×</i></button></div></div></header>
+  <div class="search-page"><header class="search-hero"><div class="page-shell"><p class="eyebrow">RESEARCH SEARCH</p><h1>搜索中心</h1><form class="search-box" @submit.prevent="search(true)"><el-icon><Search /></el-icon><input v-model="query" placeholder="搜索标题、正文、实体或自然语言问题" /><button type="submit" :disabled="loading">搜索</button></form><p v-if="metadataError" role="status">{{ metadataError }} <button type="button" @click="loadMetadata">重试读取</button></p><div v-if="saved.length" class="saved"><span>已保存</span><button v-for="item in saved" :key="item.id" type="button" @click="applySaved(item)">{{ item.name }}<i @click.stop="removeSaved(item.id)">×</i></button></div></div></header>
     <main class="page-shell search-layout"><aside class="filters"><header><h2>筛选</h2><button type="button" @click="Object.assign(filters,{source:'',type:'',language:'',sentiment:'',sort:'relevance'});search(true)">清空</button></header><label>来源<select v-model="filters.source" @change="search(true)"><option value="">全部来源</option><option v-for="source in sources" :key="source.id" :value="source.id">{{ source.name }}</option></select></label><label>内容类型<select v-model="filters.type" @change="search(true)"><option value="">全部类型</option><option value="article">资讯</option><option value="repository">开源项目</option><option value="paper">论文</option></select></label><label>语言<select v-model="filters.language" @change="search(true)"><option value="">全部语言</option><option value="zh">中文</option><option value="en">英文</option><option value="und">未识别</option></select></label><label>情绪<select v-model="filters.sentiment" @change="search(true)"><option value="">全部情绪</option><option value="positive">正向</option><option value="neutral">中性</option><option value="negative">负向</option><option value="unknown">未分析</option></select></label></aside>
-      <section class="results"><header><div><h2>{{ total }} 条真实内容</h2><p>结果来自已同步数据库，点击标题查看标准化字段。</p></div><div><select v-model="filters.sort" @change="search(true)"><option value="relevance">相关度</option><option value="newest">最新发布</option><option value="heat">互动热度</option></select><button type="button" @click="saveOpen=true"><el-icon><Collection /></el-icon>保存搜索</button></div></header><LoadingState v-if="loading" label="正在查询数据库" /><EmptyState v-else-if="!items.length" title="没有匹配内容" description="调整关键词或筛选条件，或先到数据源中心执行同步。" /><article v-for="item in items" v-else :key="item.id"><div class="result-meta"><span>{{ item.source.name }}</span><time>{{ date(item.published_at) }}</time><em>{{ item.content_type }}</em></div><button class="result-title" type="button" @click="openDetail(item)">{{ item.title }}</button><p>{{ item.summary || '该来源没有提供摘要。' }}</p><footer><span>热度 {{ item.heat }}</span><span>{{ item.sentiment }}</span><span>{{ item.language.toUpperCase() }}</span><button type="button" @click="prepareEvent(item)">创建事件</button><a :href="item.canonical_url" target="_blank" rel="noreferrer">打开原文<el-icon><TopRight /></el-icon></a></footer></article><nav v-if="total>12" class="pager"><button :disabled="page===1" @click="page--;search()">上一页</button><span>第 {{ page }} 页</span><button :disabled="page*12>=total" @click="page++;search()">下一页</button></nav></section></main>
+      <section class="results">
+        <header><div><h2>{{ total }} 条真实内容</h2><p>结果来自已同步数据库，点击标题查看标准化字段。</p></div><div><select v-model="filters.sort" @change="search(true)"><option value="relevance">相关度</option><option value="newest">最新发布</option><option value="heat">互动热度</option></select><button type="button" @click="saveOpen=true"><el-icon><Collection /></el-icon>保存搜索</button></div></header>
+        <LoadingState v-if="loading" label="正在查询数据库" />
+        <div v-else-if="searchError" role="alert"><p>{{ searchError }}</p><button type="button" @click="search()">重试搜索</button></div>
+        <EmptyState v-else-if="!items.length" title="没有匹配内容" description="调整关键词或筛选条件，或先到数据源中心执行同步。" />
+        <article v-for="item in items" v-else :key="item.id"><div class="result-meta"><span>{{ item.source.name }}</span><time>{{ date(item.published_at) }}</time><em>{{ item.content_type }}</em></div><button class="result-title" type="button" @click="openDetail(item)">{{ item.title }}</button><p>{{ item.summary || '该来源没有提供摘要。' }}</p><footer><span>热度 {{ item.heat }}</span><span>{{ item.sentiment }}</span><span>{{ item.language.toUpperCase() }}</span><button type="button" @click="prepareEvent(item)">创建事件</button><a :href="item.canonical_url" target="_blank" rel="noreferrer">打开原文<el-icon><TopRight /></el-icon></a></footer></article>
+        <nav v-if="!loading && !searchError && total>12" class="pager"><button :disabled="page===1" @click="page--;search()">上一页</button><span>第 {{ page }} 页</span><button :disabled="page*12>=total" @click="page++;search()">下一页</button></nav>
+      </section></main>
     <div v-if="detail" class="overlay" @click.self="detail=null"><aside class="detail-drawer"><header><p>CONTENT DETAIL</p><button @click="detail=null">×</button></header><LoadingState v-if="detailLoading" label="读取内容详情" /><template v-else><h2>{{ detail.title }}</h2><div class="detail-meta"><span>{{ detail.source?.name }}</span><span>{{ detail.author?.name }}</span><span>{{ date(detail.published_at) }}</span></div><p class="body">{{ detail.body || '来源未提供正文。' }}</p><dl><div><dt>内容类型</dt><dd>{{ detail.content_type }}</dd></div><div><dt>语言 / 地区</dt><dd>{{ detail.language }} / {{ detail.region || '未标注' }}</dd></div><div><dt>互动</dt><dd>{{ detail.metrics?.likes || 0 }} 赞 · {{ detail.metrics?.comments || 0 }} 评论</dd></div><div><dt>实体</dt><dd>{{ detail.entities?.join?.('、') || '待提取' }}</dd></div></dl><a :href="detail.canonical_url" target="_blank">打开原始来源</a></template></aside></div>
     <div v-if="saveOpen" class="overlay center" @click.self="saveOpen=false"><form class="modal" @submit.prevent="saveCurrent"><h2>保存当前搜索</h2><label>名称<input v-model="saveName" maxlength="120" placeholder="例如：每日 Agent 动态" required /></label><footer><button type="button" @click="saveOpen=false">取消</button><button class="primary">保存</button></footer></form></div>
     <div v-if="eventOpen" class="overlay center" @click.self="eventOpen=false"><form class="modal" @submit.prevent="createEvent"><h2>从内容创建事件</h2><label>事件标题<input v-model="eventForm.title" maxlength="500" required /></label><label>分类<select v-model="eventForm.category"><option value="technology">科技</option><option value="research">研究</option><option value="open-source">开源</option><option value="risk">风险</option></select></label><footer><button type="button" @click="eventOpen=false">取消</button><button class="primary">创建事件</button></footer></form></div>

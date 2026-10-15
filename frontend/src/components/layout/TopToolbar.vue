@@ -4,40 +4,41 @@ import { useRoute, useRouter } from 'vue-router'
 import { automationApi } from '@/api/automation'
 import { useUserStore } from '@/stores/user'
 
-const route = useRoute()
-const router = useRouter()
-const query = ref('')
-const unread = ref(0)
+const route = useRoute(), router = useRouter()
+const query = ref(''), unread = ref(0)
 let unreadTimer: ReturnType<typeof setInterval> | undefined
-async function loadUnread() { if (!useUserStore().isLoggedIn) return; try { unread.value = (await automationApi.unreadCount()).count } catch { unread.value = 0 } }
+let disposed = false
+async function loadUnread() {
+  if (!useUserStore().isLoggedIn) return
+  try { const result = await automationApi.unreadCount(); if (!disposed) unread.value = result.count }
+  catch { if (!disposed) unread.value = 0 }
+}
 onMounted(() => { void loadUnread(); unreadTimer = setInterval(loadUnread, 30000) })
-onBeforeUnmount(() => clearInterval(unreadTimer))
-
+onBeforeUnmount(() => { disposed = true; clearInterval(unreadTimer) })
 function search() {
   const value = query.value.trim()
-  if (value) void router.push({ path: '/insight', query: { q: value } })
+  if (value) void router.push({ path: '/search', query: { q: value } })
 }
 </script>
-
 <template>
-  <header class="toolbar">
-    <div class="context"><span>{{ route.meta.title || 'InfoPulse' }}</span><small>AI Intelligence Platform</small></div>
-    <form class="global-search" role="search" @submit.prevent="search">
-      <el-icon><Search /></el-icon>
-      <input v-model="query" aria-label="全局搜索" placeholder="搜索事件、企业、人物或关键词" />
-      <button type="submit" title="执行全局搜索" aria-label="执行全局搜索"><el-icon><Right /></el-icon></button>
-    </form>
-    <div class="tools">
-      <button class="notification-button" type="button" title="通知中心" @click="router.push('/notifications')"><el-icon><Bell /></el-icon><span v-if="unread">{{unread>99?'99+':unread}}</span></button>
-      <button class="source-state" type="button" title="查看当前数据源状态" @click="router.push('/hot-search')"><i></i><span>兼容数据源</span></button>
-      <button class="ai-button" type="button" title="询问 AI Agent" @click="router.push('/agent')"><el-icon><MagicStick /></el-icon><span>询问 AI</span></button>
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <div class="context"><span>工作空间</span><i>/</i><strong>{{ route.meta.title || 'InfoPulse' }}</strong></div>
+      <form class="global-search" role="search" @submit.prevent="search">
+        <el-icon><Search /></el-icon><input v-model="query" aria-label="全局搜索" placeholder="搜索事件、企业或关键词" />
+        <button type="submit" aria-label="执行全局搜索"><el-icon><Right /></el-icon></button>
+      </form>
+      <div class="tools">
+        <button class="notification-button" type="button" title="通知中心" aria-label="通知中心" @click="router.push('/notifications')"><el-icon><Bell /></el-icon><span v-if="unread">{{ unread > 99 ? '99+' : unread }}</span></button>
+        <button class="ai-button" type="button" @click="router.push('/agent')"><el-icon><MagicStick /></el-icon><span>询问 AI</span></button>
+      </div>
     </div>
-  </header>
+  </div>
 </template>
-
 <style scoped>
-.toolbar { position: fixed; left: 220px; right: 0; top: 0; z-index: 90; height: 56px; padding: 0 20px; display: grid; grid-template-columns: minmax(150px, .5fr) minmax(280px, 620px) minmax(190px, .5fr); gap: 18px; align-items: center; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,.94); backdrop-filter: blur(14px); }.context { min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }.context span { overflow: hidden; font-size: 13px; font-weight: 650; white-space: nowrap; text-overflow: ellipsis; }.context small { margin-top: 3px; color: var(--text-secondary); font-size: 10px; }.global-search { height: 36px; padding: 0 6px 0 10px; display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-soft); }.global-search:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }.global-search input { min-width: 0; border: 0; outline: 0; color: var(--text-primary); background: transparent; font-size: 12px; }.global-search > button { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 4px; display: grid; place-items: center; color: var(--text-secondary); background: transparent; cursor: pointer; }.global-search > button:hover { color: var(--color-primary); background: #e5edff; }.tools { display: flex; justify-content: flex-end; gap: 8px; }.tools button { height: 34px; padding: 0 11px; border-radius: 5px; display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 11px; }.source-state { border: 1px solid var(--border-color); color: var(--text-regular); background: white; }.source-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--color-warning); }.ai-button { border: 1px solid #1d4ed8; color: white; background: var(--color-primary); }
-@media (max-width: 980px) { .toolbar { left: 72px; grid-template-columns: 1fr minmax(260px, 480px) auto; }.context small, .source-state span { display: none; } }
-@media (max-width: 720px) { .toolbar { position: fixed; left: 0; top: 64px; height: 52px; padding: 0 12px; grid-template-columns: 1fr auto; }.context, .source-state { display: none !important; }.global-search { height: 36px; }.ai-button span { display: none; } }
+.toolbar { position: fixed; left: 0; right: 0; top: 68px; z-index: 90; height: 56px; border-bottom: 1px solid var(--border-color); background: #fff; }
+.toolbar-inner { max-width: 1600px; height: 100%; margin: auto; padding: 0 32px; display: flex; align-items: center; gap: 24px; }.context { display: flex; align-items: center; gap: 12px; font-size: 12px; min-width: 0; }.context span, .context i { color: var(--text-secondary); font-style: normal; }.context strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.global-search { margin-left: auto; width: min(380px, 40vw); height: 34px; padding: 0 6px 0 11px; display: grid; grid-template-columns: 16px minmax(0, 1fr) 24px; gap: 8px; align-items: center; border: 1px solid #e2e8f0; border-radius: 7px; color: #64748b; background: #f8fafc; }.global-search:focus-within { border-color: #2563eb; }.global-search input { min-width: 0; border: 0; background: transparent; outline: none; color: var(--text-primary); font-size: 12px; }.global-search button { border: 0; background: transparent; color: #64748b; cursor: pointer; display: grid; place-items: center; padding: 0; height: 26px; }
+.tools { display: flex; gap: 10px; }.tools button { height: 34px; padding: 0 11px; display: flex; align-items: center; gap: 7px; border-radius: 7px; cursor: pointer; font-size: 12px; }.notification-button { position: relative; border: 1px solid #e2e8f0; color: #475569; background: #fff; }.notification-button > span { position: absolute; right: -5px; top: -5px; padding: 1px 4px; border-radius: 8px; color: #fff; background: #b91c1c; font-size: 9px; }.ai-button { border: 1px solid #dbe5fa; color: #2453ae; background: #f0f5ff; }
+@media (max-width: 720px) { .toolbar { height: 52px; }.toolbar-inner { padding: 0 16px; gap: 12px; }.context { display: none; }.global-search { flex: 1; margin-left: 0; width: auto; }.tools { gap: 7px; }.ai-button span { display: none; } }
 </style>
-<style scoped>.notification-button{position:relative;border:1px solid var(--border-color);color:var(--text-regular);background:#fff}.notification-button>span{position:absolute;right:-5px;top:-6px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;display:grid;place-items:center;color:#fff;background:#d44e49;font-size:8px}</style>

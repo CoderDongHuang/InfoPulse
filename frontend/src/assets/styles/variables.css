@@ -1,15 +1,15 @@
 :root {
   --brand-blue: #2563eb;
-  --brand-cyan: #0f766e;
+  --brand-cyan: #2563eb;
   --brand-red: #df625b;
   --brand-yellow: #d9a83a;
-  --ink-950: #14231f;
-  --ink-800: #273c36;
-  --ink-600: #566d66;
-  --ink-400: #879791;
+  --ink-950: #182235;
+  --ink-800: #334155;
+  --ink-600: #475569;
+  --ink-400: #64748b;
   --surface: #ffffff;
   --surface-soft: #f1f5f9;
-  --line: #d8e0e8;
+  --line: #e2e8f0;
   --bg-page: #f5f7fa;
   --bg-card: #ffffff;
   --text-primary: var(--ink-950);
@@ -17,16 +17,16 @@
   --text-secondary: var(--ink-400);
   --border-color: var(--line);
   --color-primary: var(--brand-blue);
-  --color-primary-light: #4ba99f;
+  --color-primary-light: #eff4ff;
   --color-accent: var(--brand-cyan);
   --color-success: #16803c;
   --color-warning: #b45309;
   --color-danger: #dc2626;
-  --shadow-card: 0 12px 30px rgba(20, 45, 37, 0.07);
-  --shadow-hover: 0 18px 42px rgba(20, 45, 37, 0.12);
+  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.03);
+  --shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.07);
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-lg: 12px;
   --transition-fast: 160ms ease;
   --transition-normal: 260ms ease;
 }

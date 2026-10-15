@@ -12,23 +12,24 @@ import {
 import { useUserStore } from "@/stores/user";
 
 const routes: RouteRecordRaw[] = [
+  { path: '/profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { title: '个人中心', requiresAuth: true } },
   {
     path: "/",
     name: "Home",
     component: () => import("@/views/HomeView.vue"),
-    meta: { title: "Workspace", requiresAuth: true },
+    meta: { title: "工作台", requiresAuth: true },
   },
   {
     path: "/dashboard",
     name: "Dashboard",
     component: () => import("@/views/DashboardView.vue"),
-    meta: { title: "Dashboard", requiresAuth: true },
+    meta: { title: "数据概览", requiresAuth: true },
   },
   {
     path: "/discover",
     name: "Discover",
     component: () => import("@/views/DiscoverView.vue"),
-    meta: { title: "Discover", requiresAuth: true },
+    meta: { title: "发现", requiresAuth: true },
   },
   {
     path: "/analysis",

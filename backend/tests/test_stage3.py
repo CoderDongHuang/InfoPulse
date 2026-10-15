@@ -1,9 +1,9 @@
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.core.database import Base
 import app.models  # noqa
-from app.models.intelligence import ContentItem, DataSource, RecommendationFeedback, WatchTopic
+from app.models.intelligence import ContentItem, DataSource, RecommendationFeedback, WatchTopic, Report
 from app.models.user import User
 from app.services.stage3 import dashboard_data, discover_data, workspace_data
 from app.services.stage3 import keyword_matches
@@ -24,6 +24,27 @@ class Stage3ServiceTests(unittest.IsolatedAsyncioTestCase):
             dashboard = await dashboard_data(db); discover = await discover_data(db, user.id); workspace = await workspace_data(db, user.id)
             self.assertFalse(dashboard["has_data"]); self.assertEqual(discover["items"], []); self.assertEqual(workspace["recommendations"], [])
             self.assertTrue(workspace["source_warnings"])
+            self.assertEqual(workspace["recent_reports"], [])
+
+    async def test_workspace_reports_are_owned_live_recent_and_bounded(self):
+        async with self.sessions() as db:
+            owner = User(username="owner", email="owner@example.com", password_hash="x")
+            other = User(username="other", email="other@example.com", password_hash="x")
+            db.add_all([owner, other]); await db.flush()
+            now = datetime.now(timezone.utc)
+            for i in range(10):
+                db.add(Report(user_id=owner.id, title=f"Report {i}", report_type="daily",
+                              updated_at=now - timedelta(minutes=i)))
+            db.add_all([
+                Report(user_id=other.id, title="Private", report_type="daily", updated_at=now),
+                Report(user_id=owner.id, title="Deleted", report_type="daily",
+                       deleted_at=now, updated_at=now),
+            ])
+            await db.commit()
+            rows = (await workspace_data(db, owner.id))["recent_reports"]
+            self.assertEqual([row["title"] for row in rows], [f"Report {i}" for i in range(8)])
+            self.assertTrue(all(row["id"] and row["updated_at"] for row in rows))
+            self.assertEqual((await workspace_data(db, other.id))["recent_reports"][0]["title"], "Private")
 
     async def test_real_content_is_ranked_with_explanation_and_feedback_hides_it(self):
         async with self.sessions() as db:

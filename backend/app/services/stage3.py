@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.intelligence import ChannelFollow, ContentItem, DataSource, Event, EventContent, Favorite, RecentView, RecommendationFeedback, SyncRun, WatchTopic
+from app.models.intelligence import Report
 
 CHANNELS = {
  "ai": ("AI", ["ai", "artificial intelligence", "openai", "llm", "machine learning", "人工智能"]),
@@ -79,4 +80,10 @@ async def workspace_data(db: AsyncSession, user_id: str):
     recommendation = await discover_data(db, user_id, "ai", "day", 1, 5)
     favorites = [dict(target_type=x.target_type, target_id=x.target_id, created_at=dt(x.created_at)) for x in (await db.scalars(select(Favorite).where(Favorite.user_id == user_id).order_by(Favorite.created_at.desc()).limit(8))).all()]
     views = [dict(target_type=x.target_type, target_id=x.target_id, title=x.title, viewed_at=dt(x.viewed_at)) for x in (await db.scalars(select(RecentView).where(RecentView.user_id == user_id).order_by(RecentView.viewed_at.desc()).limit(8))).all()]
-    return {"date": datetime.now(timezone.utc).date().isoformat(), "attention": attention, "recommendations": recommendation["items"], "favorites": favorites, "recent_reports": [], "recent_views": views, "tasks": [], "source_warnings": recommendation["source_warnings"]}
+    reports = (await db.scalars(
+        select(Report).where(Report.user_id == user_id, Report.deleted_at.is_(None))
+        .order_by(Report.updated_at.desc(), Report.id.desc()).limit(8)
+    )).all()
+    recent_reports = [dict(id=row.id, title=row.title, report_type=row.report_type,
+                           status=row.status, updated_at=dt(row.updated_at)) for row in reports]
+    return {"date": datetime.now(timezone.utc).date().isoformat(), "attention": attention, "recommendations": recommendation["items"], "favorites": favorites, "recent_reports": recent_reports, "recent_views": views, "tasks": [], "source_warnings": recommendation["source_warnings"]}

@@ -98,6 +98,26 @@ async def run(base_url, output, browser_channel=None):
 
             report_title = "Acceptance component fixture"
             report = await api("POST", "/reports", {"title": report_title, "report_type": "daily"}, expected=201)
+            # The real workspace API must expose the owned report, not a hardcoded empty list.
+            await page.goto(base_url + "/")
+            recent_report = page.locator(".recent-report").filter(has_text=report_title)
+            await expect(recent_report).to_be_visible()
+            await recent_report.click()
+            await expect(page).to_have_url(base_url + "/reports/" + report["id"])
+
+            async def offline_workspace(route):
+                await route.abort("connectionfailed")
+
+            await page.route("**/api/v1/workspace", offline_workspace)
+            try:
+                await page.goto(base_url + "/")
+                await expect(page.locator(".workspace-page").get_by_role("alert")).to_contain_text("工作台加载失败")
+                await expect(page.get_by_text("暂无真实建议", exact=True)).to_have_count(0)
+            finally:
+                await page.unroute("**/api/v1/workspace", offline_workspace)
+            await page.get_by_role("button", name="重试加载", exact=True).click()
+            await expect(recent_report).to_be_visible()
+            checks.append("workspace owned report navigation and network-failure retry (no fake empty success)")
             release_reports = asyncio.Event()
 
             async def hold_reports(route):

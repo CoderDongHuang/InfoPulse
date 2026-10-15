@@ -252,3 +252,13 @@ Windows Python 3.10 + 隔离 PostgreSQL 16 + Vite dev + Edge 的产品脚本 **9
 下载 R15、R16 的 backend-coverage 制品并核对 completed=true：R15 三环境各 237 项；加入 R16 后三环境各 **238 项**。R16 最长测试组分别为 Linux 3.11 **96.079 秒**、Windows 3.10 **775.905 秒**、Windows 3.11 **738.123 秒**，不含安装和 discovery，不与旧串行异机时长直接计算提速比。前端、SDK、双 PostgreSQL 产品环境、minimal/full 容器、依赖漏洞审计和双语言 CodeQL 均通过。
 
 文档与博客由独立 [PR #78](https://github.com/CoderDongHuang/InfoPulse/pull/78) 提交；补入上述合并记录后，仍要求最终 head 的完整 CI，通过与合并证据以该 PR 为准。本轮未完成账户删除跨存储一致性、其他 worker 的进程中断恢复、完整跨域 fixture、全按钮负向 UI、真实第三方验收和稳定版本承诺，路线图对应项保持 `[ ]`。
+
+## R18：真实工作台报告与错误恢复
+
+状态：已独立合并 [PR #79](https://github.com/CoderDongHuang/InfoPulse/pull/79)，head `40c03fd` 最新完整 Release Gate/CodeQL 通过，main merge `0da5109`。后端专项 4/4、前端 29/29、Edge 产品 11/11，报告必须按当前账户、未删除和确定顺序选取，首页异常可恢复，收藏/反馈防重复及成功后刷新失败分别反馈。详见 [R18 专项与 CI 证据](./2026-10-15-workspace-reliability.md)。
+
+## R19：顶部导航、个人中心与搜索入口
+
+状态：限定实现与本机验收完成，推送后以本项最新 head 全部门禁作为合并条件。取消左栏偏移，三组顶部菜单、右上头像、个人中心真实 GET/PUT、移动抽屉；同步修复全局搜索 q 未传入和读取失败伪装空结果。新增 7 项前端测试，完整 36/36；生产构建及入口预算通过；真实 Edge 产品 12/12，三组错误数组为空。新增浏览器专项覆盖键盘焦点、真实邮箱冲突、断网重试、单次写入、reload 持久化、连续两次全局搜索和 1024/768/390/320px 布局。
+
+设计规范、README、文档索引与博客同步更新，5 张真实截图独立存放；无个人业务数据和虚构模型结果。详见 [R19 专项](./2026-10-15-top-navigation-profile.md)。其他业务页视觉统一、其余按钮负向矩阵、删除一致性、worker 中断和真实提供商仍未完成，不因界面改版勾选。

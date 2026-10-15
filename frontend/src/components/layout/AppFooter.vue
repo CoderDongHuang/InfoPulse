@@ -64,10 +64,10 @@ function updateTime() {
   align-items: center;
   padding: 0 24px;
   height: 44px;
-  border-top: 1px solid #263b35;
-  background: #14231f;
+  border-top: 1px solid var(--border-color);
+  background: #fff;
   font-size: 12px;
-  color: #82978f;
+  color: var(--text-secondary);
 }
 
 .footer-left,

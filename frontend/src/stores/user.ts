@@ -8,7 +8,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth'
-import type { UserResponse } from '@/api/auth'
+import type { ProfileUpdateRequest, UserResponse } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   let refreshInFlight: Promise<boolean> | null = null
@@ -44,6 +44,15 @@ export const useUserStore = defineStore('user', () => {
     const epoch = sessionEpoch
     const info = await authApi.getMe()
     if (epoch === sessionEpoch) userInfo.value = info
+  }
+
+  async function updateProfile(data: ProfileUpdateRequest) {
+    const epoch = sessionEpoch
+    const info = await authApi.updateMe(data)
+    // A late save must not restore a logged-out or replaced account in the UI.
+    if (epoch !== sessionEpoch) throw new Error('会话已变化，请重新登录。')
+    userInfo.value = info
+    return info
   }
 
   async function refreshToken() {
@@ -110,6 +119,7 @@ export const useUserStore = defineStore('user', () => {
     logout,
     refreshToken,
     fetchUserInfo,
+    updateProfile,
     tryRestoreSession,
   }
 })

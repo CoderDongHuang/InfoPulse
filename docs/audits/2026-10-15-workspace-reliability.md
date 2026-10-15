@@ -2,6 +2,8 @@
 
 日期：2026-10-15。范围是首页的数据链路，不是所有页面或全部跨域业务验收。
 
+合并证据：[PR #79](https://github.com/CoderDongHuang/InfoPulse/pull/79) 的最新 head `40c03fd1cc084fd89bd59e16962c3745e506af2b` 通过 [Release Gate 38695614232](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38695614232) 和 [CodeQL 38695614231](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38695614231) 全部门禁，于 2026-10-15 正常 merge，main 提交 `0da510970d478fd2166881f7af8456dc52f81861`。包含 Windows 三分片回归、覆盖汇总、双 Python 产品和 minimal/full 容器；没有强推或绕过检查。
+
 ## 问题与修复
 
 - [x] 后端固定返回 `recent_reports=[]`：改为当前用户、未删除、按更新时间及 ID 倒序的最近 8 条报告；不暴露正文和其他用户数据。

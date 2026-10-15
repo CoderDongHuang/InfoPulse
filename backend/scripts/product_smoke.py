@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from playwright.async_api import async_playwright, expect
+from scripts.ui_shell_smoke import check_shell
 
 
 async def run(base_url, output, browser_channel=None):
@@ -193,6 +194,9 @@ async def run(base_url, output, browser_channel=None):
                 await page.unroute("**/api/v1/actions", action_fixture)
                 await page.unroute("**/api/v1/actions/table-fixture", action_fixture)
             checks.append("nonempty action detail table renders header and step in valid HTML sections (display fixture)")
+
+            username = await check_shell(page, api, base_url, output, username, password)
+            checks.append("top navigation/keyboard/search, profile persistence/conflict/offline retry, mobile 1024/768/390/320px")
 
             for route in ["/", "/dashboard", "/discover", "/search", "/events", "/analysis", "/agent", "/reports", "/subscriptions", "/tasks", "/notifications", "/history", "/sources", "/orchestration", "/multimodal", "/global-intelligence", "/action-loop", "/commercial-operations", "/enterprise", "/developers", "/autonomy", "/trust-network", "/global-coordination", "/adaptive-os", "/provable-autonomy", "/planetary-resilience", "/cognitive-infrastructure", "/cognitive-commons", "/insight", "/mouthpiece", "/timeline", "/hot-search", "/watchlist", "/alerts", "/bi", "/help"]:
                 await page.goto(base_url + route)

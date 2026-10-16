@@ -10,6 +10,8 @@ from app.services.knowledge import knowledge_worker_loop
 from app.services.orchestration import orchestration_worker_loop
 from app.services.multimodal import media_worker_loop
 from app.services.action_worker import action_operations_loop
+from app.services.source_sync import source_sync_loop
+from app.config import get_settings
 
 
 async def run(role: str):
@@ -17,6 +19,7 @@ async def run(role: str):
     await init_db()
     stop = asyncio.Event()
     tasks = []
+    if role in {"sources", "all"} and get_settings().SOURCE_SYNC_ENABLED: tasks.append(asyncio.create_task(source_sync_loop(stop)))
     if role in {"scheduler", "all"}: tasks.append(asyncio.create_task(scheduler_loop(stop)))
     if role in {"knowledge", "all"}: tasks.append(asyncio.create_task(knowledge_worker_loop(stop)))
     if role in {"orchestration", "all"}: tasks.append(asyncio.create_task(orchestration_worker_loop(stop)))
@@ -31,7 +34,7 @@ async def run(role: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--role", choices=["scheduler", "knowledge", "orchestration", "media", "actions", "all"], required=True)
+    parser.add_argument("--role", choices=["sources", "scheduler", "knowledge", "orchestration", "media", "actions", "all"], required=True)
     args = parser.parse_args()
     try: asyncio.run(run(args.role))
     except KeyboardInterrupt: pass

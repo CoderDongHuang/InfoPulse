@@ -21,6 +21,7 @@ from app.services.knowledge import knowledge_worker_loop
 from app.services.orchestration import orchestration_worker_loop
 from app.services.multimodal import media_worker_loop
 from app.services.action_worker import action_operations_loop
+from app.services.source_sync import source_sync_loop
 from app.core.observability import setup_observability
 
 # Ensure all models are imported before table creation
@@ -48,6 +49,7 @@ async def lifespan(app: FastAPI):
     print(f"[InfoPulse] Crawler enabled: {settings.CRAWLER_ENABLED}")
     scheduler_stop = asyncio.Event()
     run_embedded = settings.RUN_BACKGROUND_WORKERS_IN_API
+    source_task = asyncio.create_task(source_sync_loop(scheduler_stop)) if run_embedded and settings.SOURCE_SYNC_ENABLED else None
     scheduler_task = asyncio.create_task(scheduler_loop(scheduler_stop)) if run_embedded and settings.TASK_SCHEDULER_ENABLED else None
     knowledge_stop = asyncio.Event()
     knowledge_task = asyncio.create_task(knowledge_worker_loop(knowledge_stop)) if run_embedded else None
@@ -64,6 +66,9 @@ async def lifespan(app: FastAPI):
     # --- Shutdown ---
     print("[InfoPulse] Shutting down...")
     scheduler_stop.set()
+    if source_task:
+        source_task.cancel()
+        await asyncio.gather(source_task, return_exceptions=True)
     if scheduler_task:
         await scheduler_task
     knowledge_stop.set()

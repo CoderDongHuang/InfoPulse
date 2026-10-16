@@ -4,8 +4,10 @@ import asyncio
 from datetime import datetime, timezone
 
 import httpx
+from bs4 import BeautifulSoup
 
 from app.services.collectors.base import NormalizedContent
+from app.services.collectors.http import public_ssl_context
 
 
 class HackerNewsCollector:
@@ -22,7 +24,7 @@ class HackerNewsCollector:
             return await self._collect(self._client, limit)
 
         timeout = httpx.Timeout(12.0, connect=5.0)
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, verify=public_ssl_context()) as client:
             return await self._collect(client, limit)
 
     async def _collect(self, client: httpx.AsyncClient, limit: int) -> list[NormalizedContent]:
@@ -47,7 +49,7 @@ class HackerNewsCollector:
                     external_id=story_id,
                     canonical_url=str(payload.get("url") or discussion_url),
                     title=title,
-                    body=str(payload.get("text") or ""),
+                    body=BeautifulSoup(str(payload.get("text") or ""), "html.parser").get_text(" ", strip=True),
                     author_name=str(payload.get("by") or ""),
                     author_external_id=str(payload.get("by") or ""),
                     content_type="article",

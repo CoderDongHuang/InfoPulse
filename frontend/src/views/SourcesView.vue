@@ -4,6 +4,12 @@ import { ElMessage } from 'element-plus'
 import { sourceApi, type DataSource, type SyncRun } from '@/api/sources'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingState from '@/components/common/LoadingState.vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+const isAdmin = computed(() => !!userStore.userInfo?.is_admin)
+const loadError = ref('')
+const logsError = ref('')
 
 const sources = ref<DataSource[]>([])
 const loading = ref(true)
@@ -30,7 +36,8 @@ function intervalLabel(minutes: number) {
 }
 async function loadSources() {
   loading.value = true
-  try { sources.value = await sourceApi.list() } catch { sources.value = [] } finally { loading.value = false }
+  loadError.value = ''
+  try { sources.value = await sourceApi.list() } catch { loadError.value = '读取数据源失败，请刷新重试。' } finally { loading.value = false }
 }
 async function testConnection(source: DataSource) {
   busy.value[source.id] = 'test'
@@ -38,7 +45,7 @@ async function testConnection(source: DataSource) {
     const result = await sourceApi.test(source.id)
     ElMessage[result.status === 'healthy' ? 'success' : 'error'](result.message)
     await loadSources()
-  } finally { delete busy.value[source.id] }
+  } catch { ElMessage.error('连接检测失败，请稍后重试。') } finally { delete busy.value[source.id] }
 }
 async function syncNow(source: DataSource) {
   busy.value[source.id] = 'sync'
@@ -47,16 +54,18 @@ async function syncNow(source: DataSource) {
     if (run.status === 'succeeded') ElMessage.success(`同步完成：新增 ${run.created_count}，更新 ${run.updated_count}，跳过 ${run.skipped_count}`)
     else ElMessage.error(run.error_summary || '同步失败')
     await loadSources()
-  } finally { delete busy.value[source.id] }
+  } catch { ElMessage.error('同步请求失败，请刷新状态后重试。') } finally { delete busy.value[source.id] }
 }
 async function toggleSource(source: DataSource) {
   busy.value[source.id] = 'toggle'
   try { Object.assign(source, await sourceApi.update(source.id, { enabled: !source.enabled })) }
-  finally { delete busy.value[source.id] }
+  catch { ElMessage.error('来源状态修改失败，请重试。') } finally { delete busy.value[source.id] }
 }
 async function openLogs(source: DataSource) {
-  logSource.value = source; logsLoading.value = true
-  try { runs.value = await sourceApi.runs(source.id) } finally { logsLoading.value = false }
+  logSource.value = source; logsLoading.value = true; runs.value = []; logsError.value = ''
+  try { const result = await sourceApi.runs(source.id); if (logSource.value?.id === source.id) runs.value = result }
+  catch { if (logSource.value?.id === source.id) logsError.value = '同步记录读取失败，请关闭后重试。' }
+  finally { if (logSource.value?.id === source.id) logsLoading.value = false }
 }
 async function checkRss() {
   if (!rssForm.feed_url) return
@@ -64,7 +73,7 @@ async function checkRss() {
   try {
     const result = await sourceApi.validateRss(rssForm.feed_url)
     rssCheck.value = result.status === 'healthy' ? `连接成功，读取到 ${result.item_count} 条样本` : result.message
-  } finally { rssChecking.value = false }
+  } catch { rssCheck.value = '验证失败，请检查地址和网络后重试。' } finally { rssChecking.value = false }
 }
 async function addRss() {
   if (!rssForm.name.trim() || !rssForm.feed_url.trim()) return
@@ -73,11 +82,12 @@ async function addRss() {
     await sourceApi.addRss({ ...rssForm, name: rssForm.name.trim(), feed_url: rssForm.feed_url.trim() })
     rssOpen.value = false; Object.assign(rssForm, { name: '', feed_url: '', sync_interval_minutes: 60 }); rssCheck.value = ''
     ElMessage.success('RSS 来源已添加'); await loadSources()
-  } finally { rssSaving.value = false }
+  } catch { ElMessage.error('添加来源失败，请检查输入后重试。') } finally { rssSaving.value = false }
 }
 async function removeRss(source: DataSource) {
   if (!window.confirm(`确认删除 RSS 来源“${source.name}”？`)) return
-  await sourceApi.remove(source.id); ElMessage.success('RSS 来源已删除'); await loadSources()
+  try { await sourceApi.remove(source.id); ElMessage.success('RSS 来源已删除'); await loadSources() }
+  catch { ElMessage.error('删除来源失败，请重试。') }
 }
 onMounted(loadSources)
 </script>
@@ -86,9 +96,10 @@ onMounted(loadSources)
   <div class="sources-page">
     <header class="sources-head page-shell">
       <div><p class="eyebrow">DATA OPERATIONS</p><h1>数据源中心</h1><span>管理真实外部数据的连接、同步与健康状态。</span></div>
-      <button class="primary" type="button" @click="rssOpen = true"><el-icon><Plus /></el-icon>添加 RSS</button>
+      <button v-if="isAdmin" class="primary" type="button" @click="rssOpen = true"><el-icon><Plus /></el-icon>添加 RSS</button>
     </header>
     <main class="page-shell source-content">
+      <p v-if="!isAdmin">公开来源由后台按周期同步，你可以查看状态和同步记录；修改来源需要管理员权限。停用只停止后续采集，已收录内容仍可检索。</p>
       <section class="metrics" aria-label="数据源状态摘要">
         <div><span>全部来源</span><strong>{{ sources.length }}</strong></div><div><span>连接正常</span><strong class="success">{{ healthyCount }}</strong></div>
         <div><span>连接异常</span><strong class="danger">{{ errorCount }}</strong></div><div><span>自定义 RSS</span><strong>{{ rssCount }}</strong></div>
@@ -96,20 +107,29 @@ onMounted(loadSources)
       <section class="source-table">
         <header><div><h2>来源与同步</h2><p>官方 API 与用户添加的公开订阅源</p></div><button type="button" title="刷新列表" @click="loadSources"><el-icon><Refresh /></el-icon></button></header>
         <LoadingState v-if="loading" label="正在读取数据源" />
+        <p v-else-if="loadError" role="alert">{{ loadError }}<button @click="loadSources">重试</button></p>
         <EmptyState v-else-if="!sources.length" title="暂无数据源" description="添加 RSS 或检查后端迁移是否已执行。" />
         <div v-else class="table-scroll"><table><thead><tr><th>来源</th><th>健康状态</th><th>同步周期</th><th>最后成功</th><th>启用</th><th>操作</th></tr></thead><tbody>
           <tr v-for="source in sources" :key="source.id">
             <td><div class="source-name"><span :class="`source-logo ${source.key.split('-')[0]}`">{{ source.name.slice(0, 1) }}</span><div><strong>{{ source.name }}</strong><a :href="source.base_url" target="_blank" rel="noreferrer">{{ source.source_type === 'rss' ? 'RSS' : '官方 API' }}<el-icon><TopRight /></el-icon></a></div></div></td>
             <td><span class="health" :class="source.health_status"><i></i>{{ source.health_status === 'healthy' ? '正常' : source.health_status === 'error' ? '异常' : '待检测' }}</span><small v-if="source.last_error" class="last-error" :title="source.last_error">{{ source.last_error }}</small></td>
             <td>{{ intervalLabel(source.sync_interval_minutes) }}</td><td>{{ dateTime(source.last_success_at) }}</td>
-            <td><button class="switch" :class="{ on: source.enabled }" type="button" :disabled="!!busy[source.id]" :aria-label="source.enabled ? '停用来源' : '启用来源'" @click="toggleSource(source)"><i></i></button></td>
-            <td><div class="row-actions"><button type="button" :disabled="!!busy[source.id]" @click="testConnection(source)">{{ busy[source.id] === 'test' ? '检测中' : '测试连接' }}</button><button type="button" class="sync" :disabled="!!busy[source.id] || !source.enabled" @click="syncNow(source)">{{ busy[source.id] === 'sync' ? '同步中' : '立即同步' }}</button><button type="button" title="同步记录" @click="openLogs(source)"><el-icon><Clock /></el-icon></button><button v-if="source.source_type === 'rss'" class="delete" type="button" title="删除 RSS" @click="removeRss(source)"><el-icon><Delete /></el-icon></button></div></td>
+            <td><button v-if="isAdmin" class="switch" :class="{ on: source.enabled }" type="button" :disabled="!!busy[source.id]" :aria-label="source.enabled ? '停用来源' : '启用来源'" @click="toggleSource(source)"><i></i></button><span v-else>{{ source.enabled ? '已启用' : '已停用' }}</span></td>
+            <td><div class="row-actions"><button v-if="isAdmin" type="button" :disabled="!!busy[source.id]" @click="testConnection(source)">{{ busy[source.id] === 'test' ? '检测中' : '测试连接' }}</button><button v-if="isAdmin" type="button" class="sync" :disabled="!!busy[source.id] || !source.enabled" @click="syncNow(source)">{{ busy[source.id] === 'sync' ? '同步中' : '立即同步' }}</button><button type="button" title="同步记录" @click="openLogs(source)"><el-icon><Clock /></el-icon></button><button v-if="isAdmin && source.source_type === 'rss'" class="delete" type="button" title="删除 RSS" @click="removeRss(source)"><el-icon><Delete /></el-icon></button></div></td>
           </tr>
         </tbody></table></div>
       </section>
     </main>
 
-    <div v-if="logSource" class="overlay" @click.self="logSource = null"><aside class="log-drawer"><header><div><p>SYNC RUNS</p><h2>{{ logSource.name }} 同步记录</h2></div><button type="button" aria-label="关闭" @click="logSource = null">×</button></header><LoadingState v-if="logsLoading" label="正在读取同步记录" /><EmptyState v-else-if="!runs.length" title="暂无同步记录" description="执行一次立即同步后，运行结果会显示在这里。" /><ol v-else><li v-for="run in runs" :key="run.id"><span class="run-status" :class="run.status">{{ run.status === 'succeeded' ? '成功' : run.status === 'failed' ? '失败' : '运行中' }}</span><time>{{ dateTime(run.started_at) }}</time><div><b>抓取 {{ run.fetched_count }}</b><span>新增 {{ run.created_count }}</span><span>更新 {{ run.updated_count }}</span><span>跳过 {{ run.skipped_count }}</span></div><p v-if="run.error_summary">{{ run.error_summary }}</p><small v-if="run.diagnostic_id">诊断 ID：{{ run.diagnostic_id }}</small></li></ol></aside></div>
+    <div v-if="logSource" class="overlay" @click.self="logSource = null">
+      <aside class="log-drawer">
+        <header><div><p>SYNC RUNS</p><h2>{{ logSource.name }} 同步记录</h2></div><button type="button" aria-label="关闭" @click="logSource = null">×</button></header>
+        <LoadingState v-if="logsLoading" label="正在读取同步记录" />
+        <p v-else-if="logsError" role="alert">{{ logsError }}<button type="button" @click="openLogs(logSource)">重试</button></p>
+        <EmptyState v-else-if="!runs.length" title="暂无同步记录" description="后台完成首次同步后，运行结果会显示在这里。" />
+        <ol v-else><li v-for="run in runs" :key="run.id"><span class="run-status" :class="run.status">{{ run.status === 'succeeded' ? '成功' : run.status === 'failed' ? '失败' : '运行中' }}</span><time>{{ dateTime(run.started_at) }}</time><div><b>抓取 {{ run.fetched_count }}</b><span>新增 {{ run.created_count }}</span><span>更新 {{ run.updated_count }}</span><span>跳过 {{ run.skipped_count }}</span></div><p v-if="run.error_summary">{{ run.error_summary }}</p><small v-if="run.diagnostic_id">诊断 ID：{{ run.diagnostic_id }}</small></li></ol>
+      </aside>
+    </div>
     <div v-if="rssOpen" class="overlay modal-layer" @click.self="rssOpen = false"><form class="rss-modal" @submit.prevent="addRss"><header><div><p>NEW SOURCE</p><h2>添加 RSS 订阅源</h2></div><button type="button" aria-label="关闭" @click="rssOpen = false">×</button></header><label>来源名称<input v-model="rssForm.name" maxlength="120" placeholder="例如：OpenAI Blog" required /></label><label>Feed 地址<div class="url-row"><input v-model="rssForm.feed_url" type="url" placeholder="https://example.com/feed.xml" required /><button type="button" :disabled="rssChecking || !rssForm.feed_url" @click="checkRss">{{ rssChecking ? '检测中' : '验证' }}</button></div></label><p v-if="rssCheck" class="rss-check">{{ rssCheck }}</p><label>同步周期<select v-model.number="rssForm.sync_interval_minutes"><option :value="30">30 分钟</option><option :value="60">1 小时</option><option :value="360">6 小时</option><option :value="1440">每天</option></select></label><footer><button type="button" @click="rssOpen = false">取消</button><button class="primary" type="submit" :disabled="rssSaving">{{ rssSaving ? '添加中' : '添加来源' }}</button></footer></form></div>
   </div>
 </template>

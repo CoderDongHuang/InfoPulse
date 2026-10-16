@@ -1,8 +1,21 @@
 """Bounded HTTP retries shared by official API collectors."""
 
 import asyncio
+import ssl
 
 import httpx
+import certifi
+
+
+def public_ssl_context() -> ssl.SSLContext:
+    """Verify against OS trust plus bundled public roots (including Windows).
+
+    This supports an explicitly OS-trusted enterprise proxy without disabling
+    hostname/certificate checks or silently accepting arbitrary certificates.
+    """
+    context = ssl.create_default_context()
+    context.load_verify_locations(cafile=certifi.where())
+    return context
 
 
 async def get_response(client: httpx.AsyncClient, url: str, **kwargs) -> httpx.Response:

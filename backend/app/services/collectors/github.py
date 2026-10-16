@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 from app.services.collectors.base import NormalizedContent
-from app.services.collectors.http import get_response
+from app.services.collectors.http import get_response, public_ssl_context
 
 
 class GitHubCollector:
@@ -21,7 +21,7 @@ class GitHubCollector:
         headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
         if self._token:
             headers["Authorization"] = f"Bearer {self._token}"
-        async with httpx.AsyncClient(timeout=12, headers=headers, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=12, headers=headers, follow_redirects=True, verify=public_ssl_context()) as client:
             return await self._collect(client, limit)
 
     async def _collect(self, client: httpx.AsyncClient, limit: int) -> list[NormalizedContent]:

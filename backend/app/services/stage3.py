@@ -7,6 +7,7 @@ from app.models.intelligence import ChannelFollow, ContentItem, DataSource, Even
 from app.models.intelligence import Report
 
 CHANNELS = {
+ "all": ("全部", []),
  "ai": ("AI", ["ai", "artificial intelligence", "openai", "llm", "machine learning", "人工智能"]),
  "java": ("Java", ["java", "jvm", "spring"]),
  "robotics": ("机器人", ["robot", "robotics", "机器人"]),
@@ -17,7 +18,7 @@ CHANNELS = {
 }
 RANGES = {"day": 1, "week": 7, "month": 30}
 
-def dt(value): return value.isoformat() if value else None
+def dt(value): return (value if value.tzinfo else value.replace(tzinfo=timezone.utc)).isoformat() if value else None
 def content_heat(item): return int(item.view_count or 0) + int(item.comment_count or 0) * 3 + int(item.like_count or 0) * 2 + int(item.share_count or 0) * 4
 def keyword_matches(keyword, text):
     term = keyword.lower().strip()
@@ -37,7 +38,7 @@ async def source_warnings(db):
 
 async def dashboard_data(db: AsyncSession, days=7):
     since = datetime.now(timezone.utc) - timedelta(days=days)
-    content_condition = [ContentItem.deleted_at.is_(None), ContentItem.published_at >= since]
+    content_condition = [ContentItem.deleted_at.is_(None), func.coalesce(ContentItem.published_at, ContentItem.fetched_at) >= since]
     content_count = int(await db.scalar(select(func.count(ContentItem.id)).where(*content_condition)) or 0)
     event_count = int(await db.scalar(select(func.count(Event.id)).where(Event.deleted_at.is_(None), Event.last_activity_at >= since)) or 0)
     risk_count = int(await db.scalar(select(func.count(Event.id)).where(Event.deleted_at.is_(None), Event.last_activity_at >= since, Event.risk_score >= 40)) or 0)
@@ -49,7 +50,8 @@ async def dashboard_data(db: AsyncSession, days=7):
 
 async def discover_data(db: AsyncSession, user_id: str, channel="ai", range_name="day", page=1, page_size=20):
     since = datetime.now(timezone.utc) - timedelta(days=RANGES[range_name])
-    rows = (await db.execute(select(ContentItem, DataSource).join(DataSource).where(ContentItem.deleted_at.is_(None), ContentItem.published_at >= since).order_by(ContentItem.published_at.desc()).limit(500))).all()
+    observed_at = func.coalesce(ContentItem.published_at, ContentItem.fetched_at)
+    rows = (await db.execute(select(ContentItem, DataSource).join(DataSource).where(ContentItem.deleted_at.is_(None), observed_at >= since).order_by(observed_at.desc(), ContentItem.id).limit(500))).all()
     topics = (await db.scalars(select(WatchTopic).where(WatchTopic.user_id == user_id, WatchTopic.enabled.is_(True)))).all()
     feedback = {x.target_id: x.feedback_type for x in (await db.scalars(select(RecommendationFeedback).where(RecommendationFeedback.user_id == user_id))).all()}
     keywords = CHANNELS[channel][1]
@@ -57,11 +59,13 @@ async def discover_data(db: AsyncSession, user_id: str, channel="ai", range_name
     for item, source in rows:
         text = f"{item.title} {item.body} {' '.join(item.tags or [])}".lower()
         matched = [k for k in keywords if keyword_matches(k, text)]
-        if not matched: continue
+        type_match = (channel == "papers" and item.content_type == "paper") or (channel == "open-source" and item.content_type == "repository")
+        if channel != "all" and not matched and not type_match: continue
         if feedback.get(item.id) in {"not_interested", "irrelevant"}: continue
-        age_hours = max(0, (datetime.now(timezone.utc) - (item.published_at if item.published_at.tzinfo else item.published_at.replace(tzinfo=timezone.utc))).total_seconds() / 3600)
+        timestamp = item.published_at or item.fetched_at
+        age_hours = max(0, (datetime.now(timezone.utc) - (timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc))).total_seconds() / 3600)
         score = max(0, 30 - age_hours / 4) + min(40, content_heat(item) / 100) + len(matched) * 8
-        reasons = [{"rule": "channel_match", "label": f"匹配 {CHANNELS[channel][0]} 频道", "evidence": matched[:3]}]
+        reasons = [{"rule": "public_source" if channel == "all" else "channel_match", "label": "来自公开数据源" if channel == "all" else f"匹配 {CHANNELS[channel][0]} 频道", "evidence": matched[:3] or [item.content_type if type_match else source.name]}]
         topic_hits = [t.name for t in topics if any(keyword_matches(k, text) for k in ([t.name] + list(t.keywords or [])))]
         if topic_hits: score += 25; reasons.append({"rule": "watched_topic", "label": "命中你的关注主题", "evidence": topic_hits})
         if content_heat(item) > 0: reasons.append({"rule": "source_engagement", "label": "来源互动信号较强", "evidence": [str(content_heat(item))]})
@@ -77,7 +81,7 @@ async def workspace_data(db: AsyncSession, user_id: str):
         terms = [topic.name] + list(topic.keywords or []); count = 0
         for term in terms: count += int(await db.scalar(select(func.count(ContentItem.id)).where(ContentItem.deleted_at.is_(None), func.lower(ContentItem.title).contains(term.lower()))) or 0)
         attention.append({"id": topic.id, "name": topic.name, "count": count, "keywords": topic.keywords})
-    recommendation = await discover_data(db, user_id, "ai", "day", 1, 5)
+    recommendation = await discover_data(db, user_id, "all", "week", 1, 5)
     favorites = [dict(target_type=x.target_type, target_id=x.target_id, created_at=dt(x.created_at)) for x in (await db.scalars(select(Favorite).where(Favorite.user_id == user_id).order_by(Favorite.created_at.desc()).limit(8))).all()]
     views = [dict(target_type=x.target_type, target_id=x.target_id, title=x.title, viewed_at=dt(x.viewed_at)) for x in (await db.scalars(select(RecentView).where(RecentView.user_id == user_id).order_by(RecentView.viewed_at.desc()).limit(8))).all()]
     reports = (await db.scalars(

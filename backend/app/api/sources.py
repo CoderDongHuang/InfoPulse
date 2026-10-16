@@ -143,7 +143,6 @@ async def trigger_sync(
     _current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    await ensure_builtin_sources(db)
     source = await _get_source(db, source_id)
     return await sync_source(db, source)
 

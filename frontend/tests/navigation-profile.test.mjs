@@ -32,6 +32,17 @@ test('nested route highlights parent without confusing path prefixes', () => {
   assert.equal(nav.isActivePath('/profile', '/'), false)
 })
 
+test('mega-menu categories cover every visible destination exactly once', () => {
+  for (const isAdmin of [false, true]) {
+    for (const group of nav.visibleGroups(isAdmin)) {
+      const categorized = group.sections.flatMap(section => section.items.map(item => item.path))
+      assert.equal(categorized.length, new Set(categorized).size)
+      assert.deepEqual(new Set(categorized), new Set(group.items.map(item => item.path)))
+      assert.ok(group.sections.length >= 3 && group.sections.length <= 4)
+    }
+  }
+})
+
 test('profile sends only changed fields, preserving unchanged legacy usernames', () => {
   assert.equal(JSON.stringify(profile.profilePatch({ ...saved }, saved)), '{}')
   const legacy = { ...saved, username: 'legacy@name' }

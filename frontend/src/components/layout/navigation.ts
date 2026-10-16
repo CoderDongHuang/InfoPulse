@@ -49,8 +49,28 @@ export const navigationGroups: { label: string; items: NavItem[] }[] = [
 ]
 
 export function visibleGroups(isAdmin: boolean) {
-  return navigationGroups.map(group => ({ ...group, items: group.items.filter(item => !item.adminOnly || isAdmin) }))
+  return navigationGroups.map(group => {
+    const items = group.items.filter(item => !item.adminOnly || isAdmin)
+    return { ...group, items, sections: navigationSections.map(section => ({
+      label: section.label, description: section.description,
+      items: items.filter(item => section.paths.includes(item.path)),
+    })).filter(section => section.items.length) }
+  })
 }
+
+// One destination belongs to one category; desktop and mobile use the same data.
+export const navigationSections = [
+  { label: '寻找信号', description: '从信息检索到事件追踪', paths: ['/search', '/events', '/alerts'] },
+  { label: '分析与问答', description: '围绕问题理解信息', paths: ['/analysis', '/agent', '/bi'] },
+  { label: '沉淀知识', description: '积累证据与研究成果', paths: ['/knowledge', '/reports'] },
+  { label: '工作流与执行', description: '组织任务，跟进行动', paths: ['/orchestration', '/action-loop', '/tasks'] },
+  { label: '情报与决策', description: '连接多种信息视角', paths: ['/multimodal', '/global-intelligence'] },
+  { label: '订阅与动态', description: '持续关注重要变化', paths: ['/subscriptions', '/notifications', '/watchlist', '/history'] },
+  { label: '数据与工具', description: '管理来源，探索内容', paths: ['/sources', '/insight', '/timeline', '/mouthpiece', '/hot-search'] },
+  { label: '组织与平台', description: '组织管理与开放集成', paths: ['/enterprise', '/developers', '/commercial-operations', '/help', '/admin'] },
+  { label: '治理实验室', description: '规则计算与治理探索', paths: ['/autonomy', '/trust-network', '/global-coordination', '/adaptive-os'] },
+  { label: '前沿实验室', description: '探索中的能力与模型', paths: ['/provable-autonomy', '/planetary-resilience', '/cognitive-infrastructure', '/cognitive-commons'] },
+]
 export function isActivePath(current: string, target: string) {
   return current === target || (target !== '/' && current.startsWith(target + '/'))
 }

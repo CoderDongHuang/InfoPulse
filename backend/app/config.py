@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     LLM_MAX_RETRIES: int = Field(default=0, ge=0, le=2)
 
     # --- Task scheduler and delivery ---
+    SOURCE_SYNC_ENABLED: bool = True
+    SOURCE_SYNC_POLL_SECONDS: int = Field(default=30, ge=1, le=3600)
+    SOURCE_SYNC_TIMEOUT_SECONDS: float = Field(default=60, ge=1, le=180)
     TASK_SCHEDULER_ENABLED: bool = True
     TASK_SCHEDULER_POLL_SECONDS: int = 30
     TASK_WORKER_CONCURRENCY: int = 4

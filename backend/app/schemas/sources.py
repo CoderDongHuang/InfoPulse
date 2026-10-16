@@ -1,11 +1,21 @@
 """Data source and synchronization API contracts."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 
-class DataSourceResponse(BaseModel):
+class UTCResponse(BaseModel):
+    @field_validator("*")
+    @classmethod
+    def attach_stored_timezone(cls, value):
+        # SQLite drops tzinfo; all source/run timestamps are persisted as UTC.
+        if isinstance(value, datetime) and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
+
+class DataSourceResponse(UTCResponse):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -21,7 +31,7 @@ class DataSourceResponse(BaseModel):
     last_error: str | None
 
 
-class SyncRunResponse(BaseModel):
+class SyncRunResponse(UTCResponse):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -55,7 +65,7 @@ class RssValidateRequest(BaseModel):
     feed_url: HttpUrl
 
 
-class ConnectionTestResponse(BaseModel):
+class ConnectionTestResponse(UTCResponse):
     status: str
     item_count: int = 0
     message: str

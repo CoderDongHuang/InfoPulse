@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 import httpx
 
 from app.services.collectors.base import NormalizedContent
-from app.services.collectors.http import get_response
+from app.services.collectors.http import get_response, public_ssl_context
 
 ATOM = {"atom": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
 
@@ -20,7 +20,7 @@ class ArxivCollector:
     async def collect(self, limit: int = 30) -> list[NormalizedContent]:
         if self._client:
             return await self._collect(self._client, limit)
-        async with httpx.AsyncClient(timeout=15, headers={"User-Agent": "InfoPulse/1.0 contact@infopulse.local"}) as client:
+        async with httpx.AsyncClient(timeout=15, verify=public_ssl_context(), headers={"User-Agent": "InfoPulse/1.0 (+https://github.com/CoderDongHuang/InfoPulse)"}) as client:
             return await self._collect(client, limit)
 
     async def _collect(self, client: httpx.AsyncClient, limit: int) -> list[NormalizedContent]:

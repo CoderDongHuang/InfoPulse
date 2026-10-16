@@ -2371,3 +2371,106 @@ JS/CSS 数字为当前静态入口依赖图，不是整个 dist 总体积；预�
 第五，补真实提供商和性能评测。LLM、SMTP、S3、SSO 及消息渠道需要使用维护者明确提供的测试账号与 secret，不能写入虚构配置。固定模型集应测引用、无证据行为、结构、成本和失败降级；前端性能则需要动态路由、长列表和实际设备的测量。当前包体门禁只是起点。
 
 最终，开源可用性不是“没有任何待办”。一个诚实的 v0.x 项目可以在本地清晰启动，有可信的完成范围、可复现测试、清楚的限制和可执行路线。维护者需要做的是让每个完成标记都能追溯到代码与证据，并让未完成部分继续显式存在，而不是用更多页面和更漂亮的截图替代可靠性。
+
+## 82. 从开发预览到公开数据可用：一次真实数据实验
+
+2026-10-16 的迭代把目标限定为无需第三方密钥的读者链路。这个范围的核心研究问题是：仅凭公开接口，能否从空白安装持续获得真实信息，并让普通账户完成检索、阅读、收藏和日报通知？这比证明页面能打开更接近实际使用，也比笼统宣称所有 AI 能力可用更容易复核。
+
+实验包含四类异构输入：HN 的社区讨论信号、GitHub 的仓库元数据、DEV 的文章摘要和 arXiv 的论文摘要。它们并不提供同一种业务含义。例如 star、评论和论文时间不能直接理解为同质的社会热度；GitHub Search 也不等于 GitHub Trending。统一层只保存共同可观察字段，展示来源与解释规则，保留原始 payload 以便追溯。暂不把缺失正文补成模型生成的“原文”。
+
+### 82.1 调度状态与持久化状态分开
+
+原有手动同步入口可执行，不等于普通读者首次打开时一定有数据。为此增加周期来源 worker：先原子登记内置来源，逐一判断 enabled 和 last_sync_at，再对到期来源执行采集。每个来源使用独立事务，一个上游异常不终止整个批次。
+
+```python
+async with sessions() as db:
+    source = await db.get(DataSource, source_id)
+    if source is None or not source_is_due(source, utc_now()):
+        continue
+    run = await sync_source(db, source, trigger_type="scheduled")
+    await db.commit()
+```
+
+轮询间隔默认 30 秒，但不是每 30 秒抓取每个网站：HN/GitHub 周期为 30 分钟，DEV 为 60 分钟，arXiv 为 120 分钟。没有成功的新数据时保持诚实空态，来源失败则保留实际错误。这里的周期值是保守默认值，后续仍需根据上游政策、请求额度和数据质量调整。
+
+### 82.2 网络 IO 不能占着本地数据库写锁
+
+最初实现先更新同步状态，再等待上游返回。这在 PostgreSQL 中可能表现为长事务，在 SQLite 中更直接地阻塞注册、收藏或调度任务。即使网络最终超时，用户也已经体验到无关功能卡住。修复的关键是把慢网络操作放在获取写锁之前。
+
+抓取之后不能无条件入库，否则两个 worker 同时读到同一快照会重复更新。实现使用 last_sync_at 比较并交换：
+
+```python
+claimed = await db.execute(
+    update(DataSource).where(
+        DataSource.id == source.id,
+        DataSource.enabled.is_(True),
+        DataSource.last_sync_at == source.last_sync_at,
+    ).values(last_sync_at=started)
+    .execution_options(synchronize_session=False)
+)
+if claimed.rowcount != 1:
+    raise AppError("SOURCE_BUSY", "该来源已被其他同步任务处理，请刷新后重试", 409)
+```
+
+这保证只有仍持有有效快照的一方能进入写入阶段，不保证只有一次网络请求。其工程收益是避免外部 IO 占用写锁，也不需要提交一个可能永久遗留的 running lease。进程在事务提交前退出，数据库会回滚该事务；对外部副作用有不可逆影响的行动 worker 则不能简单复用这一推理。
+
+回归使用真实文件 SQLite 和两个独立连接：第一个任务的 collector 被事件挂起，第二个连接必须仍能提交来源更新；随后释放第一个 collector，要求陈旧 CAS 被拒绝且内容数仍为零。单连接或纯 Mock 测试无法证明“等待网络期间不阻塞另一个写者”这一性质。
+
+### 82.3 批次失败与审计记录的原子性
+
+还有一个容易忽略的失败模式：前几个条目已加入 session，后面的条目违反约束。如果只捕获异常并将 run 标记 failed，数据库仍可能提交前面的内容，统计却声称整个批次失败。反过来，对整个 session rollback 又会丢掉解释失败的 run。
+
+这里用 savepoint 包围内容写入，失败后保留外层运行记录。计数归零、来源健康标为 error，最后提交失败事实。savepoint rollback 还可能使 ORM 对象过期，因此异常分支显式 refresh run，再更新终态，避免在异步上下文隐式触发数据库 IO。
+
+```python
+try:
+    async with db.begin_nested():
+        # 查找 source_id + external_id，新增、更新或刷新抓取时间
+        await persist_items(db, items)  # 此处为说明性伪函数
+        await db.flush()
+except Exception:
+    await db.refresh(run)
+    run.status = "failed"
+    run.created_count = run.updated_count = run.skipped_count = 0
+```
+
+仓库实际实现将循环保留在 source_sync.py 中，上例的 persist_items 仅用于突出事务边界。行为测试让第二个条目的 canonical_url 为非法空值，验证内容完全回滚而失败运行记录仍存在。测试不是“断言调用了 begin_nested”，而是观察可持久化结果。
+
+### 82.4 真实网络暴露证书问题
+
+第一次真实 canary 中 HN、DEV、arXiv 成功，GitHub 因本机证书链无法验证而失败。修复没有关闭 TLS 校验，而是合并操作系统信任与 certifi 的公共根：
+
+```python
+def public_ssl_context() -> ssl.SSLContext:
+    context = ssl.create_default_context()
+    context.load_verify_locations(cafile=certifi.where())
+    return context
+```
+
+这样可以识别由本机明确授信的企业代理，同时继续验证证书和主机名。它不代表任意代理都可信，也不能解决接口配额或连接不可达问题。复测四个内置源各取得 30 条，GitHub 历史失败保留在运行日志中。把失败保留下来，是后续诊断所需的证据，而不是影响展示的“脏数据”。
+
+### 82.5 信息真实还要求时间和摘要真实
+
+某些上游没有发布时间。如果按 published_at 过滤，真实采集内容可能永远不可见；如果把抓取时间写成发布时间，则产生错误事实。新的发现查询使用 coalesce(published_at, fetched_at) 参与候选筛选，输出仍保留 published_at=null，界面显示“来源未提供发布时间”。发布时间是来源声明，抓取时间是系统观察，这两个概念必须保留区别。
+
+同样，SQLite 返回的 naive datetime 需要按数据库既定 UTC 约定恢复时区再序列化，否则浏览器可能把 UTC 当成本地时间，造成八小时偏差。HN 的 HTML 摘要转换为纯文本，保留原始 payload；Vue 文本插值仍负责转义，没有用 v-html 执行外部内容。
+
+发现页默认“全部 / 本周”，并明确分页是在最近 500 条候选里进行。论文和开源仓库可按 content_type 进入对应频道，不能要求标题必须恰好包含 paper 或 GitHub 才可被发现。推荐分数只是时效、互动与关注命中的规则排序，不是事实可信度或模型判断。
+
+![真实公开数据发现页](../blog-assets/2026-10-16/discover-real.png)
+
+### 82.6 普通读者视角的验收
+
+实际浏览器脚本通过注册界面创建普通用户，读取真实后台采集结果，按真实标题检索并核对详情，点击收藏，再检查工作台推荐和收藏持久化。随后创建 daily_report 任务，等待 worker 执行成功，要求 output.matched 大于零，并找到引用同一 report_id 的站内通知。最后暂停验收任务，避免留下持续运行的测试日报。
+
+这是无模型的有来源规则汇总，不是模型摘要质量评测。站内通知也不能扩大解释为邮件送达。来源页检查普通账户没有“添加 RSS”和“立即同步”管理按钮，服务端原有管理员鉴权继续保留，界面隐藏只是减少误操作，不能代替权限控制。
+
+![普通读者来源状态](../blog-assets/2026-10-16/sources-real.png)
+
+此次观察到四源最新请求成功，首次完整验收保留 124 条真实内容，最终摘要/时区复测为 129 条；7 组普通读者链路通过。重复同步和来源滚动会改变数量，因此这些数字是实验记录。另有确定性前端 42 项、来源相关后端 19 项、354 路径 API 契约及隔离产品 12 组回归；完整后端发现 245 项，由 CI 的 Linux/Windows 分片继续验证。实时网络 canary 与 CI fixture 保持分离，不能让上游临时故障造成不可重复的每次 PR 门禁，也不能用 fixture 冒充真实源成功。
+
+### 82.7 本地使用边界与可持续优化
+
+新增 public_server 入口专门服务本机使用：自动迁移、持久化随机密钥、专用目录、不读取原有 .env。普通用户无需填写凭据，维护者可通过本机命令给已注册账户授权。此设计减少首次安装障碍，但不能替代公网反向代理、HTTPS、备份、操作系统账户隔离或长期运维。当前前端入口仍使用 Vite 本地服务器，两个进程需要保持运行。
+
+下一阶段优先补三类证据：第一，上游限流分类、Retry-After 与退避，避免把外部限额当作代码异常；第二，PostgreSQL 多进程竞争及来源 worker 中断恢复，避免把 SQLite 证明外推到所有数据库；第三，大数据量检索、跨源重复与 RSS 实站兼容矩阵，避免小样本验证掩盖规模问题。LLM、邮件和身份提供商仍需要真实测试账号单独验收，实验模块不因主链完成而自动升级等级。完整完成标记和后续路线见 [R20/R21 验收记录](../audits/2026-10-16-public-use.md)。

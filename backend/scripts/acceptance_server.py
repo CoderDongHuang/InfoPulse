@@ -29,6 +29,7 @@ def main():
         "METRICS_TOKEN": "acceptance-test-only-metrics-000000",
         "KNOWLEDGE_STORAGE_PATH": "./data/audit-knowledge",
         "TASK_SCHEDULER_ENABLED": "false",
+        "SOURCE_SYNC_ENABLED": "false",
         "CRAWLER_ENABLED": "false",
         "MEDIA_WORKER_ENABLED": "false",
     })

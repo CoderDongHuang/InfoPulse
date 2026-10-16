@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+# Deterministic release gates must never fetch live third-party articles.
+env:
+  SOURCE_SYNC_ENABLED: "false"
+
 jobs:
   backend:
     runs-on: ubuntu-latest

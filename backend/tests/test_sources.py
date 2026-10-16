@@ -30,7 +30,7 @@ class HackerNewsCollectorTests(unittest.IsolatedAsyncioTestCase):
             return httpx.Response(200, json={
                 "id": 4242, "type": "story", "by": "ada", "time": 1700000000,
                 "title": "A real HN story", "url": "https://example.com/story",
-                "score": 81, "descendants": 13,
+                "score": 81, "descendants": 13, "text": '<p>A &amp; B</p><p><a href="https://example.com">Read more</a></p>',
             })
 
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
@@ -42,6 +42,7 @@ class HackerNewsCollectorTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(items[0].like_count, 81)
         self.assertEqual(items[0].comment_count, 13)
         self.assertEqual(items[0].raw_payload["by"], "ada")
+        self.assertEqual(items[0].body, "A & B Read more")
 
     async def test_uses_discussion_url_when_story_has_no_url(self):
         def handler(request: httpx.Request) -> httpx.Response:

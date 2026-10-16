@@ -91,7 +91,7 @@ def configure(storage):
     os.environ.update(DATABASE_URL="sqlite+aiosqlite:///:memory:", AUTO_CREATE_TABLES="false",
                       KNOWLEDGE_STORAGE_PATH=str(storage), TASK_SCHEDULER_ENABLED="false",
                       RUN_BACKGROUND_WORKERS_IN_API="false", CRAWLER_ENABLED="false",
-                      MEDIA_WORKER_ENABLED="false", ORCHESTRATION_WORKER_ENABLED="false")
+                      SOURCE_SYNC_ENABLED="false", MEDIA_WORKER_ENABLED="false", ORCHESTRATION_WORKER_ENABLED="false")
     get_settings.cache_clear()
 
 

@@ -5,7 +5,7 @@ from datetime import datetime
 import httpx
 
 from app.services.collectors.base import NormalizedContent
-from app.services.collectors.http import get_response
+from app.services.collectors.http import get_response, public_ssl_context
 
 
 class DevToCollector:
@@ -17,7 +17,7 @@ class DevToCollector:
     async def collect(self, limit: int = 30) -> list[NormalizedContent]:
         if self._client:
             return await self._collect(self._client, limit)
-        async with httpx.AsyncClient(timeout=12, headers={"Accept": "application/json"}) as client:
+        async with httpx.AsyncClient(timeout=12, verify=public_ssl_context(), headers={"Accept": "application/json"}) as client:
             return await self._collect(client, limit)
 
     async def _collect(self, client: httpx.AsyncClient, limit: int) -> list[NormalizedContent]:

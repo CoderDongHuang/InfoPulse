@@ -1,5 +1,9 @@
 # 阶段 29 生产配置清单
 
+本地无需密钥使用请先看 [README 的公开数据入口](../README.md#无需密钥的公开数据使用入口)。`scripts.public_server` 自动生成独立随机密钥并使用专用 SQLite，不需要云数据库、SMTP、模型或任何平台密钥；数据目录是 `backend/.public-local/`。下表描述可选公网/企业部署，并非本地启动必填项。
+
+公开来源自动同步配置：`SOURCE_SYNC_ENABLED=true`、`SOURCE_SYNC_POLL_SECONDS=30`、`SOURCE_SYNC_TIMEOUT_SECONDS=60`。独立 `sources` worker 与 API 内嵌模式共用开关；审计与确定性测试关闭真实采集。`ADMIN_EMAILS` 不会在公开注册时授予管理员；本地公开数据入口使用 `python -m scripts.public_server --promote EMAIL`，普通自定义数据库环境使用 `python -m scripts.admin EMAIL`，两者都只授权已存在的启用账号。
+
 敏感值只写入部署平台的 Secret 或未纳入 Git 的 `backend/.env`，前端公开地址写入 `frontend/.env.production`。不要把真实凭据提交到仓库。
 
 | 配置 | 当前状态 | 获取方式 | 写入位置 |

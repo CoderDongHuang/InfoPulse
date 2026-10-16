@@ -10,7 +10,7 @@ InfoPulse 是一个面向公开信息研究的 AI 情报与舆情工作台。持
 
 ## 开源状态
 
-当前定位为**本地开发者预览**，不是功能全部完整或生产级 v1。2026-10-09 的 A01–A12 已修复；2026-10-13 继续补齐完整 Chromium/ffmpeg 容器运行、PostgreSQL 14 张核心表带数据迁移、独立知识 worker 中断恢复、Windows Python 3.10/3.11 持续 CI，以及前端包体和交互回归。R04 的 Windows 全量基线为 198 项；后续新增测试以各 PR 最新 CI 为准，不将历史数量当作覆盖率。354 条 API 契约、Linux 双版本产品验收、最小/完整容器 Nginx 上传与 WebSocket 均纳入门禁。详见 [逐项测试与合并记录](./docs/audits/2026-10-13-roadmap-progress.md)、[前轮修复报告](./docs/audits/2026-10-09-remediation.md) 和 [能力矩阵](./docs/32-capability-matrix.md)。真实网站与模型提供商、其余 worker 恢复、全部核心按钮及性能基线仍未全部完成。
+当前**公开数据主链可供本地自托管使用（beta）**，其余模块仍按能力矩阵区分 beta、外部依赖与实验功能，不代表全项目已达到稳定 v1。2026-10-16 已实测无需密钥的 HN、GitHub、DEV、arXiv 采集，以及检索、详情、收藏、工作台、无模型日报与站内通知；默认自动周期同步，不注入演示文章。354 条 API 契约、Linux/Windows 回归、容器产品验收继续作为发布门禁。最新范围与证据见 [公众使用验收](./docs/audits/2026-10-16-public-use.md)、[逐项测试与合并记录](./docs/audits/2026-10-13-roadmap-progress.md) 和 [能力矩阵](./docs/32-capability-matrix.md)。真实模型/邮件等提供商、其余 worker 恢复、全部核心按钮及性能基线仍需继续验收。
 
 本项目不承诺第三方平台接口永久可用，也不提供验证码破解、权限绕过或私有数据采集能力。生产或公网使用不属于默认开源运行边界。
 
@@ -45,6 +45,44 @@ InfoPulse 是一个面向公开信息研究的 AI 情报与舆情工作台。持
 - AI：兼容 OpenAI API 协议；部分分析工具有本地降级，工作流 agent 节点缺少模型时明确失败，不伪造模型成功
 
 ## 本地开发
+
+### 无需密钥的公开数据使用入口
+
+Python 3.10/3.11、Node.js 22 LTS。首次拉取后在两个终端分别执行：
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-base.txt
+python -m scripts.public_server
+```
+
+```powershell
+cd frontend
+npm ci
+$env:VITE_API_PROXY_TARGET = 'http://127.0.0.1:18081'
+npm run dev -- --host 127.0.0.1 --port 15174 --strictPort
+```
+
+打开 [本地工作台](http://127.0.0.1:15174/)，注册账号即可使用。此入口自动迁移专用 SQLite，随机密钥、知识文件和真实采集内容保存在 `backend/.public-local/`，不读取现有 `.env`，不覆盖原开发数据库。请备份整个目录并限制访问，删除密钥会使旧会话或加密配置失效。前端使用 Vite 本地服务器，两个终端需要保持运行；不构成公网部署方案。
+
+首次同步通常需要几分钟，实际取决于网络；发现页默认「全部 / 本周」。来源页会显示成功、异常和同步记录，失败不补假内容。GitHub 匿名 API 可能限流；其余来源也受网络、上游服务与使用政策影响。本入口不启用浏览器讨论采集或媒体处理，不配置 LLM/SMTP；日报使用有来源的规则汇总，站内通知无需邮件服务。
+
+普通注册用户没有共享数据源管理权限。需要管理时，在同一后端虚拟环境执行：
+
+```powershell
+python -m scripts.public_server --promote your-email@example.com
+# 仅对本地已注册、启用中的账号授权；退出重新登录。
+python -m scripts.public_server --sync-once
+# 对已启用来源执行一次真实同步；有来源失败时返回非零。
+```
+
+独立 worker 部署可使用 `python -m app.worker --role sources`；同时关闭 API 内嵌 worker，避免不必要的重复抓取。`SOURCE_SYNC_ENABLED` 控制同步开关，默认轮询 30 秒，按每个来源的分钟周期判断是否到期；失败也按周期等待，不进行无限快速重试。已有开发环境的迁移与配置方式见下文。
+
+![真实公开来源健康状态](./docs/blog-assets/2026-10-16/sources-real.png)
+
+### 自定义开发环境
 
 环境要求：Python 3.10/3.11、Node.js 22 LTS（使用满足 Vite engine 要求的维护补丁版本）。
 

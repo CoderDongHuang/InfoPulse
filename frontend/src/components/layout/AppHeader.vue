@@ -51,15 +51,19 @@ async function handleUserCommand(command: string) {
       </router-link>
       <nav class="desktop-nav" aria-label="主导航">
         <router-link v-for="item in primaryNavigation" :key="item.path" :to="item.path" :class="{ active: active(item.path) }" :aria-current="active(item.path) ? 'page' : undefined">{{ item.label }}</router-link>
-        <el-dropdown v-for="(group, index) in groups" :key="group.label" :ref="(instance: unknown) => registerDropdown(group.label, instance)" trigger="click" @command="navigate" :max-height="480">
+        <el-dropdown v-for="(group, index) in groups" :key="group.label" :ref="(instance: unknown) => registerDropdown(group.label, instance)" trigger="click" placement="bottom" @command="navigate" :max-height="640" popper-class="navigation-popper">
           <button :id="`nav-trigger-${index}`" type="button" class="nav-trigger" :class="{ active: group.items.some(item => active(item.path)) }" @keydown.esc.stop.prevent="closeDropdown(group.label, `nav-trigger-${index}`)">{{ group.label }}<el-icon><ArrowDown /></el-icon></button>
-          <template #dropdown><el-dropdown-menu @keydown.esc.stop.prevent="closeDropdown(group.label, `nav-trigger-${index}`)">
-            <el-dropdown-item v-for="item in group.items" :key="item.path" :command="item.path" :class="{ 'current-menu-item': active(item.path) }"><el-icon><component :is="item.icon" /></el-icon>{{ item.label }}</el-dropdown-item>
+          <template #dropdown><el-dropdown-menu class="mega-menu" :style="{ '--nav-columns': group.sections.length }" @keydown.esc.stop.prevent="closeDropdown(group.label, `nav-trigger-${index}`)">
+            <li v-for="section in group.sections" :key="section.label" class="nav-category" role="none">
+              <h2>{{ section.label }}</h2><p>{{ section.description }}</p>
+              <ul role="group" :aria-label="section.label">
+                <el-dropdown-item v-for="item in section.items" :key="item.path" :command="item.path" :class="{ 'current-menu-item': active(item.path) }"><el-icon><component :is="item.icon" /></el-icon>{{ item.label }}</el-dropdown-item>
+              </ul>
+            </li>
           </el-dropdown-menu></template>
         </el-dropdown>
       </nav>
       <div class="account-area">
-        <span class="preview-label">开发者预览</span>
         <el-dropdown v-if="userStore.isLoggedIn" ref="accountDropdown" trigger="click" @command="handleUserCommand">
           <button id="account-trigger" class="profile-button" type="button" aria-label="账户菜单" :disabled="loggingOut" :aria-busy="loggingOut" @keydown.esc.stop.prevent="closeDropdown('account', 'account-trigger')">
             <UserAvatar :username="userStore.userInfo?.username" :url="userStore.userInfo?.avatar_url" />
@@ -111,4 +115,14 @@ async function handleUserCommand(command: string) {
 @media (max-width: 1050px) { .desktop-nav { display: none; }.menu-button { display: flex; } }
 @media (max-width: 600px) { .header-inner { padding: 0 16px; }.account-area { gap: 12px; }.brand strong { font-size: 17px; } }
 </style>
-<style>.current-menu-item { color: #1d4ed8 !important; background: #eff4ff; }</style>
+<style>
+.current-menu-item { color: #1d4ed8 !important; background: #eff4ff; }
+.navigation-popper { max-width: calc(100vw - 32px); }
+.navigation-popper .mega-menu { display: grid; grid-template-columns: repeat(var(--nav-columns), minmax(170px, 1fr)); gap: 12px; padding: 22px; width: min(880px, calc(100vw - 48px)); box-sizing: border-box; }
+.nav-category { list-style: none; min-width: 0; padding: 0 10px; border-left: 1px solid #eef2f6; }
+.nav-category:first-child { border-left: 0; }
+.nav-category h2 { margin: 0 8px 7px; color: #0f172a; font-size: 14px; font-weight: 650; }
+.nav-category p { margin: 0 8px 16px; color: #64748b; font-size: 11px; }
+.nav-category ul { margin: 0; padding: 0; }
+.nav-category .el-dropdown-menu__item { min-height: 40px; padding: 8px; border-radius: 6px; white-space: normal; line-height: 1.5; }
+</style>

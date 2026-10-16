@@ -33,12 +33,27 @@ async def check_shell(page, api, base_url, output, username, password):
     await research.focus()
     await page.keyboard.press("Enter")
     await expect(page.get_by_role("menuitem", name="知识库", exact=True)).to_be_visible()
+    # The categories must be adjacent columns, not another long vertical list.
+    await page.wait_for_function("""() => {
+        const menu = [...document.querySelectorAll('.mega-menu')].find(el => el.getBoundingClientRect().height > 0);
+        if (!menu) return false;
+        const boxes = [...menu.querySelectorAll('.nav-category')].map(el => el.getBoundingClientRect());
+        return boxes.length === 3 && Math.max(...boxes.map(b => b.y)) - Math.min(...boxes.map(b => b.y)) < 2
+            && boxes[0].x < boxes[1].x && boxes[1].x < boxes[2].x;
+    }""")
+    await page.screenshot(path=str(output / "navigation-categories.png"), full_page=True, animations="disabled")
     await page.keyboard.press("Escape")
     await expect(page.get_by_role("menuitem", name="知识库", exact=True)).not_to_be_visible()
     await expect(research).to_be_focused()
     await page.get_by_role("button", name="平台与工具", exact=True).click()
     await expect(page.get_by_role("menuitem", name="运行管理", exact=True)).to_have_count(0)
+    await expect(page.get_by_role("menuitem", name="认知公地", exact=True)).to_be_visible()
+    await assert_layout(page, "four-column platform menu")
     await page.keyboard.press("Escape")
+    footer = page.locator(".app-footer")
+    await expect(footer.get_by_role("link", name="CoderDongHuang 的 GitHub 主页")).to_have_attribute("href", "https://github.com/CoderDongHuang")
+    await expect(footer).to_contain_text("汇聚公开信号，让信息成为洞察。")
+    assert "在线" not in await footer.inner_text() and "离线" not in await footer.inner_text()
 
     search_requests = []
     def record_search(request):

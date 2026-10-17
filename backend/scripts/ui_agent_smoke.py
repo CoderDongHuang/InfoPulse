@@ -47,6 +47,10 @@ async def check_agent(page, api, base_url, output):
     await page.screenshot(path=str(output / "agent-answer-desktop.png"), full_page=True)
     await page.reload()
     await expect(answer).to_contain_text("acceptance.md")
+    # A stale event query must not relabel an ordinary conversation or affect a new one.
+    await page.goto(conversation_url + "&event_id=stale-event-query")
+    await expect(answer).to_contain_text("acceptance.md")
+    await expect(page.locator(".event-badge")).to_have_count(0)
 
     # An aborted browser transport is intentionally injected, not a claimed server success.
     async def offline(route):
@@ -88,6 +92,7 @@ async def check_agent(page, api, base_url, output):
     await expect(page.get_by_role("heading", name="我是 InfoPulse，很高兴见到你！")).to_be_visible()
     new_id = page.url.split("conversation=")[1].split("&")[0]
     assert new_id != cid
+    assert (await api("GET", "/conversations/" + new_id))["event_id"] is None
     # Delete cancellation must leave the real persisted conversation intact.
     current_history = page.locator(".history-item.active")
     await current_history.get_by_role("button", name="删除会话：新会话", exact=True).click()
@@ -122,5 +127,5 @@ async def check_agent(page, api, base_url, output):
             await page.screenshot(path=str(output / "agent-answer-mobile.png"), full_page=True)
     await page.goto(base_url + "/agent")
     await expect(page.get_by_role("heading", name="我是 InfoPulse，很高兴见到你！")).to_be_visible()
-    await page.screenshot(path=str(output / "agent-welcome-mobile.png"), full_page=True)
+    await page.screenshot(path=str(output / "agent-welcome-mobile.png"), full_page=True, animations="disabled")
     await page.set_viewport_size({"width": 1440, "height": 1000})

@@ -13,6 +13,11 @@ export function citationLink(value: unknown) {
   } catch { return undefined }
 }
 
+export function conversationEventId(active: { event_id?: string | null } | null, query: unknown) {
+  // A loaded conversation owns its context, even if the URL still contains an older event.
+  return active ? active.event_id || undefined : typeof query === 'string' ? query : undefined
+}
+
 // Each request owns an epoch: a late stream/detail response cannot mutate another conversation.
 export function useAgentChat(api = agentApi, knowledge = knowledgeApi) {
   const conversations = ref<any[]>([]), active = ref<any>(null), prompt = ref('')
@@ -78,7 +83,7 @@ export function useAgentChat(api = agentApi, knowledge = knowledgeApi) {
   async function send(eventId?: string) {
     if (!canSend.value) return
     const content = prompt.value.trim()
-    if (!active.value && !await create(eventId, content.slice(0, 40))) return
+    if (!active.value && !await create(eventId, Array.from(content).slice(0, 40).join(''))) return
     const target = active.value
     const epoch = ++streamEpoch
     target.messages.push({ id: `local-${Date.now()}`, role: 'user', content, citations: [] })

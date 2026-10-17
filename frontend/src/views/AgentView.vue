@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowUp, ChatDotRound, Check, Close, CopyDocument, Delete, Document, Fold, Plus, Search, Star } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { agentApi } from '@/api/agent'
-import { citationLink, shouldSendMessage, useAgentChat } from '@/composables/useAgentChat'
+import { citationLink, conversationEventId, shouldSendMessage, useAgentChat } from '@/composables/useAgentChat'
 
 const route = useRoute(), router = useRouter(), chat = reactive(useAgentChat())
 const historySearch = ref(''), sidebarOpen = ref(false), citation = ref<any>(null)
@@ -13,14 +13,18 @@ const feedbackBusy = ref<string>(), feedbackGiven = ref<Record<string, string>>(
 const visibleHistory = computed(() => chat.conversations.filter(c => c.title?.toLowerCase().includes(historySearch.value.toLowerCase())))
 const hasMessages = computed(() => !!chat.active?.messages?.length)
 const citationOpen = computed({ get: () => !!citation.value, set: value => { if (!value) citation.value = null } })
-const eventId = () => typeof route.query.event_id === 'string' ? route.query.event_id : undefined
+const eventId = () => conversationEventId(chat.active, route.query.event_id)
 const quick = ['总结今天 AI 行业的公开情报', '比较近期事件中的主要观点', '梳理事件的时间线与证据']
 
 async function syncLocation() {
   const query = { ...route.query }
   if (chat.active?.id) query.conversation = chat.active.id
   else delete query.conversation
-  if (query.conversation !== route.query.conversation) await router.replace({ query })
+  if (chat.active) {
+    if (chat.active.event_id) query.event_id = chat.active.event_id
+    else delete query.event_id
+  }
+  if (query.conversation !== route.query.conversation || query.event_id !== route.query.event_id) await router.replace({ query })
 }
 async function closeSidebar() { sidebarOpen.value = false; await nextTick(); historyToggle.value?.focus() }
 async function open(id: string) { if (await chat.open(id)) { await syncLocation(); sidebarOpen.value = false } }

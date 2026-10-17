@@ -9,8 +9,14 @@ const source = readFileSync(new URL('../src/composables/useAgentChat.ts', import
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
 const context = { exports: {}, URL, require: name => name === 'vue' ? vue : {} }
 vm.runInNewContext(code, context)
-const { useAgentChat, citationLink, shouldSendMessage } = context.exports
+const { useAgentChat, citationLink, conversationEventId, shouldSendMessage } = context.exports
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r }); return { promise, resolve } }
+test('loaded conversation context wins over stale event query, including an explicitly ordinary conversation', () => {
+  assert.equal(conversationEventId(null, 'event-link'), 'event-link')
+  assert.equal(conversationEventId({ event_id: null }, 'old-event'), undefined)
+  assert.equal(conversationEventId({ event_id: 'current-event' }, 'old-event'), 'current-event')
+  assert.equal(conversationEventId(null, ['ambiguous']), undefined)
+})
 function setup(overrides = {}) {
   const calls = { create: 0, close: 0, sends: [] }
   const api = {
@@ -98,4 +104,7 @@ test('first question becomes the new conversation title, and disposal releases p
   const opening = chat.open('two'); assert.equal(chat.busy.value, true); chat.dispose()
   gate.resolve({ id: 'two', messages: [] }); await opening
   assert.equal(chat.busy.value, false); assert.equal(chat.active.value.id, 'one')
+  const unicode = setup({ create: async data => { title = data.title; return { id: 'unicode' } } }).chat
+  unicode.prompt.value = 'a'.repeat(39) + '😀tail'; await unicode.send()
+  assert.equal(title, 'a'.repeat(39) + '😀', 'title truncation must not split a Unicode surrogate pair')
 })

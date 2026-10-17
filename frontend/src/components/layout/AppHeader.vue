@@ -70,7 +70,7 @@ async function handleUserCommand(command: string) {
             <el-icon><ArrowDown /></el-icon>
           </button>
           <template #dropdown><el-dropdown-menu @keydown.esc.stop.prevent="closeDropdown('account', 'account-trigger')">
-            <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+            <el-dropdown-item command="profile"><el-icon aria-hidden="true"><User /></el-icon>个人中心</el-dropdown-item>
             <el-dropdown-item command="logout" divided :disabled="loggingOut"><el-icon><SwitchButton /></el-icon>退出登录</el-dropdown-item>
           </el-dropdown-menu></template>
         </el-dropdown>

@@ -28,6 +28,8 @@
 
 ## 产品与开发
 
+- [导航图标与 AI 对话界面 R22/R23](./audits/2026-10-17-navigation-chat.md)：图标覆盖、聊天交互与验证记录。
+
 - [UI 设计规范](./02-UI设计规范.md)
 - [开发计划](./05-开发计划.md)
 - [技术博客：从舆情工作台到可验证智能平台](./blog/infopulse-open-source-engineering.md)

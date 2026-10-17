@@ -14,7 +14,7 @@ const route = useRoute()
     <main id="main-content" class="main-content" tabindex="-1">
       <router-view v-slot="{ Component, route: currentRoute }">
         <transition name="page" mode="out-in">
-          <component :is="Component" :key="currentRoute.fullPath" />
+          <component :is="Component" :key="currentRoute.path === '/agent' ? currentRoute.path : currentRoute.fullPath" />
         </transition>
       </router-view>
     </main>

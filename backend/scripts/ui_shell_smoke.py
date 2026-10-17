@@ -45,6 +45,18 @@ async def check_shell(page, api, base_url, output, username, password):
     await page.keyboard.press("Escape")
     await expect(page.get_by_role("menuitem", name="知识库", exact=True)).not_to_be_visible()
     await expect(research).to_be_focused()
+    # Every destination must render real SVG, not an unresolved string component.
+    for label in ["研究分析", "协作与行动", "平台与工具"]:
+        await page.get_by_role("button", name=label, exact=True).click()
+        menu = page.locator(".navigation-popper:visible")
+        await expect(menu).to_have_count(1)
+        await expect(menu).to_be_visible()
+        items = menu.get_by_role("menuitem")
+        assert await items.count() > 0
+        for item in await items.all():
+            await expect(item.locator(".el-icon > svg")).to_have_count(1)
+        await page.keyboard.press("Escape")
+        await expect(page.locator(".navigation-popper:visible")).to_have_count(0)
     await page.get_by_role("button", name="平台与工具", exact=True).click()
     await expect(page.get_by_role("menuitem", name="运行管理", exact=True)).to_have_count(0)
     await expect(page.get_by_role("menuitem", name="认知公地", exact=True)).to_be_visible()
@@ -76,6 +88,8 @@ async def check_shell(page, api, base_url, output, username, password):
 
     await page.get_by_role("button", name="账户菜单").focus()
     await page.keyboard.press("Enter")
+    await expect(page.get_by_role("menuitem", name="个人中心", exact=True).locator(".el-icon > svg")).to_have_count(1)
+    await expect(page.get_by_role("menuitem", name="退出登录", exact=True).locator(".el-icon > svg")).to_have_count(1)
     await page.get_by_role("menuitem", name="个人中心", exact=True).click()
     await expect(page).to_have_url(base_url + "/profile")
     name_input = page.get_by_label("用户名", exact=True)
@@ -149,6 +163,8 @@ async def check_shell(page, api, base_url, output, username, password):
             await expect(page.get_by_role("button", name="账户菜单")).to_be_visible()
             await page.get_by_role("button", name="打开导航").click()
             mobile = page.get_by_role("navigation", name="移动导航")
+            for link in await mobile.get_by_role("link").all():
+                await expect(link.locator(".el-icon > svg")).to_have_count(1)
             await expect(mobile.get_by_role("link", name="行动闭环", exact=True)).to_have_count(1)
             await expect(mobile.get_by_role("link", name="运行管理", exact=True)).to_have_count(0)
             await mobile.get_by_role("link", name="工作台", exact=True).click()

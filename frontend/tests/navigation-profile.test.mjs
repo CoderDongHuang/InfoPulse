@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
 import ts from 'typescript'
+import * as iconComponents from '@element-plus/icons-vue'
 
 function moduleAt(path) {
   const source = readFileSync(new URL(path, import.meta.url), 'utf8')
@@ -41,6 +42,26 @@ test('mega-menu categories cover every visible destination exactly once', () => 
       assert.ok(group.sections.length >= 3 && group.sections.length <= 4)
     }
   }
+})
+
+test('every navigation icon exists and is registered as an actual Vue component', () => {
+  const source = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
+  const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true)
+  const registered = new Set()
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'icons') {
+      for (const property of node.initializer.properties) registered.add(property.name.getText(ast))
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  const items = [...nav.primaryNavigation, ...nav.visibleGroups(true).flatMap(group => group.items)]
+  for (const { label, icon } of [...items, { label: '个人中心', icon: 'User' }, { label: '退出登录', icon: 'SwitchButton' }]) {
+    assert.ok(iconComponents[icon], `${label}: missing icon export ${icon}`)
+    assert.ok(registered.has(icon), `${label}: icon ${icon} is not registered`)
+  }
+  const header = readFileSync(new URL('../src/components/layout/AppHeader.vue', import.meta.url), 'utf8')
+  assert.match(header, /command="profile"><el-icon[^>]*><User\s*\/>/)
 })
 
 test('profile sends only changed fields, preserving unchanged legacy usernames', () => {

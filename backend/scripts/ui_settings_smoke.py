@@ -9,16 +9,22 @@ async def assert_field_alignment(page):
         await assert_layout(page, f"private settings at {width}")
         for left, right in (("llm-model", "llm-key"), ("vision-model", "audio-model"),
                             ("smtp-host", "smtp-port"), ("smtp-user", "smtp-password")):
-            a = await page.locator(f"#{left}").bounding_box()
-            b = await page.locator(f"#{right}").bounding_box()
+            # Read both rects in one frame: route transitions translate the whole
+            # form, so sequential browser calls can compare different positions.
+            a, b = await page.evaluate("""ids => ids.map(id => {
+                const rect = document.getElementById(id).getBoundingClientRect();
+                return {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
+            })""", [left, right])
             assert abs(a["height"] - b["height"]) < 1, (width, left, right, a, b)
             assert abs(a["width"] - b["width"]) < 1, (width, left, right, a, b)
             if width > 600:
                 assert abs(a["y"] - b["y"]) < 1, (width, left, right, a, b)
             else:
                 assert abs(a["x"] - b["x"]) < 1 and b["y"] > a["y"]
-        cards = await page.locator("form .settings-card").all()
-        boxes = [await card.bounding_box() for card in cards]
+        boxes = await page.locator("form .settings-card").evaluate_all("""cards => cards.map(card => {
+            const rect = card.getBoundingClientRect();
+            return {x: rect.x, width: rect.width};
+        })""")
         assert abs(boxes[0]["x"] - boxes[1]["x"]) < 1
         assert abs(boxes[0]["width"] - boxes[1]["width"]) < 1
     await page.set_viewport_size({"width": 1440, "height": 1000})

@@ -13,7 +13,7 @@ const onSuccess = () => router.push((route.query.redirect as string) || '/')
       <img src="@/assets/images/auth-newsroom.jpg" alt="报纸与公开信息" />
       <div class="news-overlay"></div>
       <div class="masthead">
-        <span class="signal-mark"><i></i><i></i><i></i></span>
+        <img class="signal-mark" :src="'/favicon.svg?v=pulse-1'" alt="" width="32" height="32" />
         <strong>InfoPulse</strong>
       </div>
       <div class="edition-copy">
@@ -41,9 +41,7 @@ const onSuccess = () => router.push((route.query.redirect as string) || '/')
 .news-panel > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.58) contrast(1.08); transform: scale(1.015); }
 .news-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,25,21,.92), rgba(8,25,21,.56) 66%, rgba(8,25,21,.28)); }
 .masthead { position: absolute; top: 42px; left: 48px; display: flex; align-items: center; gap: 12px; font-size: 18px; }
-.signal-mark { width: 32px; height: 32px; display: flex; align-items: flex-end; gap: 4px; padding: 6px; border: 1px solid rgba(255,255,255,.42); }
-.signal-mark i { width: 4px; background: white; }
-.signal-mark i:nth-child(1) { height: 7px; }.signal-mark i:nth-child(2) { height: 18px; background: #66d3c4; }.signal-mark i:nth-child(3) { height: 12px; background: #ef746c; }
+.signal-mark { width: 32px; height: 32px; display: block; flex-shrink: 0; }
 .edition-copy { position: absolute; left: 8%; bottom: 18%; max-width: 720px; }
 .edition-copy > p { font: 700 11px/1.4 "Cascadia Code", monospace; color: #82d4c8; letter-spacing: .12em; }
 .edition-copy h1 { margin: 18px 0 30px; max-width: 780px; font: 600 clamp(40px, 4.6vw, 66px)/1.12 Georgia, "Songti SC", serif; letter-spacing: 0; }

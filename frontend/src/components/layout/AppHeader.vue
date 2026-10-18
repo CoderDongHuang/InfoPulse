@@ -47,7 +47,7 @@ async function handleUserCommand(command: string) {
   <header class="topbar">
     <div class="header-inner">
       <router-link to="/" class="brand" aria-label="InfoPulse 工作台">
-        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <img class="brand-mark" :src="'/favicon.svg?v=pulse-1'" alt="" width="34" height="34" />
         <strong>InfoPulse<span>情报工作空间</span></strong>
       </router-link>
       <nav class="desktop-nav" aria-label="主导航">
@@ -98,9 +98,7 @@ async function handleUserCommand(command: string) {
 .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .brand strong { font-size: 19px; letter-spacing: -.6px; line-height: 1.15; }
 .brand strong span { display: block; margin-top: 4px; font-size: 10px; letter-spacing: 1px; color: var(--text-secondary); font-weight: 400; }
-.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: #2563eb; display: flex; align-items: center; justify-content: center; gap: 3px; }
-.brand-mark i { display: block; width: 3px; border-radius: 3px; background: #fff; height: 10px; }
-.brand-mark i:nth-child(2) { height: 22px; }.brand-mark i:nth-child(3) { height: 15px; }
+.brand-mark { width: 34px; height: 34px; display: block; flex-shrink: 0; }
 .desktop-nav { display: flex; gap: 6px; align-items: center; }
 .desktop-nav > a, .nav-trigger { min-height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 7px; color: #475569; background: transparent; cursor: pointer; font-size: 13px; white-space: nowrap; }
 .desktop-nav a:hover, .nav-trigger:hover, .desktop-nav .active, .mobile-panel .active { background: #eff4ff; color: #1d4ed8; }

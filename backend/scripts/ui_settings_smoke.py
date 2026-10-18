@@ -3,6 +3,27 @@ from playwright.async_api import expect
 from scripts.ui_shell_smoke import assert_layout
 
 
+async def assert_field_alignment(page):
+    for width in (1440, 1024, 768, 390, 320):
+        await page.set_viewport_size({"width": width, "height": 1000})
+        await assert_layout(page, f"private settings at {width}")
+        for left, right in (("llm-model", "llm-key"), ("vision-model", "audio-model"),
+                            ("smtp-host", "smtp-port"), ("smtp-user", "smtp-password")):
+            a = await page.locator(f"#{left}").bounding_box()
+            b = await page.locator(f"#{right}").bounding_box()
+            assert abs(a["height"] - b["height"]) < 1, (width, left, right, a, b)
+            assert abs(a["width"] - b["width"]) < 1, (width, left, right, a, b)
+            if width > 600:
+                assert abs(a["y"] - b["y"]) < 1, (width, left, right, a, b)
+            else:
+                assert abs(a["x"] - b["x"]) < 1 and b["y"] > a["y"]
+        cards = await page.locator("form .settings-card").all()
+        boxes = [await card.bounding_box() for card in cards]
+        assert abs(boxes[0]["x"] - boxes[1]["x"]) < 1
+        assert abs(boxes[0]["width"] - boxes[1]["width"]) < 1
+    await page.set_viewport_size({"width": 1440, "height": 1000})
+
+
 async def check_settings(page, api, base_url, output):
     await page.set_viewport_size({"width": 1440, "height": 1000})
     await page.goto(base_url + "/profile")
@@ -13,6 +34,7 @@ async def check_settings(page, api, base_url, output):
     await expect(page.get_by_role("menuitem", name="私人配置", exact=True).locator(".el-icon > svg")).to_have_count(1)
     await page.keyboard.press("Escape")
     await expect(page.get_by_role("button", name="测试已保存的文本模型")).to_be_disabled()
+    await assert_field_alignment(page)
     await page.get_by_role("button", name="DeepSeek", exact=True).click()
     await expect(page.locator("#llm-base")).to_have_value("https://api.deepseek.com/v1")
     await expect(page.locator("#llm-model")).to_have_value("deepseek-chat")
@@ -72,6 +94,7 @@ async def check_settings(page, api, base_url, output):
     await expect(page.locator(".form-error")).to_contain_text("其他标签页")
     await page.get_by_role("button", name="重新加载已保存配置").click()
     await expect(page.locator("#llm-model")).to_have_value("second-tab-model")
+    await assert_field_alignment(page)
     await expect(page.locator(".el-message")).to_have_count(0, timeout=10000)
     await page.evaluate("window.scrollTo(0, 0)")
     await page.screenshot(path=str(output / "private-settings-desktop.png"), full_page=True, animations="disabled")

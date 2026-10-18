@@ -13,7 +13,7 @@ const onSuccess = () => router.push((route.query.redirect as string) || '/')
       <img src="@/assets/images/auth-newsroom.jpg" alt="报纸与公开信息" />
       <div class="news-overlay"></div>
       <div class="masthead">
-        <img class="signal-mark" src="/favicon.svg?v=pulse-1" alt="" width="32" height="32" />
+        <img class="signal-mark" :src="'/favicon.svg?v=pulse-1'" alt="" width="32" height="32" />
         <strong>InfoPulse</strong>
       </div>
       <div class="edition-copy">

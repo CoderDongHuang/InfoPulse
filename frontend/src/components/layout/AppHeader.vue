@@ -47,7 +47,7 @@ async function handleUserCommand(command: string) {
   <header class="topbar">
     <div class="header-inner">
       <router-link to="/" class="brand" aria-label="InfoPulse 工作台">
-        <img class="brand-mark" src="/favicon.svg?v=pulse-1" alt="" width="34" height="34" />
+        <img class="brand-mark" :src="'/favicon.svg?v=pulse-1'" alt="" width="34" height="34" />
         <strong>InfoPulse<span>情报工作空间</span></strong>
       </router-link>
       <nav class="desktop-nav" aria-label="主导航">

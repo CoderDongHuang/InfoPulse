@@ -74,13 +74,25 @@ async def run(base_url: str, output: Path):
             checks.append('real content list, keyword search and detail agree')
             await page.reload()
             await expect(page.locator('.discover-list article').first).to_be_visible(timeout=15000)
+            await expect(page.get_by_role('note', name='隔离验收环境')).to_have_count(0)
+            async with page.expect_response(lambda r: urlparse(r.url).path == '/api/v1/discover') as refreshed:
+                await page.get_by_role('button', name='刷新内容', exact=True).click()
+            assert (await refreshed.value).status == 200
+            await expect(page.locator('.discover-list article').first).to_be_visible()
             await page.locator('.discover-list article').first.get_by_role('button', name='收藏', exact=True).click()
             await expect(page.get_by_text('已收藏', exact=True)).to_be_visible()
             await page.screenshot(path=str(output / 'discover-real.png'), full_page=False)
             checks.append('UI shows public articles and favorite succeeds')
             workspace = await api('GET', '/workspace')
             assert workspace['recommendations'] and workspace['favorites']
-            checks.append('workspace recommendations and favorites read persisted data')
+            await page.goto(base_url + '/')
+            await expect(page.locator('.recommend').first).to_be_visible(timeout=15000)
+            async with page.expect_response(lambda r: urlparse(r.url).path == '/api/v1/workspace') as refreshed:
+                await page.get_by_role('button', name='刷新工作台', exact=True).click()
+            assert (await refreshed.value).status == 200
+            await expect(page.locator('.recommend').first).to_be_visible()
+            await page.screenshot(path=str(output / 'workspace-real.png'), full_page=True)
+            checks.append('workspace recommendations, favorites and both UI refresh actions read persisted real data')
             task = await api('POST', '/tasks', {'name': '公开来源验收日报', 'task_type': 'daily_report', 'config': {'channels': ['in_app']}, 'schedule': {'kind': 'interval', 'minutes': 1440}}, 201)
             run = await api('POST', f"/tasks/{task['id']}/run", expected=202)
             completed = None

@@ -153,6 +153,7 @@ async def health_check():
         "status": "ok",
         "version": "1.0.0",
         "demo_mode": settings.DEMO_MODE,
+        "acceptance_mode": settings.ACCEPTANCE_MODE,
         "crawler_enabled": settings.CRAWLER_ENABLED,
         "llm_configured": bool(settings.LLM_API_KEY and "your-api-key" not in settings.LLM_API_KEY),
         "modules": ["insights", "mouthpiece", "timeline", "hot_search", "history", "sources", "search", "events"],

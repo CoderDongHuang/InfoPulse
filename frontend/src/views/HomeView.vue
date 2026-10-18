@@ -41,7 +41,7 @@ onMounted(load)
   <div class="stage-page workspace-page">
     <header class="page-head">
       <div><p>个人工作台 / {{ data?.date || 'TODAY' }}</p><h1>今天，从重要信号开始</h1><span>连接你的关注、研究与行动。只展示有来源的真实数据。</span></div>
-      <button type="button" @click="router.push('/discover')">发现新情报 →</button>
+      <div class="refresh-actions"><button type="button" :disabled="loading" @click="load">刷新工作台</button><button type="button" @click="router.push('/discover')">发现新情报 →</button></div>
     </header>
     <section v-if="loading" class="empty" role="status">正在读取真实情报数据…</section>
     <section v-else-if="error" class="empty" role="alert"><p>{{ error }}</p><button type="button" @click="load">重试加载</button></section>
@@ -52,7 +52,7 @@ onMounted(load)
       <div class="workspace-grid">
         <section class="main-column">
           <div class="section-title"><div><small>DAILY BRIEF</small><h2>今日建议</h2></div><span>{{ data.recommendations.length }} 条</span></div>
-          <div v-if="!data.recommendations.length" class="empty"><strong>暂无真实建议</strong><p>建议只从今日已同步内容中生成，不使用模拟数据。</p><button type="button" @click="router.push('/sources')">查看数据来源</button></div>
+          <div v-if="!data.recommendations.length" class="empty"><strong>暂无真实建议</strong><p>建议来自最近一周已采集的内容。首次采集完成后可点击「刷新工作台」；个人反馈也可能隐藏内容。</p><button type="button" @click="router.push('/sources')">查看数据来源</button></div>
           <article v-for="(item, i) in data.recommendations" :key="item.id" class="recommend">
             <b>{{ String(i + 1).padStart(2, '0') }}</b>
             <div><h3>{{ item.title }}</h3><p>{{ item.summary || '原始内容暂无摘要' }}</p>
@@ -74,6 +74,7 @@ onMounted(load)
 <style scoped src="@/assets/styles/stage3.css"></style>
 <style scoped>
 .row { gap: 12px; overflow-wrap: anywhere; }
+.refresh-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .section-title a { color: var(--color-primary); font-size: 12px; }
 button:disabled { opacity: .55; cursor: wait; }
 </style>

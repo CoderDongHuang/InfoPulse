@@ -15,13 +15,19 @@ redis_client: aioredis.Redis | None = None
 async def init_redis():
     """Initialize Redis connection pool on application startup."""
     global redis_client
-    redis_client = aioredis.from_url(
+    candidate = aioredis.from_url(
         settings.REDIS_URL,
         encoding="utf-8",
         decode_responses=True,
     )
-    # Verify connection
-    await redis_client.ping()
+    # Publish only a verified client. Optional consumers must see None when
+    # local startup continues without Redis, not a broken connection pool.
+    try:
+        await candidate.ping()
+    except BaseException:
+        await candidate.aclose()
+        raise
+    redis_client = candidate
 
 
 async def close_redis():

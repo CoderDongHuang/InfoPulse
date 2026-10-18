@@ -31,6 +31,10 @@ async def run(base_url, output, browser_channel=None):
         try:
             await page.goto(base_url + "/knowledge")
             await expect(page).to_have_url(__import__("re").compile(r"/auth"))
+            icon_url = await page.locator('link[rel="icon"]').get_attribute("href")
+            await expect(page.locator(".signal-mark")).to_have_attribute("src", icon_url)
+            assert (await context.request.get(base_url + icon_url)).status == 200
+            await expect(page.locator(".signal-mark")).to_have_js_property("naturalWidth", 64)
             await page.get_by_role("button", name="创建账号", exact=True).click()
             await page.get_by_placeholder("用户名或邮箱").fill(username)
             await page.get_by_placeholder("name@example.com").fill(username + "@example.com")
@@ -39,6 +43,8 @@ async def run(base_url, output, browser_channel=None):
             await page.get_by_role("button", name="创建并进入").click()
             await expect(page).to_have_url(base_url + "/knowledge", timeout=15000)
             checks.append("guest redirect and UI registration")
+            await expect(page.locator(".brand-mark")).to_have_attribute("src", icon_url)
+            await expect(page.locator(".brand-mark")).to_have_js_property("naturalWidth", 64)
             token = await page.evaluate("sessionStorage.getItem('infopulse_access_token')")
             headers = {"Authorization": "Bearer " + token}
 

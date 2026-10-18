@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     """Application settings loaded from .env file and environment variables."""
 
     ENVIRONMENT: str = "development"
+    ACCEPTANCE_MODE: bool = False
     APP_VERSION: str = "1.0.0"
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:4173"]
     TRUSTED_HOSTS: list[str] = ["localhost", "127.0.0.1", "testserver"]

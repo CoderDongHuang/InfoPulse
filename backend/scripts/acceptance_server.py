@@ -23,6 +23,7 @@ def main():
         os.environ.pop(key, None)
     os.environ.update({
         "DATABASE_URL": args.database_url,
+        "ACCEPTANCE_MODE": "true",
         "REDIS_URL": args.redis_url,
         "JWT_SECRET_KEY": "acceptance-test-only-secret-not-for-real-use-0000",
         "PLATFORM_ENCRYPTION_KEY": "acceptance-test-only-encryption-not-for-real-use-0000",

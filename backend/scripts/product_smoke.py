@@ -45,6 +45,12 @@ async def run(base_url, output, browser_channel=None):
             checks.append("guest redirect and UI registration")
             await expect(page.locator(".brand-mark")).to_have_attribute("src", icon_url)
             await expect(page.locator(".brand-mark")).to_have_js_property("naturalWidth", 64)
+            health = await (await context.request.get(base_url + "/api/v1/health")).json()
+            if health.get("acceptance_mode"):
+                await expect(page.get_by_role("note", name="隔离验收环境")).to_be_visible()
+                await expect(page.get_by_role("link", name="打开真实数据工作台 →")).to_have_attribute("href", base_url.replace(":15173", ":15174") + "/")
+            else:
+                await expect(page.get_by_role("note", name="隔离验收环境")).to_have_count(0)
             token = await page.evaluate("sessionStorage.getItem('infopulse_access_token')")
             headers = {"Authorization": "Bearer " + token}
 

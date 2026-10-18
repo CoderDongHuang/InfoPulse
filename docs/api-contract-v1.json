@@ -22333,6 +22333,110 @@
         ]
       }
     },
+    "/api/v1/settings/services": {
+      "get": {
+        "operationId": "read_api_v1_settings_services_get",
+        "deprecated": false,
+        "parameters": [],
+        "requestBody": null,
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "save_api_v1_settings_services_put",
+        "deprecated": false,
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceSettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/settings/services/test/{service}": {
+      "post": {
+        "operationId": "test_api_v1_settings_services_test__service__post",
+        "deprecated": false,
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service",
+            "required": true,
+            "schema": {
+              "enum": [
+                "llm",
+                "smtp"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/sources": {
       "get": {
         "operationId": "list_sources_api_v1_sources_get",
@@ -30504,6 +30608,86 @@
         },
         "required": [
           "query"
+        ],
+        "type": "object"
+      },
+      "ServiceSettingsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "clear_secrets": {
+            "items": {
+              "enum": [
+                "llm_api_key",
+                "smtp_password"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "type": "array"
+          },
+          "llm_api_base": {
+            "default": "https://api.openai.com/v1",
+            "maxLength": 500,
+            "type": "string"
+          },
+          "llm_api_key": {
+            "default": "",
+            "format": "password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "llm_model": {
+            "default": "gpt-4o-mini",
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "media_transcription_model": {
+            "default": "",
+            "maxLength": 150,
+            "type": "string"
+          },
+          "media_vision_model": {
+            "default": "",
+            "maxLength": 150,
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "smtp_from": {
+            "default": "",
+            "maxLength": 254,
+            "type": "string"
+          },
+          "smtp_host": {
+            "default": "",
+            "maxLength": 253,
+            "type": "string"
+          },
+          "smtp_password": {
+            "default": "",
+            "format": "password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "smtp_port": {
+            "default": 587,
+            "enum": [
+              465,
+              587
+            ],
+            "type": "integer"
+          },
+          "smtp_username": {
+            "default": "",
+            "maxLength": 254,
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision"
         ],
         "type": "object"
       },

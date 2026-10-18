@@ -95,6 +95,15 @@ class MediaFailureTests(unittest.IsolatedAsyncioTestCase):
         await self.assert_terminal('failed')
         vision.assert_not_awaited()
 
+    async def test_unreadable_private_configuration_releases_lease_without_provider_call(self):
+        with patch('app.services.multimodal.owner_settings', AsyncMock(side_effect=HTTPException(503, 'unreadable configuration'))), \
+             patch('app.services.multimodal.vision', AsyncMock()) as vision:
+            with self.assertRaises(HTTPException):
+                await process_media_once(self.asset.id, self.sessions)
+        asset = await self.assert_terminal('failed')
+        self.assertIn('Private service configuration unavailable', asset.error_message)
+        vision.assert_not_awaited()
+
     async def test_provider_timeout_is_unknown_and_never_automatically_or_manually_retried(self):
         vision = AsyncMock(side_effect=TimeoutError('response lost'))
         with patch('app.services.multimodal.storage.get', return_value=png()), \

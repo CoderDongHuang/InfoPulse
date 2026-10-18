@@ -1,6 +1,6 @@
 import re
 from sqlalchemy import or_,select
-from app.config import get_settings
+from app.core.runtime_settings import get_runtime_settings as get_settings
 from app.core.llm import complete_json,llm_is_configured
 from app.models.intelligence import ContentItem,DataSource,EventContent,Favorite
 from app.services.knowledge import search as search_knowledge

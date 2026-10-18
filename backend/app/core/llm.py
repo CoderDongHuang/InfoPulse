@@ -7,24 +7,21 @@ from typing import AsyncIterator
 
 from openai import AsyncOpenAI
 
-from app.config import get_settings
+from app.core.runtime_settings import RuntimeSettings
+from app.core.private_clients import managed_model_client, model_http_client
 
-settings = get_settings()
-
-_client: AsyncOpenAI | None = None
+settings = RuntimeSettings()
 
 
 def get_llm_client() -> AsyncOpenAI:
-    """Return a singleton AsyncOpenAI client."""
-    global _client
-    if _client is None:
-        _client = AsyncOpenAI(
-            api_key=settings.LLM_API_KEY,
-            base_url=settings.LLM_API_BASE,
-            timeout=settings.LLM_TIMEOUT_SECONDS,
-            max_retries=settings.LLM_MAX_RETRIES,
-        )
-    return _client
+    """Create an owned client; credentials must never be cached across users."""
+    return AsyncOpenAI(
+        api_key=settings.LLM_API_KEY,
+        base_url=settings.LLM_API_BASE,
+        timeout=settings.LLM_TIMEOUT_SECONDS,
+        max_retries=0,
+        http_client=model_http_client(settings.LLM_TIMEOUT_SECONDS),
+    )
 
 
 def llm_is_configured() -> bool:
@@ -44,31 +41,25 @@ async def stream_chat(
     Yields text chunks (str) as they arrive from the API.
     Caller should concatenate chunks to form the full response.
     """
-    client = get_llm_client()
-    deadline = asyncio.get_running_loop().time() + settings.LLM_TIMEOUT_SECONDS
-    stream = await asyncio.wait_for(client.chat.completions.create(
-        model=settings.LLM_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-        stream=True,
-    ), timeout=settings.LLM_TIMEOUT_SECONDS)
-
-    try:
-        iterator = stream.__aiter__()
-        while True:
-            remaining = deadline - asyncio.get_running_loop().time()
-            if remaining <= 0:raise asyncio.TimeoutError("LLM stream total budget exhausted")
-            try:chunk = await asyncio.wait_for(iterator.__anext__(), timeout=remaining)
-            except StopAsyncIteration:break
-            if chunk.choices:
-                delta = chunk.choices[0].delta
-                if delta.content:yield delta.content
-    finally:
-        await stream.close()
+    async with managed_model_client(get_llm_client) as client:
+        deadline = asyncio.get_running_loop().time() + settings.LLM_TIMEOUT_SECONDS
+        stream = await asyncio.wait_for(client.chat.completions.create(
+            model=settings.LLM_MODEL,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
+            temperature=temperature, max_tokens=max_tokens, stream=True,
+        ), timeout=settings.LLM_TIMEOUT_SECONDS)
+        try:
+            iterator = stream.__aiter__()
+            while True:
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:raise asyncio.TimeoutError("LLM stream total budget exhausted")
+                try:chunk = await asyncio.wait_for(iterator.__anext__(), timeout=remaining)
+                except StopAsyncIteration:break
+                if chunk.choices:
+                    delta = chunk.choices[0].delta
+                    if delta.content:yield delta.content
+        finally:
+            await stream.close()
 
 
 async def complete_chat(
@@ -79,18 +70,13 @@ async def complete_chat(
     model: str | None = None,
 ) -> str:
     """Return a complete chat response."""
-    client = get_llm_client()
-    response = await asyncio.wait_for(client.chat.completions.create(
-        model=model or settings.LLM_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-        stream=False,
-    ), timeout=settings.LLM_TIMEOUT_SECONDS)
-    return response.choices[0].message.content or ""
+    async with managed_model_client(get_llm_client) as client:
+        response = await asyncio.wait_for(client.chat.completions.create(
+            model=model or settings.LLM_MODEL,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
+            temperature=temperature, max_tokens=max_tokens, stream=False,
+        ), timeout=settings.LLM_TIMEOUT_SECONDS)
+        return response.choices[0].message.content or ""
 
 
 async def complete_json(

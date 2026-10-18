@@ -33,6 +33,7 @@ function navigate(path: string) {
 }
 async function handleUserCommand(command: string) {
   if (command === 'profile') navigate('/profile')
+  if (command === 'settings') navigate('/settings')
   if (command === 'logout' && !loggingOut.value) {
     loggingOut.value = true
     try { await userStore.logout(); await router.replace('/auth') }
@@ -71,6 +72,7 @@ async function handleUserCommand(command: string) {
           </button>
           <template #dropdown><el-dropdown-menu @keydown.esc.stop.prevent="closeDropdown('account', 'account-trigger')">
             <el-dropdown-item command="profile"><el-icon aria-hidden="true"><User /></el-icon>个人中心</el-dropdown-item>
+            <el-dropdown-item command="settings"><el-icon aria-hidden="true"><Setting /></el-icon>私人配置</el-dropdown-item>
             <el-dropdown-item command="logout" divided :disabled="loggingOut"><el-icon><SwitchButton /></el-icon>退出登录</el-dropdown-item>
           </el-dropdown-menu></template>
         </el-dropdown>

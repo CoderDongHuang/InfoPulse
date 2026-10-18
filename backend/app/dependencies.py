@@ -70,8 +70,19 @@ async def require_admin(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-async def get_tenant_context(
+async def get_configured_user(
     user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.core.runtime_settings import use_settings
+    from app.services.service_settings import owner_settings
+    settings = await owner_settings(db, user.id)
+    with use_settings(settings):
+        yield user
+
+
+async def get_tenant_context(
+    user: User = Depends(get_configured_user),
     db: AsyncSession = Depends(get_db),
     organization_id: str | None = Header(default=None, alias="X-Organization-ID"),
     workspace_id: str | None = Header(default=None, alias="X-Workspace-ID"),

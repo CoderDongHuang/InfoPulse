@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.config import get_settings
+from app.core.runtime_settings import get_runtime_settings as get_settings
 from app.core.llm import complete_json, llm_is_configured
 from app.models.intelligence import Analysis, AnalysisCitation, ContentItem, DataSource, EventContent
 

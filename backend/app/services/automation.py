@@ -93,13 +93,13 @@ async def deliver_attempt(db, attempt: DeliveryAttempt):
     try:
         if attempt.channel == "email":
             if not preference.email_enabled or not preference.email_address: raise RuntimeError("Email delivery is not configured")
-            settings = get_settings()
+            from app.services.service_settings import owner_settings
+            from app.core.private_clients import smtp_connection
+            settings = await owner_settings(db, notification.user_id)
             if not settings.SMTP_HOST or not settings.SMTP_FROM: raise RuntimeError("SMTP is not configured")
             message = EmailMessage(); message["Subject"] = notification.title; message["From"] = settings.SMTP_FROM; message["To"] = preference.email_address; message.set_content(notification.body)
             def send():
-                with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as smtp:
-                    smtp.starttls()
-                    if settings.SMTP_USERNAME: smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                with smtp_connection(settings) as smtp:
                     smtp.send_message(message)
             await asyncio.to_thread(send)
         elif attempt.channel == "webhook":
@@ -110,7 +110,7 @@ async def deliver_attempt(db, attempt: DeliveryAttempt):
             attempt.response_code = response.status_code; response.raise_for_status()
         attempt.status = "delivered"; attempt.delivered_at = now_utc(); attempt.error_message = ""
     except Exception as exc:
-        attempt.error_message = str(exc)[:2000]
+        attempt.error_message = "Email delivery failed; check private SMTP configuration and provider permissions" if attempt.channel == "email" else str(exc)[:2000]
         if attempt.attempt >= 3: attempt.status = "dead_letter"; attempt.next_retry_at = None
         else: attempt.status = "retrying"; attempt.attempt += 1; attempt.next_retry_at = now_utc() + timedelta(minutes=2 ** attempt.attempt)
 

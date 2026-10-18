@@ -28,6 +28,9 @@
 
 ## 产品与开发
 
+- [私人配置中心 R24](./audits/2026-10-18-private-configuration.md)：账号隔离、加密持久化、模型/SMTP 出站限制、后台任务绑定及桌面/移动截图。
+- [可选 Redis 启动修复 R25](./audits/2026-10-18-optional-redis.md)：探测失败的连接池释放与协作降级。
+
 - [导航图标与 AI 对话界面 R22/R23](./audits/2026-10-17-navigation-chat.md)：图标覆盖、聊天交互与验证记录。
 
 - [UI 设计规范](./02-UI设计规范.md)

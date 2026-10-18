@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from playwright.async_api import async_playwright, expect
 from scripts.ui_shell_smoke import check_shell
 from scripts.ui_agent_smoke import check_agent
+from scripts.ui_settings_smoke import check_settings
 
 
 async def run(base_url, output, browser_channel=None):
@@ -200,6 +201,8 @@ async def run(base_url, output, browser_channel=None):
             checks.append("top navigation/keyboard/search, profile persistence/conflict/offline retry, mobile 1024/768/390/320px")
 
             await check_agent(page, api, base_url, output)
+            await check_settings(page, api, base_url, output)
+            checks.append("private settings save/reload/write-only secrets, offline retention, connection failure, revision conflict, clear and 320–1440px layout")
             checks.append("chat real knowledge SSE/citations/feedback/reload/history/delete, IME, transport failure/stop fixtures and mobile layouts")
 
             for route in ["/", "/dashboard", "/discover", "/search", "/events", "/analysis", "/agent", "/reports", "/subscriptions", "/tasks", "/notifications", "/history", "/sources", "/orchestration", "/multimodal", "/global-intelligence", "/action-loop", "/commercial-operations", "/enterprise", "/developers", "/autonomy", "/trust-network", "/global-coordination", "/adaptive-os", "/provable-autonomy", "/planetary-resilience", "/cognitive-infrastructure", "/cognitive-commons", "/insight", "/mouthpiece", "/timeline", "/hot-search", "/watchlist", "/alerts", "/bi", "/help"]:

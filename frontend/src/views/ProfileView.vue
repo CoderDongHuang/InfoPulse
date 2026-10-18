@@ -58,6 +58,7 @@ onMounted(load)
         <span class="account-tag">{{ user.userInfo?.is_admin ? '系统管理员' : '个人账户' }}</span>
         <dl><dt>加入时间</dt><dd>{{ joined }}</dd><dt>账户状态</dt><dd>{{ user.userInfo?.is_active ? '正常' : '已停用' }}</dd></dl>
         <router-link to="/reports">查看我的报告 →</router-link>
+        <p><router-link to="/settings">私人配置：模型与邮件 →</router-link></p>
       </aside>
       <div class="profile-sections">
         <form class="surface profile-card" @submit.prevent="save" :aria-busy="saving">
@@ -70,7 +71,7 @@ onMounted(load)
           <p v-if="error" class="form-error" role="alert">{{ error }}</p><p v-if="notice" class="form-notice" role="status">{{ notice }}</p>
           <div class="form-actions"><button class="primary" type="submit" :disabled="saving || !dirty">{{ saving ? '保存中…' : '保存修改' }}</button><button class="secondary" type="button" :disabled="saving || !dirty" @click="reset">撤销修改</button></div>
         </form>
-        <section class="surface profile-card session-card"><h2>会话与隐私</h2><p>登录凭证仅保存在当前浏览器标签页。需要退出时，可点击右上角头像 → 退出登录。</p><p class="muted">本地开发者预览不代表所有外部服务已配置。账户删除的跨存储一致性仍在验收中，本页暂不提供删除入口。</p></section>
+        <section class="surface profile-card session-card"><h2>会话与隐私</h2><p>登录凭证仅保存在当前浏览器标签页。需要退出时，可点击右上角头像 → 退出登录。</p><p class="muted">模型与邮件凭据在私人配置中按账号加密保存，其他账号无法读取。账户删除的跨存储一致性仍在验收中，本页暂不提供删除入口。</p></section>
       </div>
     </div>
   </div>

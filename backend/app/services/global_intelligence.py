@@ -1,11 +1,12 @@
 """Evidence-first multilingual intelligence and decision-support helpers."""
-import json,re
+import asyncio,json,re
 from sqlalchemy import select
 from openai import AsyncOpenAI
-from app.config import get_settings
+from app.core.runtime_settings import RuntimeSettings
+from app.core.private_clients import managed_model_client, model_http_client
 from app.models.global_intelligence import ContentTranslation,GlobalNarrative,NarrativeSignal,Scenario,DecisionAudit,DecisionOption
 from app.models.intelligence import ContentItem,EventContent,EventEntityLink
-settings=get_settings()
+settings=RuntimeSettings()
 def language_of(text:str):
  if re.search(r"[\u4e00-\u9fff]",text):return "zh"
  if re.search(r"[\u0400-\u04ff]",text):return "ru"
@@ -14,13 +15,14 @@ def language_of(text:str):
  return "en" if re.search(r"[A-Za-z]",text) else "und"
 def model_client():
  if not settings.LLM_API_KEY:raise RuntimeError("Approved translation/model credential is not configured")
- return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE)
+ return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE,max_retries=0,timeout=settings.LLM_TIMEOUT_SECONDS,http_client=model_http_client(settings.LLM_TIMEOUT_SECONDS))
 async def translate(db,org_id,user_id,content,target):
  source=content.language if content.language and content.language!="und" else language_of(content.title+content.body)
  old=await db.scalar(select(ContentTranslation).where(ContentTranslation.content_item_id==content.id,ContentTranslation.target_language==target))
  if old:return old
  prompt=f"Translate faithfully from {source} to {target}. Preserve names, dates, uncertainty and URLs. Return strict JSON {{title,body}}. Do not add facts.\nTITLE:\n{content.title}\nBODY:\n{content.body[:12000]}"
- response=await model_client().chat.completions.create(model=settings.LLM_MODEL,messages=[{"role":"user","content":prompt}],temperature=0,response_format={"type":"json_object"})
+ async with managed_model_client(model_client) as sdk:
+  response=await asyncio.wait_for(sdk.chat.completions.create(model=settings.LLM_MODEL,messages=[{"role":"user","content":prompt}],temperature=0,response_format={"type":"json_object"}),timeout=settings.LLM_TIMEOUT_SECONDS)
  data=json.loads(response.choices[0].message.content or "{}")
  if not str(data.get("title","")).strip():raise RuntimeError("Translation model returned no translated title")
  row=ContentTranslation(organization_id=org_id,content_item_id=content.id,source_language=source,target_language=target,translated_title=str(data["title"]).strip(),translated_body=str(data.get("body","")).strip(),model_name=settings.LLM_MODEL,quality_score=0,status="ready",created_by=user_id);db.add(row);await db.flush();return row

@@ -1,29 +1,99 @@
-# 阶段 29 生产配置清单
+# 配置指南：私人服务与实例配置
 
-本地无需密钥使用请先看 [README 的公开数据入口](../README.md#无需密钥的公开数据使用入口)。`scripts.public_server` 自动生成独立随机密钥并使用专用 SQLite，不需要云数据库、SMTP、模型或任何平台密钥；数据目录是 `backend/.public-local/`。下表描述可选公网/企业部署，并非本地启动必填项。
+更新日期：2026-10-18。InfoPulse 面向自行拉取代码、本地运行的使用者。无需把任何密钥交给项目作者。公开数据主链无需服务密钥；AI、媒体和邮件按需配置。当前版本仍为 beta，实验模块不能通过填写密钥直接变成完整生产系统。
 
-公开来源自动同步配置：`SOURCE_SYNC_ENABLED=true`、`SOURCE_SYNC_POLL_SECONDS=30`、`SOURCE_SYNC_TIMEOUT_SECONDS=60`。独立 `sources` worker 与 API 内嵌模式共用开关；审计与确定性测试关闭真实采集。`ADMIN_EMAILS` 不会在公开注册时授予管理员；本地公开数据入口使用 `python -m scripts.public_server --promote EMAIL`，普通自定义数据库环境使用 `python -m scripts.admin EMAIL`，两者都只授权已存在的启用账号。
+## 1. 最少需要配置什么
 
-敏感值只写入部署平台的 Secret 或未纳入 Git 的 `backend/.env`，前端公开地址写入 `frontend/.env.production`。不要把真实凭据提交到仓库。
+按 [README 本地入口](../README.md#无需密钥的公开数据使用入口) 启动后，注册自己的账号，点击右上角头像 → **私人配置**（`/settings`）。也可从个人中心进入。
 
-| 配置 | 当前状态 | 获取方式 | 写入位置 |
+| 想使用的能力 | 需要填写或安装 | 配置位置 | 验证方法 |
 | --- | --- | --- | --- |
-| `DATABASE_URL` | 未达生产要求 | 在云数据库创建 PostgreSQL 16 实例、数据库和最小权限用户，并启用 pgvector；复制异步连接串 | Secret 或 `backend/.env` |
-| `REDIS_URL` | 生产必需 | 创建启用 TLS、认证和持久化的托管 Redis，复制连接串 | Secret 或 `backend/.env` |
-| `JWT_SECRET_KEY` | 未填写安全值 | 密码管理器生成至少 32 字节随机值 | Secret 或 `backend/.env` |
-| `PLATFORM_ENCRYPTION_KEY` | 未填写 | KMS/密码管理器独立生成至少 32 字节值，不能与 JWT 共用 | Secret 或 `backend/.env` |
-| `SSO_PROXY_SECRET` | 未填写 | 在身份代理与 InfoPulse 间生成并共享至少 32 字节签名密钥 | Secret 或 `backend/.env` |
-| `ADMIN_EMAILS` | 未填写 | 由组织安全负责人确认管理员邮箱白名单 | Secret 或 `backend/.env`，JSON 数组 |
-| `METRICS_TOKEN` | 未填写 | 监控平台生成只读抓取令牌，至少 24 字符 | Secret 或 `backend/.env` |
-| `CORS_ORIGINS` / `TRUSTED_HOSTS` | 必需 | 部署后端和前端域名确定后填写精确域名，不允许 `*` | `backend/.env` |
-| `LLM_API_KEY` / `LLM_API_BASE` / `LLM_MODEL` | AI 功能必需 | 从获批的 OpenAI 兼容模型供应商控制台创建受限项目密钥 | Secret 或 `backend/.env` |
-| `SMTP_HOST` / `SMTP_FROM` / `SMTP_PASSWORD` | 未填写 | 邮件服务商创建 SMTP 凭据并验证发件域名 | Secret 或 `backend/.env` |
-| `S3_ACCESS_KEY` / `S3_SECRET_KEY` | 未填写，当前为本地存储 | 创建私有桶和仅限该桶的服务账号；配置驻留区域，并设 `KNOWLEDGE_STORAGE_BACKEND=s3` | Secret 或 `backend/.env` |
-| `GITHUB_TOKEN` | 未填写 | GitHub App 安装令牌或细粒度 PAT，仅授予所需仓库权限 | Secret 或 `backend/.env` |
-| `WEIBO_COOKIE` / `TIEBA_COOKIE` | 可选 | 使用获授权账号登录后由浏览器开发者工具读取；遵守平台条款 | Secret 或 `backend/.env` |
-| `VITE_API_BASE_URL` | 前端生产必需 | 使用公开 API 网关 HTTPS 地址 | `frontend/.env.production`，构建时注入 |
-| Slack/Teams/飞书/钉钉凭据 | 未配置生产租约 | 在对应平台创建应用或机器人并获得 webhook/OAuth 凭据，将密文写入 Vault | 管理员“开发者平台”安装连接器，再在自治控制中心填写 `vault://...` 凭据引用；不写 `.env` |
-| 企业 OIDC/SAML | 未配置 | 在企业 IdP 创建客户端，登记回调地址并取得 client ID/secret/issuer | 管理员“企业治理”身份提供商配置；secret 存 Vault，代理签名仍用 `SSO_PROXY_SECRET` |
-| 支付、税务、保险及托管渠道 | 未接生产渠道 | 分别向获批支付服务商、税务服务、保险人和托管行申请商户/账户凭据 | 凭据存 Vault，以连接器安装和凭据租约录入；仓库当前没有对应 `.env` 字段 |
+| 公开资讯、检索、收藏、证据摘要、无模型日报与站内通知 | 无第三方密钥；联网并保持采集/调度进程运行 | 本地启动器已启用 | 查看来源同步记录，再检索真实内容 |
+| 文档知识库 | 无模型密钥；可写目录及知识索引 worker | 本地入口默认提供 | 上传文档，等待 ready，检索引用 |
+| AI 对话、文本分析、报告改写、翻译 | OpenAI 兼容服务的基础地址、文本模型、API Key | 私人配置 → AI 模型 | 保存后测试文本模型，再运行实际功能 |
+| 图片理解 | 上述密钥/地址，以及服务实际支持的视觉模型 | 私人配置 → 视觉模型；启用媒体 worker | 上传图片并核对证据 |
+| 音频转录 | 支持转录接口与时间戳输出的模型 | 私人配置 → 转录模型；启用媒体 worker | 核对文字与时间戳 |
+| 视频理解 | 视觉模型、转录模型、系统 PATH 中的 FFmpeg/ffprobe | 私人配置 + 本机软件 | 先验证图片/音频，再核对视频帧和音轨 |
+| 邮件通知 | SMTP 主机、465 或 587、用户名、密码/授权码、已验证发件邮箱 | 私人配置 → 邮件服务；通知中心填写接收地址并开启邮件 | 连接测试后运行实际订阅/任务，核对投递记录 |
+| Webhook 通知 | 自己控制的接收 URL 和签名密钥 | 通知中心 | 在自己的接收端核对签名与回执 |
+| Agent 工作流 | 文本模型 + 路由、预算、工具权限、审批与 worker | 私人配置、编排界面、管理员运行配置 | 执行明确输入和预期结果的工作流 |
+| 多进程协作实时广播 | Redis | 实例 `REDIS_URL` | 两个客户端核对同一文档的变更广播 |
 
-生产还必须设定 `ENVIRONMENT=production`、`AUTO_CREATE_TABLES=false`、`RUN_BACKGROUND_WORKERS_IN_API=false`，并将调度/媒体工作进程作为独立服务部署。配置后先运行 `python scripts/production_check.py`，再运行完整发布门禁。
+“已配置”仅表示必需字段存在，不保证余额、网络、模型权限或服务兼容性。文本测试成功不证明同一服务支持图片和语音。DeepSeek 快捷项仅预填文本地址与模型，不承诺其接口提供音频转录。
+
+## 2. 在界面保存和验证
+
+1. 选择 DeepSeek/OpenAI 快捷项，或填写实际供应商的基础地址，例如 `https://api.example.com/v1`，不要填写完整的 `/chat/completions` 路径。
+2. 输入你有权限使用的文本模型和 API Key；没有视觉/转录需求时保持相关模型为空。
+3. 点击“保存私人配置”。成功后密码输入框清空，页面只显示是否已配置。
+4. 点击“测试已保存的文本模型”。这会发起一次少量 token 的真实请求，可能计费。编辑未保存时测试不可用。
+5. 邮件服务需先开通 SMTP、验证发件身份。587 强制 STARTTLS，465 使用隐式 TLS，不支持明文 25 端口。
+6. 邮件连接测试只验证 TLS、可选账号认证与 NOOP，不发送邮件，不证明发件域名、收件箱或反垃圾策略全部正常。实际送达仍需邮件任务验收。
+
+密钥留空表示保留旧值；勾选“清除”才会删除。更换模型地址或 SMTP 主机必须重新输入或清除原密钥，避免误将原服务凭据发往新目标。不能同时替换和清除同一密钥。
+
+多个标签页编辑同一配置时，过期版本得到 409，页面提示重新加载，不静默覆盖。断网保存失败保留输入供重试。离开页面或刷新会丢弃尚未保存的密码；应用不将它存入 localStorage/sessionStorage。
+
+## 3. 私密性与运行边界
+
+配置保存在实例数据库的 `user_service_settings` 表，整个配置对象使用 Fernet 加密，密文绑定账号 ID。接口只返回非秘密字段和“密钥已配置”标志。其他普通账号不能读取或使用你的凭据。
+
+HTTP 请求使用当前登录账号的配置快照；流式响应保持同一快照；后台媒体、工作流、邮件按资源所属账号读取配置。新请求/任务使用新配置，正在执行的请求不热切换；模型客户端不跨用户缓存。
+
+个人请求和这些后台任务不继承实例 `.env` 的 `LLM_API_KEY`、`SMTP_PASSWORD` 等服务凭据。升级前使用全局凭据的用户，需要在自己的私人配置页面重新填写。不会自动让注册用户共用管理员额度。环境变量保留用于底层内部调用和显式受控脚本，不作为个人配置分发机制。
+
+密钥不会上传 GitHub，也没有发送给项目作者的遥测流程。调用 AI 时，必要的提问、检索上下文或文件会发送至你配置的服务商。只在信任的实例录入密钥：实例管理员掌握服务器与主密钥，本方案是静态加密与账户访问隔离，不是管理员不可解密的零知识存储。
+
+模型出站仅允许公开 HTTPS 标准端口，不接受内网、本机、URL 用户名密码、查询参数或片段。每次请求解析并固定公网 IP，保留原始 Host/TLS SNI；不跟随重定向、不使用环境代理转发凭据；响应大小和调用时长受限。SMTP 仅允许公网主机和 465/587，并验证原始主机的 TLS 证书。
+
+因此 UI 当前不支持本机 Ollama、内网模型网关或依赖环境代理的服务连接。后续应增加管理员可控的可信端点/代理白名单及独立测试，不能直接放开所有内网目标。
+
+## 4. 实例管理员负责哪些配置
+
+### 本地公开数据入口
+
+`python -m scripts.public_server` 不读取现有 `.env`，使用 `backend/.public-local/` 中的 SQLite、知识目录和随机密钥。首次生成 `runtime.json`，后续复用，不需手工填写第三方密钥。该目录已被 Git 忽略。媒体 worker 已启用，只有用户提交处理任务且配置兼容模型后才会调用服务商。
+
+备份数据库、知识文件和 `runtime.json`，并限制备份访问权限；主密钥丢失无法解密私人配置。切勿上传仓库或公开打包数据库与解密密钥。不要为“修复启动”随意删除运行目录。
+
+没有 Redis 时可使用单实例公开数据、个人配置和文档主链；协作握手不等于多客户端广播。需要跨进程广播时使用自定义环境入口或容器栈配置 Redis。启动器有固定隔离设置，自定义基础设施应使用下一节。
+
+### 自定义本机环境与可选企业部署
+
+`python -m scripts.init_local` 生成不覆盖现有文件的基础配置。秘密仅写入未纳入 Git 的 `backend/.env` 或 Secret 管理系统。先执行 `alembic upgrade head`，再启动 API/worker；私人配置迁移为 `20261018_0035`。
+
+| 配置 | 本地是否必需 | 说明 |
+| --- | --- | --- |
+| `DATABASE_URL` | 必需，启动器已提供 SQLite | 多用户/生产使用 PostgreSQL；完整栈按文档准备 pgvector |
+| `JWT_SECRET_KEY` | 必需，启动器生成 | 至少 32 字符独立随机值 |
+| `PLATFORM_ENCRYPTION_KEY` | 保存私人配置必需，启动器生成 | 至少 32 字符，不与 JWT 共用、不使用模板值；未配置或无法解密时明确拒绝 |
+| `REDIS_URL` | 公开数据单实例可选 | 多进程协作/缓存使用 Redis；生产设置认证、隔离和适当 TLS |
+| worker 开关与存储目录 | 相应功能必需 | `SOURCE_SYNC_ENABLED`、`TASK_SCHEDULER_ENABLED`、`ORCHESTRATION_WORKER_ENABLED`、`MEDIA_WORKER_ENABLED`；知识索引 worker 同样要运行 |
+| `CORS_ORIGINS` / `TRUSTED_HOSTS` | 自定义域名时 | 精确列出来源/主机，不设通配符 |
+| `S3_*` / `KNOWLEDGE_STORAGE_BACKEND=s3` | 可选 | 私有桶、受限服务账号、区域；保持 local 可用本地存储 |
+| `GITHUB_TOKEN` | 可选 | 公开数据可匿名采集；提高额度时由实例管理员配置受限令牌 |
+| `WEIBO_COOKIE` / `TIEBA_COOKIE` | 可选 | 仅限授权且符合平台条款的共享采集，不是私人账号配置 |
+| `SSO_PROXY_SECRET` | 企业 SSO 场景 | 与可信身份代理共享的独立签名密钥，还需实际身份提供商 |
+| `METRICS_TOKEN` | 受控监控场景 | 至少 24 字符；未配置时默认拒绝公开抓取 |
+| `VITE_API_BASE_URL` / `VITE_API_PROXY_TARGET` | 自定义前后端地址时 | 构建时公开 API 地址 / 开发与预览代理目标，都不能包含秘密 |
+
+管理员仅通过已存在账号显式授予：本地入口用 `python -m scripts.public_server --promote EMAIL`，自定义数据库用 `python -m scripts.admin EMAIL`。`ADMIN_EMAILS` 不会让公开注册自动获得管理权限。
+
+只有选择公网/企业部署时，才需要 `ENVIRONMENT=production`、`AUTO_CREATE_TABLES=false`、`RUN_BACKGROUND_WORKERS_IN_API=false`、独立 worker、TLS 与完整发布门禁。先运行 `python scripts/production_check.py`。这些不是默认本地使用的额外要求。
+
+## 5. 不能只靠填写配置开启的能力
+
+Slack/Teams/飞书/钉钉需要实际应用、授权、连接器安装和凭据租约；企业 OIDC/SAML 需要身份代理与服务商验收。支付、税务、保险、清算、跨机构联邦和形式化相关模块包含实验规则/治理记录，还需真实适配器、外部机构与业务验证。
+
+页面存在、状态已配置和 HTTP 成功都不等于外部业务完成。完整边界见 [能力矩阵](./32-capability-matrix.md)。
+
+## 6. 排查与后续优化
+
+- 503：检查是否使用原来的独立加密主密钥。不要直接换新值覆盖；目前没有在线密钥轮换/重新加密工具。
+- 422：核对公开 HTTPS、端口、模型名、邮箱；更换主机时重新输入或清除密钥。
+- 409：其他标签页已更新，重新加载后再编辑。
+- 模型连接失败：核对权限、余额、基础地址、模型名称和后端网络；服务商原始错误可能包含凭据，不直接显示。
+- 文本可用但媒体失败：检查视觉/音频协议、模型路由、worker 和 FFmpeg；纯文本接口不能代替转录。
+- 邮件连接通过却收不到：检查通知偏好、实际投递记录、发件权限和垃圾箱；连接测试不发送邮件。
+
+后续优先项：主密钥轮换与恢复工具、文本/视觉/转录多供应商配置、可信本机模型白名单、真实服务商兼容矩阵、每用户成本与配额、凭据变更审计。未持有真实服务凭据时，只声明自动化协议/隔离测试通过，不声称付费服务实测成功。

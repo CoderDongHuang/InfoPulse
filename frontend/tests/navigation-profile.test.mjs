@@ -16,14 +16,17 @@ const nav = moduleAt('../src/components/layout/navigation.ts')
 const profile = moduleAt('../src/utils/profile.ts')
 const saved = { username: 'existing', email: 'existing@example.com', avatar_url: '' }
 
-test('navigation retains every static destination, with profile in account menu', () => {
+test('navigation retains every static destination, with profile and settings in account menu', () => {
   const source = readFileSync(new URL('../src/router/index.ts', import.meta.url), 'utf8')
   const paths = [...source.matchAll(/path:\s*['"]([^'"]+)['"]/g)].map(match => match[1])
   const navigation = [...nav.primaryNavigation, ...nav.visibleGroups(true).flatMap(g => g.items)]
-  const expected = new Set(paths.filter(path => !path.includes(':') && !['/auth', '/profile', '/anti-scam'].includes(path)))
+  const expected = new Set(paths.filter(path => !path.includes(':') && !['/auth', '/profile', '/settings', '/anti-scam'].includes(path)))
   assert.deepEqual(new Set(navigation.map(item => item.path)), expected)
   assert.equal(navigation.length, expected.size, 'destinations must not be duplicated')
   assert.equal(nav.visibleGroups(false).flatMap(g => g.items).some(item => item.path === '/admin'), false)
+  const header = readFileSync(new URL('../src/components/layout/AppHeader.vue', import.meta.url), 'utf8')
+  assert.match(header, /command="settings"/)
+  assert.match(header, /navigate\('\/settings'\)/)
 })
 
 test('nested route highlights parent without confusing path prefixes', () => {
@@ -56,7 +59,7 @@ test('every navigation icon exists and is registered as an actual Vue component'
   }
   visit(ast)
   const items = [...nav.primaryNavigation, ...nav.visibleGroups(true).flatMap(group => group.items)]
-  for (const { label, icon } of [...items, { label: '个人中心', icon: 'User' }, { label: '退出登录', icon: 'SwitchButton' }]) {
+  for (const { label, icon } of [...items, { label: '个人中心', icon: 'User' }, { label: '私人配置', icon: 'Setting' }, { label: '退出登录', icon: 'SwitchButton' }]) {
     assert.ok(iconComponents[icon], `${label}: missing icon export ${icon}`)
     assert.ok(registered.has(icon), `${label}: icon ${icon} is not registered`)
   }

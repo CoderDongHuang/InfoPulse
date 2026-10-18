@@ -5,7 +5,9 @@ from pathlib import Path
 from PIL import Image
 from sqlalchemy import func,or_,select
 from openai import AsyncOpenAI
-from app.config import get_settings
+from app.core.runtime_settings import RuntimeSettings, use_settings
+from app.core.private_clients import managed_model_client, model_http_client
+from app.services.service_settings import owner_settings
 from app.core.database import _get_sessionmaker
 from app.models.enterprise import TenantQuota
 from app.models.intelligence import ModelUsage
@@ -13,7 +15,7 @@ from app.models.multimodal import MediaAsset,MediaEvidence,MediaProcessingRun
 from app.models.orchestration import ModelRoute
 from app.services.knowledge import safe_filename,storage
 
-settings=get_settings();UTC=timezone.utc
+settings=RuntimeSettings();UTC=timezone.utc
 MIME={".png":("image","image/png"),".jpg":("image","image/jpeg"),".jpeg":("image","image/jpeg"),".webp":("image","image/webp"),".wav":("audio","audio/wav"),".mp3":("audio","audio/mpeg"),".m4a":("audio","audio/mp4"),".ogg":("audio","audio/ogg"),".mp4":("video","video/mp4"),".mov":("video","video/quicktime"),".webm":("video","video/webm")}
 def now():return datetime.now(UTC)
 def validate_media(name,data):
@@ -53,13 +55,16 @@ def client():
  if not settings.LLM_API_KEY:raise RuntimeError("multimodal model credential is not configured")
  # A transport timeout cannot prove the provider did not process or bill the
  # request. Reconciliation owns retries; disable the SDK's implicit replay.
- return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE,max_retries=0)
+ return AsyncOpenAI(api_key=settings.LLM_API_KEY,base_url=settings.LLM_API_BASE,max_retries=0,timeout=settings.LLM_TIMEOUT_SECONDS,http_client=model_http_client(settings.LLM_TIMEOUT_SECONDS))
 async def vision(data,mime,model):
  encoded=base64.b64encode(data).decode();prompt="Extract only visible evidence. Return strict JSON: {ocr:[{text,bbox:[x,y,w,h],confidence}], chart:{type,title,series,findings}, summary}. Do not infer hidden values. Empty arrays when unsupported."
- response=await client().chat.completions.create(model=model,messages=[{"role":"user","content":[{"type":"text","text":prompt},{"type":"image_url","image_url":{"url":f"data:{mime};base64,{encoded}"}}]}],temperature=0,max_tokens=3000,response_format={"type":"json_object"});return json.loads(response.choices[0].message.content or "{}")
+ async with managed_model_client(client) as sdk:
+  response=await asyncio.wait_for(sdk.chat.completions.create(model=model,messages=[{"role":"user","content":[{"type":"text","text":prompt},{"type":"image_url","image_url":{"url":f"data:{mime};base64,{encoded}"}}]}],temperature=0,max_tokens=3000,response_format={"type":"json_object"}),timeout=settings.LLM_TIMEOUT_SECONDS)
+  return json.loads(response.choices[0].message.content or "{}")
 async def transcribe(data,name,model):
  stream=io.BytesIO(data);stream.name=name
- result=await client().audio.transcriptions.create(model=model,file=stream,response_format="verbose_json",timestamp_granularities=["segment"])
+ async with managed_model_client(client) as sdk:
+  result=await asyncio.wait_for(sdk.audio.transcriptions.create(model=model,file=stream,response_format="verbose_json",timestamp_granularities=["segment"]),timeout=settings.LLM_TIMEOUT_SECONDS)
  raw=result.model_dump() if hasattr(result,"model_dump") else dict(result);segments=raw.get("segments") or []
  if not segments and raw.get("text"):segments=[{"start":0,"end":0,"text":raw["text"],"speaker":"speaker_unknown"}]
  return [{"start":float(x.get("start",0)),"end":float(x.get("end",0)),"text":str(x.get("text","")).strip(),"speaker":x.get("speaker") or "speaker_unknown","confidence":float(x.get("confidence",0) or 0)} for x in segments if str(x.get("text","")).strip()]
@@ -79,6 +84,19 @@ def video_parts(data,suffix):
 def evidence(db,asset,ordinal,kind,text,metadata=None,**locator):
  value=text.strip();metadata=metadata or {};fingerprint={**locator,"metadata":metadata};row=MediaEvidence(organization_id=asset.organization_id,asset_id=asset.id,ordinal=ordinal,evidence_type=kind,text=value,content_hash=hashlib.sha256((kind+value+json.dumps(fingerprint,sort_keys=True,default=str)).encode()).hexdigest(),start_ms=locator.pop("start_ms",None),end_ms=locator.pop("end_ms",None),frame_number=locator.pop("frame_number",None),bbox=locator.pop("bbox",[]),speaker=locator.pop("speaker",""),confidence=locator.pop("confidence",0),storage_key=locator.pop("storage_key",""),metadata_json={**metadata,**locator});db.add(row)
 async def process_asset(db,asset,run):
+ try:
+  private=await owner_settings(db,asset.user_id)
+ except Exception:
+  await db.rollback()
+  await db.refresh(asset);await db.refresh(run)
+  asset.status="failed";asset.error_message="Private service configuration unavailable; restore the instance encryption key"
+  run.status="failed";run.error_message=asset.error_message;run.finished_at=now();run.lease_owner=None;run.lease_until=None
+  await db.commit()
+  raise
+ with use_settings(private):
+  return await _process_asset(db,asset,run)
+
+async def _process_asset(db,asset,run):
  # Evidence, metadata and usage must publish together. A failed flush must be
  # rolled back before recording the terminal state in a fresh transaction.
  provider_started=False;ordinal=0;all_text=[];frame_keys=[]

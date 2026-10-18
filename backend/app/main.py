@@ -106,6 +106,8 @@ setup_observability(app)
 from app.api import action_loop, adaptive_intelligence, agent, analyses, auth, automation, autonomous_enterprise, cognitive_commons, cognitive_infrastructure, commercialization, contents, enterprise, events, global_coordination, global_intelligence, graph, history, hot_search, insights, knowledge, mouthpiece, multimodal, operations, operations_center, orchestration, personalization, planetary_resilience, platform, provable_autonomy, reports, search, sources, stage3, stage10, timeline, trusted_ecosystem  # noqa: E402
 
 app.include_router(auth.router)
+from app.api import service_settings
+app.include_router(service_settings.router)
 app.include_router(insights.router)
 app.include_router(mouthpiece.router)
 app.include_router(timeline.router)

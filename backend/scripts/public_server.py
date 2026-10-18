@@ -40,7 +40,7 @@ def configure(root: Path):
         "REDIS_URL": "redis://127.0.0.1:16379/1",
         "CORS_ORIGINS": '["http://127.0.0.1:15174","http://localhost:5173","http://127.0.0.1:5173"]',
         "ADMIN_EMAILS": "[]",
-        "CRAWLER_ENABLED": "false", "MEDIA_WORKER_ENABLED": "false",
+        "CRAWLER_ENABLED": "false", "MEDIA_WORKER_ENABLED": "true",
         "SOURCE_SYNC_ENABLED": "true", "TASK_SCHEDULER_ENABLED": "true",
         "DEMO_MODE": "false",
     })

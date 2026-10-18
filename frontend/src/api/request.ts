@@ -47,6 +47,7 @@ request.interceptors.response.use(
 
     if (!error.response) {
       // Network error
+      if (error.config?.headers?.['X-Suppress-Error-Message']) return Promise.reject(error)
       if (!navigator.onLine) {
         ElMessage.error('网络连接异常，请检查网络后重试')
       } else {
@@ -83,11 +84,11 @@ request.interceptors.response.use(
         break
 
       case 403:
-        ElMessage.error('权限不足')
+        if (!error.config?.headers?.['X-Suppress-Error-Message']) ElMessage.error('权限不足')
         break
 
       case 500:
-        ElMessage.error('服务器开小差了，请稍后重试')
+        if (!error.config?.headers?.['X-Suppress-Error-Message']) ElMessage.error('服务器开小差了，请稍后重试')
         break
 
       default:

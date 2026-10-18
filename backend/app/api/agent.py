@@ -4,7 +4,7 @@ from fastapi import APIRouter,Depends,HTTPException,Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from app.core.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_configured_user as get_current_user
 from app.models.user import User
 from app.models.intelligence import AgentMessage,Conversation,MessageCitation,MessageFeedback,ContentItem,DataSource,KnowledgeCitation,KnowledgeChunk,KnowledgeDocument,KnowledgeBase
 from app.schemas.agent import ConversationCreate,ConversationUpdate,FeedbackCreate,MessageCreate

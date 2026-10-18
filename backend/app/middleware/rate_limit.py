@@ -16,7 +16,8 @@ AUTH_LIMITS = {"/api/v1/auth/login": 10, "/api/v1/auth/register": 5,
                "/api/v1/auth/refresh": 30, "/api/v1/auth/sso/exchange": 10,
                "/api/v1/platform/oauth/token": 20}
 GENERATIONS = {"/api/v1/insights/analyze", "/api/v1/mouthpiece/generate",
-               "/api/v1/timeline/build", "/api/v1/hot-search/explain"}
+               "/api/v1/timeline/build", "/api/v1/hot-search/explain",
+               "/api/v1/settings/services/test/llm", "/api/v1/settings/services/test/smtp"}
 
 
 async def consume_window(sessions, identity: str, limit: int, at: int) -> bool:

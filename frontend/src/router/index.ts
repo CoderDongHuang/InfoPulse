@@ -12,6 +12,7 @@ import {
 import { useUserStore } from "@/stores/user";
 
 const routes: RouteRecordRaw[] = [
+  { path: '/settings', name: 'Settings', component: () => import('@/views/SettingsView.vue'), meta: { title: '私人配置', requiresAuth: true } },
   { path: '/profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { title: '个人中心', requiresAuth: true } },
   {
     path: "/",

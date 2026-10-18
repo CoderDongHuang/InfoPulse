@@ -81,6 +81,12 @@ def next_node(graph,current,node_output):
     raise ValueError("No outgoing condition matched; add an explicit default edge")
 
 async def model_output(db,run,node):
+    from app.core.runtime_settings import use_settings
+    from app.services.service_settings import owner_settings
+    with use_settings(await owner_settings(db,run.user_id)):
+        return await _model_output(db,run,node)
+
+async def _model_output(db,run,node):
     cfg=node.get("config",{});prompt=await db.scalar(select(PromptDefinition).where(PromptDefinition.organization_id==run.organization_id,PromptDefinition.key==cfg["prompt_key"],PromptDefinition.status=="active").order_by(PromptDefinition.version.desc()))
     if not prompt:raise RuntimeError("active prompt not found")
     route=await db.scalar(select(ModelRoute).where(ModelRoute.organization_id==run.organization_id,ModelRoute.workspace_id==run.workspace_id,ModelRoute.task_type==cfg.get("task_type","general"),ModelRoute.enabled.is_(True)))

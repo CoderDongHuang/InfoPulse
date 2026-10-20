@@ -2925,6 +2925,108 @@
         ]
       }
     },
+    "/api/v1/auth/me/avatar": {
+      "delete": {
+        "operationId": "clear_avatar_api_v1_auth_me_avatar_delete",
+        "deprecated": false,
+        "parameters": [],
+        "requestBody": null,
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "read_avatar_api_v1_auth_me_avatar_get",
+        "deprecated": false,
+        "parameters": [
+          {
+            "in": "query",
+            "name": "v",
+            "required": false,
+            "schema": {
+              "default": "",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {},
+              "image/webp": {}
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "upload_avatar_api_v1_auth_me_avatar_post",
+        "deprecated": false,
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_avatar_api_v1_auth_me_avatar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "operationId": "refresh_api_v1_auth_refresh_post",
@@ -25256,6 +25358,18 @@
                 "type": "null"
               }
             ]
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "type": "object"
+      },
+      "Body_upload_avatar_api_v1_auth_me_avatar_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "type": "string"
           }
         },
         "required": [

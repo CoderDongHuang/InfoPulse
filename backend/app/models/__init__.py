@@ -6,6 +6,7 @@ Base metadata before any relationships are resolved.
 """
 
 from app.models.user import User
+from app.models.avatar import UserAvatar
 from app.models.service_settings import UserServiceSettings
 from app.models.auth_session import AuthSession
 from app.models.rate_limit import RateLimitBucket

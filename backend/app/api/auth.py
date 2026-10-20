@@ -10,7 +10,7 @@ PUT  /api/v1/auth/me        — Update current user profile
 
 import hmac
 import re
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status, UploadFile, File, Response
 from sqlalchemy import func, select, text
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -169,6 +169,56 @@ async def update_me(
     # Return the new profile only after another connection can observe it.
     await db.commit()
     return profile
+
+
+@router.post("/me/avatar", response_model=UserResponse)
+async def upload_avatar(file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    from uuid import uuid4
+    from app.models.avatar import UserAvatar
+    from app.services.avatars import MAX_AVATAR_BYTES, normalize_avatar
+    try:
+        data = await file.read(MAX_AVATAR_BYTES + 1)
+    finally:
+        await file.close()
+    if len(data) > MAX_AVATAR_BYTES:
+        raise HTTPException(413, "头像不能超过 2 MB")
+    try:
+        image = await run_in_threadpool(normalize_avatar, data)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    row = await db.get(UserAvatar, current_user.id)
+    if row is None:
+        row = UserAvatar(user_id=current_user.id)
+        db.add(row)
+    row.version, row.image = uuid4().hex, image
+    current_user.avatar_url = f"/api/v1/auth/me/avatar?v={row.version}"
+    await db.commit()
+    return current_user
+
+
+@router.get("/me/avatar", response_class=Response, responses={200: {"content": {"image/webp": {}, "image/png": {}}}})
+async def read_avatar(v: str = "", current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    from app.models.avatar import UserAvatar
+    row = await db.get(UserAvatar, current_user.id)
+    if row is None or v != row.version or current_user.avatar_url != f"/api/v1/auth/me/avatar?v={row.version}":
+        raise HTTPException(404, "头像不存在")
+    from app.services.avatars import avatar_media_type
+    try:
+        media_type = avatar_media_type(row.image)
+    except ValueError as error:
+        raise HTTPException(404, "头像不存在") from error
+    return Response(row.image, media_type=media_type, headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+
+
+@router.delete("/me/avatar", response_model=UserResponse)
+async def clear_avatar(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    from app.models.avatar import UserAvatar
+    row = await db.get(UserAvatar, current_user.id)
+    if row is not None:
+        await db.delete(row)
+    current_user.avatar_url = ""
+    await db.commit()
+    return current_user
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

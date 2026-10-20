@@ -76,6 +76,14 @@ export const useUserStore = defineStore('user', () => {
     finally { if (refreshInFlight === current) refreshInFlight = null }
   }
 
+  async function updateAvatar(file: File | null) {
+    const epoch = sessionEpoch
+    const info = file ? await authApi.uploadAvatar(file) : await authApi.clearAvatar()
+    if (epoch !== sessionEpoch) throw new Error('会话已变化，请重新登录。')
+    userInfo.value = info
+    return info
+  }
+
   async function logout() {
     const previousToken = token.value
     sessionEpoch += 1
@@ -120,6 +128,7 @@ export const useUserStore = defineStore('user', () => {
     refreshToken,
     fetchUserInfo,
     updateProfile,
+    updateAvatar,
     tryRestoreSession,
   }
 })

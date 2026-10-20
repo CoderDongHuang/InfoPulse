@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { safeAvatarUrl } from '@/utils/profile'
+import { onBeforeUnmount, ref, watch } from 'vue'
+import { isUploadedAvatar, safeAvatarUrl } from '@/utils/profile'
+import request from '@/api/request'
 const props = defineProps<{ username?: string; url?: string }>()
 const failed = ref(false)
-const url = computed(() => safeAvatarUrl(props.url || ''))
-watch(url, () => { failed.value = false })
+const url = ref('')
+let generation = 0
+let objectUrl = ''
+function release() { if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = '' }
+watch(() => props.url, async value => {
+  const current = ++generation
+  failed.value = false; url.value = ''; release()
+  const safe = safeAvatarUrl(value || '')
+  if (!isUploadedAvatar(safe)) { url.value = safe; return }
+  try {
+    const result = await request.get(safe.replace('/api/v1', ''), { responseType: 'blob', headers: { 'X-Suppress-Error-Message': '1' } })
+    if (current !== generation) return
+    objectUrl = URL.createObjectURL(result.data)
+    url.value = objectUrl
+  } catch { if (current === generation) failed.value = true }
+}, { immediate: true })
+onBeforeUnmount(() => { generation++; release() })
 </script>
 <template>
   <span class="user-avatar" aria-hidden="true">

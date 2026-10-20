@@ -2,8 +2,18 @@ import type { ProfileUpdateRequest } from '@/api/auth'
 
 export interface ProfileFields { username: string; email: string; avatar_url: string }
 
-// Never render javascript:, data:, credentials, or relative URLs from stored profiles.
+export function isUploadedAvatar(value: string): boolean {
+  return /^\/api\/v1\/auth\/me\/avatar\?v=[a-f0-9]{32}$/.test(value)
+}
+
+export function validateAvatarFile(file: Pick<File, 'size' | 'type'>): void {
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw new Error('请选择 PNG、JPEG 或 WebP 图片。')
+  if (!file.size || file.size > 2 * 1024 * 1024) throw new Error('请选择不超过 2 MB 的非空图片。')
+}
+
+// Only the exact authenticated avatar route may be used as a relative URL.
 export function safeAvatarUrl(value: string): string {
+  if (isUploadedAvatar(value)) return value
   try {
     const url = new URL(value)
     return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? url.href : ''

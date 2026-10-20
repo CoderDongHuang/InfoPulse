@@ -71,6 +71,16 @@ export const authApi = {
     return res.data
   },
 
+  async uploadAvatar(file: File): Promise<UserResponse> {
+    const body = new FormData()
+    body.append('file', file)
+    return (await request.post('/auth/me/avatar', body)).data
+  },
+
+  async clearAvatar(): Promise<UserResponse> {
+    return (await request.delete('/auth/me/avatar')).data
+  },
+
   async deleteMe(password: string): Promise<void> {
     await request.delete('/auth/me', { data: { password, confirmation: 'DELETE' } })
   },

@@ -85,6 +85,14 @@ test('profile rejects invalid changed fields and unrenderable avatar URLs', () =
   assert.equal(profile.safeAvatarUrl('https://example.com/a.png'), 'https://example.com/a.png')
 })
 
+test('uploaded avatar route is strictly scoped and local file validation bounds uploads', () => {
+  const url = '/api/v1/auth/me/avatar?v=' + 'a'.repeat(32)
+  assert.equal(profile.safeAvatarUrl(url), url)
+  for (const bad of [url + '&next=https://evil.example', '//evil.example/a.png', url.replace('/me/', '/other/'), url.replace('?v=', '?token=')]) assert.equal(profile.safeAvatarUrl(bad), '')
+  for (const type of ['image/png', 'image/jpeg', 'image/webp']) assert.doesNotThrow(() => profile.validateAvatarFile({ type, size: 100 }))
+  for (const file of [{ type: 'image/svg+xml', size: 100 }, { type: 'image/png', size: 0 }, { type: 'image/png', size: 2097153 }]) assert.throws(() => profile.validateAvatarFile(file))
+})
+
 test('late profile response cannot replace the account after session changes', async () => {
   const source = readFileSync(new URL('../src/stores/user.ts', import.meta.url), 'utf8')
   const ast = ts.createSourceFile('user.ts', source, ts.ScriptTarget.Latest, true)

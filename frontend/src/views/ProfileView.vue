@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, shallowRef } from 'vue'
 import axios from 'axios'
+import { getApiError } from '@/api/request'
 import { useUserStore } from '@/stores/user'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
-import { profilePatch, type ProfileFields } from '@/utils/profile'
+import AvatarCropper from '@/components/common/AvatarCropper.vue'
+import { validateAvatarSource } from '@/utils/avatarCrop'
+import { profilePatch, validateAvatarFile, type ProfileFields } from '@/utils/profile'
 
 const user = useUserStore()
 const form = reactive<ProfileFields>({ username: '', email: '', avatar_url: '' })
 const saved = ref<ProfileFields>({ ...form })
 const loading = ref(true), ready = ref(false), saving = ref(false)
 const error = ref(''), notice = ref('')
+const avatarInput = ref<HTMLInputElement | null>(null), uploading = ref(false)
+const avatarError = ref(''), avatarNotice = ref('')
+const cropFile = shallowRef<File | null>(null)
 const joined = computed(() => user.userInfo ? new Date(user.userInfo.created_at).toLocaleDateString('zh-CN') : '—')
 const dirty = computed(() => Object.keys(form).some(key => form[key as keyof ProfileFields] !== saved.value[key as keyof ProfileFields]))
 
@@ -40,10 +46,35 @@ async function save() {
   } catch (cause) {
     if (axios.isAxiosError(cause)) {
       const status = cause.response?.status
-      error.value = status === 409 ? '用户名或邮箱已被使用，请修改后重试。' : status === 422 ? '资料格式不正确，请检查用户名、邮箱及头像地址。' : '保存失败，输入已保留，请检查连接后重试。'
+      error.value = status === 409 ? '用户名或邮箱已被使用，请修改后重试。' : status === 422 ? '资料格式不正确，请检查用户名和邮箱。' : '保存失败，输入已保留，请检查连接后重试。'
     } else error.value = cause instanceof Error ? cause.message : '保存失败，请重试。'
   } finally { saving.value = false }
 }
+async function changeAvatar(file: File | null) {
+  if (uploading.value || saving.value) return false
+  avatarError.value = ''; avatarNotice.value = ''
+  try {
+    if (file) validateAvatarFile(file)
+    uploading.value = true
+    const result = await user.updateAvatar(file)
+    saved.value.avatar_url = result.avatar_url; form.avatar_url = result.avatar_url
+    avatarNotice.value = file ? '头像已上传并保存。' : '已恢复默认头像。'
+    return true
+  } catch (cause) {
+    avatarError.value = axios.isAxiosError(cause) ? getApiError(cause).message : cause instanceof Error ? cause.message : '头像保存失败。'
+    return false
+  } finally { uploading.value = false; if (avatarInput.value) avatarInput.value.value = '' }
+}
+function selectAvatar(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  avatarError.value = ''; avatarNotice.value = ''
+  try { validateAvatarSource(file); cropFile.value = file }
+  catch (cause) { avatarError.value = cause instanceof Error ? cause.message : '图片读取失败。' }
+}
+async function uploadCrop(file: File) { if (await changeAvatar(file)) cropFile.value = null }
 onMounted(load)
 </script>
 <template>
@@ -61,22 +92,31 @@ onMounted(load)
         <p><router-link to="/settings">私人配置：模型与邮件 →</router-link></p>
       </aside>
       <div class="profile-sections">
+        <section class="surface profile-card" :aria-busy="uploading">
+          <h2>头像</h2><p class="muted">从本地选择图片，调整裁剪区域并确认后上传，同步到右上角头像。</p>
+          <label class="avatar-picker" for="profile-avatar">选择头像图片</label>
+          <input id="profile-avatar" ref="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" :disabled="uploading || saving" aria-describedby="avatar-help" @change="selectAvatar" />
+          <small id="avatar-help">支持 PNG、JPEG、WebP；原图仅在本地裁剪，不按原图大小限制。确认后生成 512 × 512 WebP，校验不超过 2 MB 再上传；服务端保存为 256 × 256 WebP。</small>
+          <div class="avatar-actions"><button class="secondary" type="button" :disabled="uploading || saving || !user.userInfo?.avatar_url" @click="changeAvatar(null)">恢复默认头像</button><span v-if="uploading" role="status">正在保存头像…</span></div>
+          <p v-if="avatarError" class="form-error" role="alert">{{ avatarError }}</p><p v-if="avatarNotice" class="form-notice" role="status">{{ avatarNotice }}</p>
+        </section>
         <form class="surface profile-card" @submit.prevent="save" :aria-busy="saving">
           <h2>基本资料</h2><p class="muted">资料仅在保存成功后更新。修改用户名后，请使用新用户名或邮箱登录。</p>
-          <fieldset :disabled="saving">
+          <fieldset :disabled="saving || uploading">
             <label for="profile-username">用户名</label><input id="profile-username" v-model="form.username" autocomplete="username" required minlength="3" maxlength="50" aria-describedby="username-help" /><small id="username-help">3–50 个字符，新用户名不能包含 @。</small>
             <label for="profile-email">邮箱</label><input id="profile-email" v-model="form.email" type="email" autocomplete="email" required maxlength="100" />
-            <label for="profile-avatar">头像地址 <span>（可选）</span></label><input id="profile-avatar" v-model="form.avatar_url" type="url" maxlength="500" placeholder="https://example.com/avatar.png" aria-describedby="avatar-help" /><small id="avatar-help">使用你信任的公开图片链接；浏览器会向图片站点发起请求。留空恢复默认头像，图片加载失败时自动显示姓名首字。</small>
           </fieldset>
           <p v-if="error" class="form-error" role="alert">{{ error }}</p><p v-if="notice" class="form-notice" role="status">{{ notice }}</p>
-          <div class="form-actions"><button class="primary" type="submit" :disabled="saving || !dirty">{{ saving ? '保存中…' : '保存修改' }}</button><button class="secondary" type="button" :disabled="saving || !dirty" @click="reset">撤销修改</button></div>
+          <div class="form-actions"><button class="primary" type="submit" :disabled="saving || uploading || !dirty">{{ saving ? '保存中…' : '保存修改' }}</button><button class="secondary" type="button" :disabled="saving || uploading || !dirty" @click="reset">撤销修改</button></div>
         </form>
         <section class="surface profile-card session-card"><h2>会话与隐私</h2><p>登录凭证仅保存在当前浏览器标签页。需要退出时，可点击右上角头像 → 退出登录。</p><p class="muted">模型与邮件凭据在私人配置中按账号加密保存，其他账号无法读取。账户删除的跨存储一致性仍在验收中，本页暂不提供删除入口。</p></section>
       </div>
     </div>
+    <AvatarCropper v-if="cropFile" :file="cropFile" :busy="uploading" :upload-error="avatarError" @cancel="cropFile = null" @confirm="uploadCrop" />
   </div>
 </template>
 <style scoped>
+.avatar-picker{display:block}.avatar-actions{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:13px}#avatar-help{display:block}
 .profile-page { max-width: 1120px; padding-top: 36px; }.profile-heading { margin-bottom: 28px; }.profile-heading h1 { margin: 0; font-size: 30px; letter-spacing: -.8px; }.profile-heading > p:last-child { margin: 8px 0 0; font-size: 14px; }
 .profile-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; align-items: start; }.profile-card { padding: 28px; box-shadow: none; }.profile-card h2 { margin: 0 0 8px; font-size: 18px; }.profile-card p { font-size: 13px; line-height: 1.8; }.account-card { text-align: center; overflow-wrap: anywhere; }.account-card :deep(.user-avatar) { width: 72px; height: 72px; font-size: 28px; margin-bottom: 18px; }.account-card > p { margin: 0 0 16px; color: var(--text-secondary); }.account-tag { display: inline-block; background: #eff4ff; color: #2453ae; border-radius: 5px; padding: 4px 10px; font-size: 11px; }
 dl { display: grid; grid-template-columns: auto 1fr; gap: 12px; text-align: left; border-top: 1px solid var(--border-color); padding-top: 24px; margin: 24px 0; font-size: 12px; }dt { color: var(--text-secondary); }dd { margin: 0; text-align: right; }.account-card > a { color: var(--color-primary); font-size: 13px; }.profile-sections { display: grid; gap: 20px; }

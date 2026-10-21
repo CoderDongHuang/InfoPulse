@@ -25,7 +25,7 @@
 - Default operational retention is 365 days and may be changed with `DATA_RETENTION_DAYS`, never below 30 days.
 - `run_retention.py` removes expired BI history, model usage and audit records. Legal holds must be handled outside this job.
 - Deleting a knowledge document removes stored versions and excludes all deleted chunks from retrieval.
-- Account deletion removes private storage first and then deletes user-owned database rows through foreign-key cascades. A storage deletion failure aborts account deletion so it can be retried safely.
+- Account deletion commits tenant/user cascades and durable storage cleanup requests in one database transaction. The knowledge worker retries object/export deletion after commit. Shared organization ownership, active legal holds and running knowledge/media work block deletion; transfer ownership or complete/recover the work first. Failed external cleanup remains visible in the outbox; backups and third-party copies require separate retention handling. Historical SQLite orphan checks and upgrade instructions are in the [audit acceptance](./audits/2026-10-21-remediation.md).
 - Public-source takedown requests are handled by marking content deleted, removing it from search/AI evidence, and retaining only the minimum audit record allowed by policy.
 
 ## Required security regression

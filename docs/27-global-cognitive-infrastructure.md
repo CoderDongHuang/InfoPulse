@@ -1,5 +1,7 @@
 # 阶段 27：全球认知基础设施与长期自治治理
 
+> 本文是阶段设计与实现记录，包含实验规则、模拟和目标声明；不构成真实分布式共识、形式化证明或全量删除证明。当前保证与未验收项见 [能力矩阵](./32-capability-matrix.md) 与 [2026-10-21 修复状态](./audits/2026-10-21-remediation.md)。
+
 ## 完成状态
 
 阶段 27 已完成，新增 `/api/v1/cognitive-infrastructure` 控制面与 `/cognitive-infrastructure` 工作台。

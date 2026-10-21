@@ -57,7 +57,9 @@ services:
     build: {context: ../backend, dockerfile: Dockerfile}
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips", "*"]
     env_file: [.env.staging]
+    volumes: [staging_exports:/shared/exports]
     environment:
+      REPORT_EXPORT_PATH: /shared/exports
       RUN_BACKGROUND_WORKERS_IN_API: "false"
       KNOWLEDGE_STORAGE_BACKEND: s3
       S3_ENDPOINT_URL: http://minio:9000
@@ -86,7 +88,9 @@ services:
     build: {context: ../backend, dockerfile: Dockerfile}
     command: ["python", "-m", "app.worker", "--role", "knowledge"]
     env_file: [.env.staging]
+    volumes: [staging_exports:/shared/exports]
     environment:
+      REPORT_EXPORT_PATH: /shared/exports
       RUN_BACKGROUND_WORKERS_IN_API: "false"
       KNOWLEDGE_STORAGE_BACKEND: s3
       S3_ENDPOINT_URL: http://minio:9000
@@ -117,6 +121,22 @@ services:
       minio-init: {condition: service_completed_successfully}
     restart: unless-stopped
 
+  sources-worker:
+    build: {context: ../backend, dockerfile: Dockerfile}
+    command: ["python", "-m", "app.worker", "--role", "sources"]
+    env_file: [.env.staging]
+    environment: {RUN_BACKGROUND_WORKERS_IN_API: "false", SOURCE_SYNC_ENABLED: "true"}
+    depends_on: {migrate: {condition: service_completed_successfully}}
+    restart: unless-stopped
+
+  actions-worker:
+    build: {context: ../backend, dockerfile: Dockerfile}
+    command: ["python", "-m", "app.worker", "--role", "actions"]
+    env_file: [.env.staging]
+    environment: {RUN_BACKGROUND_WORKERS_IN_API: "false", SOURCE_SYNC_ENABLED: "true"}
+    depends_on: {migrate: {condition: service_completed_successfully}}
+    restart: unless-stopped
+
   web:
     build: {context: ../frontend, dockerfile: Dockerfile}
     ports: ["8080:80"]
@@ -126,3 +146,4 @@ volumes:
   staging_postgres:
   staging_redis:
   staging_s3:
+  staging_exports:

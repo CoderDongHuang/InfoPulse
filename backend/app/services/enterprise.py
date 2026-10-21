@@ -60,6 +60,9 @@ async def resolve_tenant(db: AsyncSession, user: User, organization_id: str | No
         raise HTTPException(status_code=403, detail="No active organization membership")
     await set_db_context(db, user.id, membership.organization_id)
     organization = await db.get(Organization, membership.organization_id)
+    policy = await db.get(TenantPolicy, membership.organization_id)
+    if policy and (policy.require_sso or policy.require_mfa):
+        raise HTTPException(403, "Tenant requires verified SSO/MFA; this installation has no verified authentication provider. Contact the instance administrator.")
     workspace = None
     if workspace_id:
         workspace_membership = await db.scalar(select(WorkspaceMember).where(WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == user.id, WorkspaceMember.organization_id == membership.organization_id))

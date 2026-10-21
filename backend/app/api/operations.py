@@ -1,5 +1,6 @@
+from app.core.routing import APIRouter
 import hmac
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import Header, HTTPException
 from fastapi.responses import PlainTextResponse
 from sqlalchemy import text
 

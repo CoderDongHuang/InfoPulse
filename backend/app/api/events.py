@@ -1,9 +1,10 @@
 """Event detection and research APIs."""
 
+from app.core.routing import APIRouter
 from datetime import datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

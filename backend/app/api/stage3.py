@@ -1,5 +1,6 @@
+from app.core.routing import APIRouter
 from typing import Literal
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db

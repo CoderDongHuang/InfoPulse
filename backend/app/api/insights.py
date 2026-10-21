@@ -1,11 +1,12 @@
 """Hot-topic insight API with reliable SSE heartbeats."""
 
+from app.core.routing import APIRouter
 import asyncio
 import json
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession

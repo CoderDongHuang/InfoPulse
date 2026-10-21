@@ -1,8 +1,9 @@
 """Event timeline workflow."""
 
+from app.core.routing import APIRouter
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db

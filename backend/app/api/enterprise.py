@@ -1,8 +1,9 @@
 """Enterprise tenancy and governance API."""
+from app.core.routing import APIRouter
 from datetime import datetime, timezone
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
@@ -185,6 +186,8 @@ async def get_policy(ctx: TenantContext = Depends(get_tenant_context), db: Async
 @router.put("/policy")
 async def update_policy(payload: PolicyUpdate, ctx: TenantContext = Depends(get_tenant_context), user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     require_permission(ctx, "policy.manage")
+    if payload.require_sso or payload.require_mfa:
+        raise HTTPException(409, "SSO/MFA enforcement is unavailable until a verified authentication provider is implemented")
     domains = [x.lower().strip() for x in payload.allowed_email_domains]
     if any(not re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,}", x) for x in domains): raise HTTPException(422, "Invalid allowed email domain")
     row = await db.get(TenantPolicy, ctx.organization.id); before = {"require_sso": row.require_sso, "retention_days": row.retention_days}

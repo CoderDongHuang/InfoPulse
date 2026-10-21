@@ -16,5 +16,5 @@ export const reportsApi = {
   rewrite: async (id: string, selected_text: string, instruction: string) => (await request.post(`/reports/${id}/rewrite`, { selected_text, instruction })).data,
   export: async (id: string, format: ExportFormat) => (await request.post(`/reports/${id}/exports`, { format })).data,
   retry: async (exportId: string) => (await request.post(`/report-exports/${exportId}/retry`)).data,
-  downloadUrl: (exportId: string) => `/api/v1/report-exports/${exportId}/download`,
+  download: (exportId: string) => request.get<Blob>(`/report-exports/${exportId}/download`, { responseType: 'blob' }),
 }

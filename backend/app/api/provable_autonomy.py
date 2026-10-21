@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from app.core.routing import APIRouter
+from fastapi import Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

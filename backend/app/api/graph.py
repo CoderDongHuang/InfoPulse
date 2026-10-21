@@ -1,4 +1,5 @@
-from fastapi import APIRouter,Depends,HTTPException,Query
+from app.core.routing import APIRouter
+from fastapi import Depends, HTTPException, Query
 from sqlalchemy import delete,select,update
 from app.core.database import get_db
 from app.dependencies import get_current_user

@@ -1,7 +1,8 @@
 """Tenant agent orchestration, governance, evaluations and template API."""
+from app.core.routing import APIRouter
 import secrets
 from datetime import datetime,timedelta,timezone
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy import func,or_,select
 from sqlalchemy.ext.asyncio import AsyncSession
 

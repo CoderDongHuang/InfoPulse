@@ -1,10 +1,11 @@
 """Management endpoints for real external data sources."""
 
+from app.core.routing import APIRouter
 import re
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

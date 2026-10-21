@@ -1,8 +1,9 @@
 """Unified history endpoints for generated user workflows."""
 
+from app.core.routing import APIRouter
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

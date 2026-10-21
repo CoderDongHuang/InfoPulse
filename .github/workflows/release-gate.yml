@@ -103,7 +103,7 @@ jobs:
         run: |
           python -m pip freeze --all | Out-File -Encoding utf8 windows-dependencies.txt
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: windows-backend-python-${{ matrix.python }}
@@ -143,7 +143,7 @@ jobs:
       - run: python -m pip check
       - name: Run complete classified layer
         run: python scripts/test_suites.py --suite ${{ matrix.layer.suite }} --shard-index ${{ matrix.layer.index }} --shard-count 3 --environment ${{ matrix.environment.id }} --output ../regression-reports/${{ matrix.environment.id }}-${{ matrix.layer.id }}.json
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: regression-${{ matrix.environment.id }}-${{ matrix.layer.id }}
@@ -167,7 +167,7 @@ jobs:
           merge-multiple: true
       - name: Require every discovered test exactly once in each environment
         run: python backend/scripts/verify_test_reports.py --reports regression-reports --environments linux311 windows312 windows311 --output backend-coverage.json
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-coverage
@@ -189,7 +189,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: frontend-bundle-budget
           path: frontend/dist/bundle-budget.json
@@ -279,7 +279,7 @@ jobs:
       - name: Real UI, worker, WebSocket and session acceptance
         working-directory: backend
         run: python -m scripts.product_smoke --base-url http://127.0.0.1:15173 --output ../acceptance-artifacts
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: product-acceptance-python-${{ matrix.python }}
@@ -305,7 +305,7 @@ jobs:
       - name: CycloneDX inventory
         if: success() || failure()
         run: python -m pip_audit --format cyclonedx-json --output python-sbom.json
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: python-dependency-audit
@@ -353,7 +353,7 @@ jobs:
       - name: Collect container diagnostics
         if: always()
         run: docker compose logs --no-color > container-acceptance.log
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: container-acceptance-${{ matrix.image }}

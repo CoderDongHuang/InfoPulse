@@ -138,19 +138,26 @@ class LLMBudgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(cancelled.is_set())
 
     async def test_stream_has_total_budget_and_closes(self):
+        # Control only the model module's deadline clock. A 40 ms wall-clock
+        # budget can expire before the first chunk on a busy Windows runner.
+        clock = SimpleNamespace(now=0.0)
+        model_asyncio = SimpleNamespace(
+            get_running_loop=lambda: SimpleNamespace(time=lambda: clock.now),
+            wait_for=asyncio.wait_for, TimeoutError=asyncio.TimeoutError,
+        )
         class Stream:
             def __aiter__(self):
                 return self
             async def __anext__(self):
-                await asyncio.sleep(0.015)
+                clock.now += 0.015
                 return SimpleNamespace(choices=[SimpleNamespace(delta=SimpleNamespace(content="chunk"))])
             close = AsyncMock()
         stream = Stream()
         client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=AsyncMock(return_value=stream))))
         chunks = []
-        with patch.object(llm, "get_llm_client", return_value=client), patch.object(llm.settings, "LLM_TIMEOUT_SECONDS", 0.04):
+        with patch.object(llm, "asyncio", model_asyncio), patch.object(llm, "get_llm_client", return_value=client), patch.object(llm.settings, "LLM_TIMEOUT_SECONDS", 0.04):
             with self.assertRaises(asyncio.TimeoutError):
                 async for chunk in llm.stream_chat("System", "Message"):
                     chunks.append(chunk)
-        self.assertGreater(len(chunks), 0)
+        self.assertEqual(chunks, ["chunk"] * 3)
         stream.close.assert_awaited_once()

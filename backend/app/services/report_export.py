@@ -2,9 +2,10 @@
 
 import html
 import re
+import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2] / "storage" / "exports"
+ROOT = Path(os.environ.get("REPORT_EXPORT_PATH", str(Path(__file__).resolve().parents[2] / "storage" / "exports")))
 
 
 def markdown_lines(markdown: str):

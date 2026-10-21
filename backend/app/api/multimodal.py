@@ -1,8 +1,9 @@
 """Tenant-scoped multimodal intelligence and real-time collaboration API."""
+from app.core.routing import APIRouter
 import hashlib,json
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
-from fastapi import APIRouter,Depends,File,Form,HTTPException,Query,UploadFile,WebSocket,WebSocketDisconnect
+from fastapi import Depends, File, Form, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from sqlalchemy import delete,func,select
 from sqlalchemy.ext.asyncio import AsyncSession

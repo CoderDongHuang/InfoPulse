@@ -1,11 +1,12 @@
 """Tenant open platform: credentials, OAuth 2.1, webhooks, integrations and metering."""
+from app.core.routing import APIRouter
 import base64
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
 from cryptography.fernet import Fernet
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession

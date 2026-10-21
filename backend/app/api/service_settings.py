@@ -1,8 +1,9 @@
 """Authenticated write-only credentials; no arbitrary-user configuration endpoint."""
+from app.core.routing import APIRouter
 import asyncio
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db

@@ -10,6 +10,7 @@ import logging
 import time
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from starlette.requests import HTTPConnection
 
 from app.config import get_settings
 
@@ -50,6 +51,7 @@ def _get_engine():
         # SQLite needs different args than PostgreSQL
         if "sqlite" in url:
             _engine = create_async_engine(url, echo=False)
+            install_sqlite_foreign_keys(_engine)
         else:
             _engine = create_async_engine(
                 url,
@@ -94,13 +96,27 @@ async def close_db():
     _async_session = None
 
 
-async def get_db() -> AsyncSession:
+def install_sqlite_foreign_keys(engine):
+    @event.listens_for(engine.sync_engine, "connect")
+    def foreign_keys(connection, _record):
+        cursor = connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+async def get_db(connection: HTTPConnection = None) -> AsyncSession:
     """Dependency: yield an async database session."""
     sessionmaker = _get_sessionmaker()
     async with sessionmaker() as session:
+        if connection is not None:
+            connection.scope.setdefault("database_sessions", []).append(session)
         try:
             yield session
-            await session.commit()
+            if connection is None or not connection.scope.get("transaction_route"):
+                await session.commit()
+            else:
+                # Ordinary responses already committed; streams own their commits.
+                await session.rollback()
         except Exception:
             await session.rollback()
             raise

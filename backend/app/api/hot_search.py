@@ -1,6 +1,7 @@
 """Cross-platform hot ranking endpoints."""
 
-from fastapi import APIRouter, Depends
+from app.core.routing import APIRouter
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db

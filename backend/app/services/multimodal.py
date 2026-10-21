@@ -3,7 +3,8 @@ import asyncio,base64,hashlib,io,json,logging,re,shutil,socket,subprocess,tempfi
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from PIL import Image
-from sqlalchemy import func,or_,select
+from sqlalchemy import func,or_,select,update
+from uuid import uuid4
 from openai import AsyncOpenAI
 from app.core.runtime_settings import RuntimeSettings, use_settings
 from app.core.private_clients import managed_model_client, model_http_client
@@ -129,11 +130,14 @@ def video_parts(data,suffix):
 def evidence(db,asset,ordinal,kind,text,metadata=None,**locator):
  value=text.strip();metadata=metadata or {};fingerprint={**locator,"metadata":metadata};row=MediaEvidence(organization_id=asset.organization_id,asset_id=asset.id,ordinal=ordinal,evidence_type=kind,text=value,content_hash=hashlib.sha256((kind+value+json.dumps(fingerprint,sort_keys=True,default=str)).encode()).hexdigest(),start_ms=locator.pop("start_ms",None),end_ms=locator.pop("end_ms",None),frame_number=locator.pop("frame_number",None),bbox=locator.pop("bbox",[]),speaker=locator.pop("speaker",""),confidence=locator.pop("confidence",0),storage_key=locator.pop("storage_key",""),metadata_json={**metadata,**locator});db.add(row)
 async def process_asset(db,asset,run):
+ lease_owner=run.lease_owner
  try:
   private=await owner_settings(db,asset.user_id)
  except Exception:
   await db.rollback()
   await db.refresh(asset);await db.refresh(run)
+  if lease_owner is not None and (run.lease_owner!=lease_owner or run.status!="running"):
+   raise RuntimeError("Media lease recovered by another worker")
   asset.status="failed";asset.error_message="Private service configuration unavailable; restore the instance encryption key"
   run.status="failed";run.error_message=asset.error_message;run.finished_at=now();run.lease_owner=None;run.lease_until=None
   await db.commit()
@@ -145,14 +149,38 @@ async def _process_asset(db,asset,run):
  # Evidence, metadata and usage must publish together. A failed flush must be
  # rolled back before recording the terminal state in a fresh transaction.
  provider_started=False;ordinal=0;all_text=[];frame_keys=[]
+ lease_owner=run.lease_owner
+ async def fence():
+  if lease_owner is None:return # Direct service calls used without worker claims.
+  with db.no_autoflush:
+   claimed=await db.execute(update(MediaProcessingRun).where(MediaProcessingRun.id==run.id,MediaProcessingRun.status=="running",MediaProcessingRun.lease_owner==lease_owner).values(lease_until=now()+timedelta(minutes=30)).execution_options(synchronize_session=False))
+  if claimed.rowcount!=1:raise RuntimeError("Media lease no longer owned")
+ async def mark_provider():
+  nonlocal provider_started
+  if not provider_started:
+   if lease_owner is not None:
+    # Persist only the call marker. Metadata may already have autoflushed during
+    # route selection; roll that transaction back before recording the marker.
+    # Restore its values as unpublished work for the final atomic commit.
+    values=[(obj,{column.key:getattr(obj,column.key) for column in obj.__table__.columns}) for obj in (asset,run)]
+    await db.rollback()
+    await db.refresh(asset);await db.refresh(run)
+    await fence()
+    run.stage="provider_started"
+    await db.commit()
+    for obj,columns in values:
+     for key,value in columns.items():
+      if obj is run and key in {"stage","lease_owner","lease_until"}:continue
+      setattr(obj,key,value)
+   provider_started=True
  async def call_vision(*args):
   nonlocal provider_started
-  provider_started=True
+  await mark_provider()
   return await vision(*args)
  async def call_transcribe(*args):
   nonlocal provider_started
   validate_transcription(*args)
-  provider_started=True
+  await mark_provider()
   return await transcribe(*args)
  try:
   data=await asyncio.to_thread(storage.get,asset.storage_key);run.status="running";run.stage="metadata";run.progress=10
@@ -170,6 +198,7 @@ async def _process_asset(db,asset,run):
    try:
     asset.duration_ms=int(float(meta.get("format",{}).get("duration",0))*1000);video_stream=next((x for x in meta.get("streams",[]) if x.get("codec_type")=="video"),{});asset.width=video_stream.get("width");asset.height=video_stream.get("height");vision_model,vision_cost=await route_for(db,asset,"video_vision");run.model_routes={"video_vision":vision_model}
     for index,frame in frames:
+     await fence()
      frame_key=f"media/{asset.organization_id}/{asset.id}/frames/{index:06d}.jpg";frame_keys.append(frame_key);await asyncio.to_thread(storage.put,frame_key,frame);result=await call_vision(frame,"image/jpeg",vision_model);text="\n".join(str(x.get("text","")) for x in result.get("ocr",[]) if x.get("text"));summary=str(result.get("summary","") or "");evidence(db,asset,ordinal,"video_frame",(text+"\n"+summary).strip(),start_ms=(index-1)*settings.MEDIA_FRAME_INTERVAL_SECONDS*1000,frame_number=index,storage_key=frame_key,metadata={"chart":result.get("chart")});ordinal+=1;all_text.extend([text,summary])
     if audio:
      audio_model,audio_cost=await route_for(db,asset,"transcription");run.model_routes={**run.model_routes,"transcription":audio_model}
@@ -177,10 +206,13 @@ async def _process_asset(db,asset,run):
      run.estimated_cost_cents=vision_cost+audio_cost
     else:run.estimated_cost_cents=vision_cost
    finally:temp.cleanup()
+  await fence()
   findings=[*asset.safety_findings,*pii_findings("\n".join(all_text))];asset.safety_findings=findings;asset.safety_status="review_required" if findings or (asset.media_type in {"audio","video"} and not asset.consent_confirmed) else "passed";asset.status="ready";asset.error_message="";run.status="succeeded";run.stage="completed";run.progress=100;run.actual_cost_cents=run.estimated_cost_cents;run.finished_at=now();run.lease_owner=None;run.lease_until=None;db.add(ModelUsage(user_id=asset.user_id,organization_id=asset.organization_id,workspace_id=asset.workspace_id,feature="multimodal",model_name=",".join(run.model_routes.values()),cost=run.actual_cost_cents/100));await db.commit()
  except Exception as exc:
   await db.rollback()
   await db.refresh(asset);await db.refresh(run)
+  if lease_owner is not None and (run.lease_owner!=lease_owner or run.status!="running"):
+   raise RuntimeError("Media lease recovered by another worker") from exc
   # Once a provider request started, neither its delivery nor billing is known
   # on failure. Existing retry only accepts failed assets, so unknown is blocked.
   status="unknown" if provider_started else "failed"
@@ -191,13 +223,34 @@ async def _process_asset(db,asset,run):
    try:await asyncio.to_thread(storage.remove,key)
    except Exception:logging.getLogger(__name__).exception("Unable to remove unpublished media frame")
   raise
+async def recover_media_leases(db):
+ expired=(MediaProcessingRun.lease_until<now()) | MediaProcessingRun.lease_until.is_(None)
+ runs=(await db.scalars(select(MediaProcessingRun).where(MediaProcessingRun.status=="running",expired).with_for_update(skip_locked=True))).all()
+ for run in runs:
+  safe=run.stage=="claimed"
+  status="queued" if safe else "unknown"
+  claimed=await db.execute(update(MediaProcessingRun).where(MediaProcessingRun.id==run.id,MediaProcessingRun.status=="running",expired).values(status=status,stage="security_scan" if safe else run.stage,lease_owner=None,lease_until=None,error_message="Lease expired before provider request" if safe else "Provider outcome requires manual reconciliation after worker interruption").execution_options(synchronize_session=False))
+  if claimed.rowcount==1:
+   asset=await db.get(MediaAsset,run.asset_id);asset.status=status
+   if not safe:asset.error_message="Provider outcome requires manual reconciliation after worker interruption"
+ await db.commit()
+ return len(runs)
+
 async def process_media_once(asset_id=None,sessions=None):
  async with (sessions or _get_sessionmaker())() as db:
+  await recover_media_leases(db)
   q=select(MediaProcessingRun).where(MediaProcessingRun.status=="queued")
   if asset_id:q=q.where(MediaProcessingRun.asset_id==asset_id)
   run=await db.scalar(q.order_by(MediaProcessingRun.created_at).limit(1).with_for_update(skip_locked=True))
   if not run:return False
-  asset=await db.get(MediaAsset,run.asset_id);run.status="running";run.lease_owner=socket.gethostname();run.lease_until=now()+timedelta(minutes=30);await db.commit();await process_asset(db,asset,run);return True
+  owner=f"{socket.gethostname()[:50]}:{uuid4().hex}"
+  claimed=await db.execute(update(MediaProcessingRun).where(MediaProcessingRun.id==run.id,MediaProcessingRun.status=="queued").values(status="running",stage="claimed",lease_owner=owner,lease_until=now()+timedelta(minutes=30)).execution_options(synchronize_session=False))
+  await db.commit()
+  if claimed.rowcount!=1:return False
+  await db.refresh(run)
+  asset=await db.get(MediaAsset,run.asset_id)
+  await process_asset(db,asset,run)
+  return True
 async def media_worker_loop(stop):
  while not stop.is_set():
   try:worked=await process_media_once()

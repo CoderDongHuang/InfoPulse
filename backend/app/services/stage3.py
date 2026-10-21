@@ -53,28 +53,35 @@ async def dashboard_data(db: AsyncSession, days=7):
 async def discover_data(db: AsyncSession, user_id: str, channel="ai", range_name="day", page=1, page_size=20):
     since = datetime.now(timezone.utc) - timedelta(days=RANGES[range_name])
     observed_at = func.coalesce(ContentItem.published_at, ContentItem.fetched_at)
-    rows = (await db.execute(select(ContentItem, DataSource).join(DataSource).where(ContentItem.deleted_at.is_(None), observed_at >= since).order_by(observed_at.desc(), ContentItem.id).limit(500))).all()
+    rows = await db.stream(select(ContentItem, DataSource).join(DataSource).where(ContentItem.deleted_at.is_(None), observed_at >= since).order_by(observed_at.desc(), ContentItem.id).execution_options(yield_per=200))
     topics = (await db.scalars(select(WatchTopic).where(WatchTopic.user_id == user_id, WatchTopic.enabled.is_(True)))).all()
     feedback = {x.target_id: x.feedback_type for x in (await db.scalars(select(RecommendationFeedback).where(RecommendationFeedback.user_id == user_id))).all()}
     keywords = CHANNELS[channel][1]
-    ranked = []
-    for item, source in rows:
+    import heapq
+    ranked = []; total = 0; has_data = False; ordinal = 0
+    ranking_time = datetime.now(timezone.utc)
+    async for item, source in rows:
+        has_data = True; ordinal += 1
         text = f"{item.title} {item.body} {' '.join(item.tags or [])}".lower()
         matched = [k for k in keywords if keyword_matches(k, text)]
         type_match = (channel == "papers" and item.content_type == "paper") or (channel == "open-source" and item.content_type == "repository")
         if channel != "all" and not matched and not type_match: continue
         if feedback.get(item.id) in {"not_interested", "irrelevant"}: continue
         timestamp = item.published_at or item.fetched_at
-        age_hours = max(0, (datetime.now(timezone.utc) - (timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc))).total_seconds() / 3600)
+        age_hours = max(0, (ranking_time - (timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc))).total_seconds() / 3600)
         score = max(0, 30 - age_hours / 4) + min(40, content_heat(item) / 100) + len(matched) * 8
         reasons = [{"rule": "public_source" if channel == "all" else "channel_match", "label": "来自公开数据源" if channel == "all" else f"匹配 {CHANNELS[channel][0]} 频道", "evidence": matched[:3] or [item.content_type if type_match else source.name]}]
         topic_hits = [t.name for t in topics if any(keyword_matches(k, text) for k in ([t.name] + list(t.keywords or [])))]
         if topic_hits: score += 25; reasons.append({"rule": "watched_topic", "label": "命中你的关注主题", "evidence": topic_hits})
         if content_heat(item) > 0: reasons.append({"rule": "source_engagement", "label": "来源互动信号较强", "evidence": [str(content_heat(item))]})
         if feedback.get(item.id) in {"seen", "low_quality"}: score -= 20
-        ranked.append((score, item, source, reasons))
-    ranked.sort(key=lambda x: x[0], reverse=True); total = len(ranked); selected = ranked[(page-1)*page_size:page*page_size]
-    return {"items": [content_dict(item, source, score, reasons) for score, item, source, reasons in selected], "page": page, "page_size": page_size, "total": total, "has_more": page*page_size < total, "has_data": bool(rows), "ranking_rule": "频道匹配 + 时效性 + 真实互动量 + 关注主题；反馈产生个人降权或隐藏", "source_warnings": await source_warnings(db)}
+        total += 1
+        entry = (score, -ordinal, item, source, reasons)
+        if len(ranked) < page * page_size: heapq.heappush(ranked, entry)
+        elif entry[:2] > ranked[0][:2]: heapq.heapreplace(ranked, entry)
+    ranked.sort(key=lambda x: x[:2], reverse=True)
+    selected = ranked[(page-1)*page_size:page*page_size]
+    return {"items": [content_dict(item, source, score, reasons) for score, _ordinal, item, source, reasons in selected], "page": page, "page_size": page_size, "total": total, "has_more": page*page_size < total, "has_data": has_data, "ranking_rule": "频道匹配 + 时效性 + 真实互动量 + 关注主题；反馈产生个人降权或隐藏", "source_warnings": await source_warnings(db)}
 
 async def workspace_data(db: AsyncSession, user_id: str):
     topics = (await db.scalars(select(WatchTopic).where(WatchTopic.user_id == user_id, WatchTopic.enabled.is_(True)).order_by(WatchTopic.created_at.desc()))).all()

@@ -8,9 +8,10 @@ GET  /api/v1/auth/me        — Get current user profile
 PUT  /api/v1/auth/me        — Update current user profile
 """
 
+from app.core.routing import APIRouter
 import hmac
 import re
-from fastapi import APIRouter, Depends, Header, HTTPException, status, UploadFile, File, Response
+from fastapi import Depends, Header, HTTPException, status, UploadFile, File, Response
 from sqlalchemy import func, select, text
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -228,17 +229,10 @@ async def delete_me(
     db: AsyncSession = Depends(get_db),
 ):
     """Permanently delete an account and its private knowledge objects."""
-    from sqlalchemy import select
     from starlette.concurrency import run_in_threadpool
     from app.core.security import verify_password
-    from app.models.intelligence import KnowledgeDocument
-    from app.services.knowledge import delete_document
-    from app.services.enterprise import ensure_not_held
+    from app.services.account_deletion import delete_account
 
     if not await run_in_threadpool(verify_password, data.password, current_user.password_hash):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Password verification failed")
-    await ensure_not_held(db, current_user.id)
-    documents = (await db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.user_id == current_user.id))).all()
-    for document in documents:
-        await delete_document(db, document, strict_storage=True)
-    await db.delete(current_user)
+    await delete_account(db, current_user)

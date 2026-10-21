@@ -1,7 +1,8 @@
+from app.core.routing import APIRouter
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, or_, select
+from fastapi import Depends, HTTPException
+from sqlalchemy import func, or_, select, update
 
 from app.core.database import get_db
 from app.dependencies import get_current_user
@@ -26,7 +27,8 @@ def run_data(item):
 
 
 async def owned_task(db, task_id, user_id):
-    task = await db.scalar(select(AgentTask).where(AgentTask.id == task_id, AgentTask.user_id == user_id))
+    await db.execute(update(AgentTask).where(AgentTask.id == task_id, AgentTask.user_id == user_id).values(status=AgentTask.status))
+    task = await db.scalar(select(AgentTask).where(AgentTask.id == task_id, AgentTask.user_id == user_id).with_for_update().execution_options(populate_existing=True))
     if not task: raise HTTPException(404, "任务不存在")
     return task
 
@@ -59,9 +61,11 @@ async def create_subscription(payload: SubscriptionCreate, user: User = Depends(
 async def update_subscription(subscription_id: str, enabled: bool, user: User = Depends(get_current_user), db=Depends(get_db)):
     subscription = await db.scalar(select(Subscription).where(Subscription.id == subscription_id, Subscription.user_id == user.id))
     if not subscription: raise HTTPException(404, "订阅不存在")
-    subscription.enabled = enabled; subscription.updated_at = datetime.now(timezone.utc)
     if subscription.task_id:
-        task = await db.get(AgentTask, subscription.task_id); task.status = "active" if enabled else "paused"
+        task = await owned_task(db, subscription.task_id, user.id)
+        if task.status == "cancelled": raise HTTPException(409, "已取消任务不能通过订阅重新启用")
+        task.status = "active" if enabled else "paused"
+    subscription.enabled = enabled; subscription.updated_at = datetime.now(timezone.utc)
     return subscription_data(subscription)
 
 
@@ -70,7 +74,7 @@ async def delete_subscription(subscription_id: str, user: User = Depends(get_cur
     subscription = await db.scalar(select(Subscription).where(Subscription.id == subscription_id, Subscription.user_id == user.id))
     if not subscription: raise HTTPException(404, "订阅不存在")
     if subscription.task_id:
-        task = await db.get(AgentTask, subscription.task_id)
+        task = await owned_task(db, subscription.task_id, user.id)
         if task: await db.delete(task)
     await db.delete(subscription)
 
@@ -96,7 +100,7 @@ async def runs(task_id: str, user: User = Depends(get_current_user), db=Depends(
 @router.post("/tasks/{task_id}/run", status_code=202)
 async def run_now(task_id: str, user: User = Depends(get_current_user), db=Depends(get_db)):
     task = await owned_task(db, task_id, user.id)
-    if task.status == "cancelled": raise HTTPException(409, "已取消任务不能运行")
+    if task.status != "active": raise HTTPException(409, "请先恢复任务再运行")
     run = await enqueue_run(db, task, "manual")
     return run_data(run)
 
@@ -104,11 +108,16 @@ async def run_now(task_id: str, user: User = Depends(get_current_user), db=Depen
 @router.post("/tasks/{task_id}/{action}")
 async def task_action(task_id: str, action: str, user: User = Depends(get_current_user), db=Depends(get_db)):
     task = await owned_task(db, task_id, user.id)
+    if task.status == "cancelled": raise HTTPException(409, "已取消任务不能恢复或执行")
     if action == "pause": task.status = "paused"
     elif action == "resume": task.status = "active"; task.next_run_at = next_run(task.schedule, task.timezone)
     elif action == "cancel": task.status = "cancelled"; task.next_run_at = None
     elif action == "confirm": task.confirmation_status = "approved"
     else: raise HTTPException(404, "未知任务操作")
+    if action == "cancel":
+        await db.execute(update(TaskRun).where(TaskRun.task_id == task.id, TaskRun.status.in_(["queued", "retrying", "awaiting_confirmation"])).values(status="cancelled", retry_at=None, finished_at=datetime.now(timezone.utc)))
+    elif action == "confirm":
+        await db.execute(update(TaskRun).where(TaskRun.task_id == task.id, TaskRun.status == "awaiting_confirmation").values(status="queued", error_message=""))
     return task_data(task)
 
 
@@ -117,7 +126,9 @@ async def retry_run(run_id: str, user: User = Depends(get_current_user), db=Depe
     previous = await db.scalar(select(TaskRun).where(TaskRun.id == run_id, TaskRun.user_id == user.id))
     if not previous: raise HTTPException(404, "运行记录不存在")
     if previous.status not in ("dead_letter", "failed", "blocked"): raise HTTPException(409, "仅失败、死信或被阻止的任务可重试")
-    task = await owned_task(db, previous.task_id, user.id); run = await enqueue_run(db, task, "retry")
+    task = await owned_task(db, previous.task_id, user.id)
+    if task.status != "active": raise HTTPException(409, "请先恢复任务再重试")
+    run = await enqueue_run(db, task, "retry")
     return run_data(run)
 
 

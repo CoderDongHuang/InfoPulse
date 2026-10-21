@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
@@ -32,6 +32,7 @@ def now_utc(): return datetime.now(UTC)
 
 
 def next_run(schedule: dict, timezone_name: str, after: datetime | None = None) -> datetime:
+    if after is not None and after.tzinfo is None: after = after.replace(tzinfo=UTC)
     current = (after or now_utc()).astimezone(ZoneInfo(timezone_name))
     kind = schedule.get("kind", "daily")
     if kind == "interval":
@@ -89,6 +90,16 @@ def validate_webhook_url(url: str) -> None:
 
 async def deliver_attempt(db, attempt: DeliveryAttempt):
     notification = await db.get(Notification, attempt.notification_id)
+    run_id = notification.payload.get("run_id")
+    if run_id:
+        run = await db.get(TaskRun, run_id)
+        if run:
+            await db.execute(update(AgentTask).where(AgentTask.id == run.task_id).values(status=AgentTask.status))
+        task = await db.scalar(select(AgentTask).where(AgentTask.id == run.task_id).with_for_update().execution_options(populate_existing=True)) if run else None
+        if not task or task.status == "cancelled":
+            attempt.status = "cancelled"; attempt.next_retry_at = None
+            return
+        if task.status != "active": return
     preference = await preference_for(db, notification.user_id)
     try:
         if attempt.channel == "email":
@@ -144,6 +155,14 @@ async def _execute_monitor(db, task: AgentTask, run: TaskRun):
 
 
 async def execute_run(db, task: AgentTask, run: TaskRun):
+    # Serialize state changes and execution using the same task lock as the API.
+    # A no-op write also serializes SQLite, where FOR UPDATE is ignored.
+    await db.execute(update(AgentTask).where(AgentTask.id == task.id).values(status=AgentTask.status))
+    task = await db.scalar(select(AgentTask).where(AgentTask.id == task.id).with_for_update().execution_options(populate_existing=True))
+    if not task or task.status == "cancelled":
+        run.status = "cancelled"; run.retry_at = None; run.finished_at = now_utc()
+        return False
+    if task.status != "active" or run.status not in {"queued", "retrying", "awaiting_confirmation"}: return False
     running = int(await db.scalar(select(func.count(TaskRun.id)).where(TaskRun.task_id == task.id, TaskRun.status == "running")) or 0)
     if running >= task.max_concurrency and run.status != "running": return False
     if task.estimated_cost > task.cost_limit:
@@ -159,7 +178,7 @@ async def execute_run(db, task: AgentTask, run: TaskRun):
         elif task.task_type in ("keyword_monitor", "company_monitor"): output = await _execute_monitor(db, task, run)
         else: raise ValueError("Unsupported task type")
         run.status = "succeeded"; run.output = output; run.cost = task.estimated_cost; run.finished_at = now_utc(); run.logs = [*run.logs, {"at": now_utc().isoformat(), "message": "Task completed"}]
-        task.last_run_at = run.finished_at; task.next_run_at = next_run(task.schedule, task.timezone, run.finished_at)
+        task.last_run_at = run.finished_at
     except Exception as exc:
         run.error_message = str(exc)[:4000]; run.diagnostic_id = str(uuid.uuid4()); run.logs = [*run.logs, {"at": now_utc().isoformat(), "message": run.error_message}]
         if run.attempt <= task.max_retries: run.status = "retrying"; run.retry_at = now_utc() + timedelta(minutes=2 ** run.attempt)
@@ -171,6 +190,12 @@ async def execute_run(db, task: AgentTask, run: TaskRun):
 
 async def enqueue_run(db, task: AgentTask, trigger="manual", scheduled_for=None):
     scheduled = scheduled_for or now_utc()
+    if scheduled.tzinfo is None: scheduled = scheduled.replace(tzinfo=UTC)
+    if trigger == "schedule":
+        # Advance the schedule independently of success, failure or cost blocking.
+        task.next_run_at = next_run(task.schedule, task.timezone, now_utc())
+        waiting = await db.scalar(select(TaskRun).where(TaskRun.task_id == task.id, TaskRun.status == "awaiting_confirmation"))
+        if waiting: return waiting
     key = f"{task.id}:{scheduled.replace(second=0, microsecond=0).isoformat()}" if trigger == "schedule" else f"{task.id}:manual:{uuid.uuid4()}"
     existing = await db.scalar(select(TaskRun).where(TaskRun.idempotency_key == key))
     if existing: return existing
@@ -190,9 +215,11 @@ async def process_due_once():
     async with sessions() as db:
         tasks = (await db.scalars(select(AgentTask).where(AgentTask.status == "active", AgentTask.next_run_at <= now).order_by(AgentTask.next_run_at).limit(get_settings().TASK_WORKER_CONCURRENCY).with_for_update(skip_locked=True))).all()
         for task in tasks: await enqueue_run(db, task, "schedule", task.next_run_at)
-        retries = (await db.scalars(select(TaskRun).where(TaskRun.status == "retrying", TaskRun.retry_at <= now).limit(get_settings().TASK_WORKER_CONCURRENCY).with_for_update(skip_locked=True))).all()
+        retries = (await db.scalars(select(TaskRun).join(AgentTask).where(AgentTask.status == "active", or_(TaskRun.status == "queued", (TaskRun.status == "retrying") & (TaskRun.retry_at <= now))).limit(get_settings().TASK_WORKER_CONCURRENCY).with_for_update(of=AgentTask, skip_locked=True))).all()
         for run in retries:
-            task = await db.get(AgentTask, run.task_id); run.attempt += 1; await execute_run(db, task, run)
+            task = await db.get(AgentTask, run.task_id)
+            if run.status == "retrying": run.attempt += 1
+            await execute_run(db, task, run)
         attempts = (await db.scalars(select(DeliveryAttempt).where(DeliveryAttempt.status.in_(["pending", "retrying"]), DeliveryAttempt.next_retry_at <= now).limit(20).with_for_update(skip_locked=True))).all()
         for attempt in attempts: await deliver_attempt(db, attempt)
         await db.commit()

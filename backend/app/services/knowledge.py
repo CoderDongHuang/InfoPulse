@@ -45,6 +45,29 @@ class Storage:
         path=(self.local/key).resolve()
         return self.local in path.parents and path.is_file()
 
+    def remove_prefix(self, prefix: str):
+        # Only account/tenant UUID roots are accepted; never delete the bucket root.
+        import uuid
+        parts = prefix.rstrip("/").split("/")
+        if len(parts) == 2 and parts[0] == "media": uuid.UUID(parts[1])
+        elif len(parts) == 1: uuid.UUID(parts[0])
+        else: raise ValueError("Invalid cleanup prefix")
+        if not prefix.endswith("/"): raise ValueError("Cleanup prefix must end with slash")
+        if settings.KNOWLEDGE_STORAGE_BACKEND == "s3":
+            import boto3
+            client = boto3.client("s3", endpoint_url=settings.S3_ENDPOINT_URL or None, aws_access_key_id=settings.S3_ACCESS_KEY or None, aws_secret_access_key=settings.S3_SECRET_KEY or None, region_name=settings.S3_REGION)
+            for page in client.get_paginator("list_objects_v2").paginate(Bucket=settings.S3_BUCKET, Prefix=prefix):
+                for item in page.get("Contents", []): client.delete_object(Bucket=settings.S3_BUCKET, Key=item["Key"])
+            return
+        root = (self.local / prefix).resolve()
+        if self.local not in root.parents: raise ValueError("Invalid cleanup path")
+        # Keep empty directories; retryable file deletion needs no recursive moves.
+        for path in root.rglob("*"):
+            if path.is_file():
+                resolved = path.resolve()
+                if root not in resolved.parents: raise ValueError("Symlink outside cleanup prefix")
+                path.unlink(missing_ok=True)
+
 storage=Storage()
 processing_queue: asyncio.Queue[tuple[str,bytes|None]] = asyncio.Queue()
 
@@ -86,6 +109,8 @@ async def knowledge_worker_loop(stop:asyncio.Event):
         try: document_id,_data=await asyncio.wait_for(processing_queue.get(),timeout=max(1,settings.KNOWLEDGE_WORKER_POLL_SECONDS));queued=True
         except asyncio.TimeoutError: document_id=None
         try:
+            from app.services.account_deletion import process_storage_cleanup_once
+            await process_storage_cleanup_once()
             await process_knowledge_once(document_id)
         except Exception:
             import logging

@@ -2,7 +2,7 @@
 
 ## Environments
 
-- Staging is reproducible with `deploy/staging.compose.yml`: PostgreSQL 16 with pgvector, Redis 7, MinIO, a two-process API, scheduler worker, knowledge worker and web gateway.
+- Staging uses `deploy/staging.compose.yml`: PostgreSQL 16 with pgvector, Redis 7, MinIO, a two-process API, web gateway and scheduler/knowledge/orchestration/media/sources/actions workers.
 - Production uses `deploy/k8s/production.yaml` with managed PostgreSQL 16 (the `vector` extension must be available), Redis and S3-compatible storage supplied through `infopulse-secrets`.
 - Staging and production must use different clusters or accounts, databases, buckets, Redis instances, mail senders, model keys and source tokens.
 
@@ -10,11 +10,19 @@
 
 1. Merge only after the Release Gate succeeds.
 2. Create immutable API and web images using a commit SHA tag.
-3. Run `deployment_preflight.py` without printing credential values.
-4. Apply the migration Job and wait for completion before traffic changes.
-5. Deploy one canary replica and route 5-10% traffic through the canary Ingress.
-6. Verify readiness and the 5xx/latency alerts. Promote the exact image digest to stable.
-7. The deployment workflow sets canary traffic to zero and rolls back both deployments when verification fails.
+3. Bootstrap a versioned ConfigMap, verify the Secret and bound RWX export PVC, and snapshot application resources. Run the isolated preflight Job and wait for success.
+4. Apply only the migration Job and wait for completion before updating deployments.
+5. Deploy the canary at zero public traffic. Check its exact image tag and probe readiness directly through its own service port-forward.
+6. Set the selected canary weight, then promote API/web and every worker. Set canary traffic back to zero after rollout succeeds. Image digest pinning and a timed metrics observation window remain follow-up work.
+7. On failure, restore the snapshotted API/web/worker deployments and managed services, ingresses, policies, HPA and PDB resources. Remove managed resources introduced by the failed release. Schema, Secret and persistent storage are retained; migrations must remain compatible with the old application.
+
+The template sets web Ingress body size to 260m and explicitly permits web Pod requests to API TCP 8000. Render/ordering/rollback tests cover the manifests; real CNI, ingress limits and cluster rollback still require staging acceptance. See the [current audit acceptance](./audits/2026-10-21-remediation.md).
+
+## Shared report exports
+
+All API replicas and the knowledge cleanup worker require the same `REPORT_EXPORT_PATH`. Compose mounts `staging_exports` at `/shared/exports`. Before Kubernetes deployment, separately provision the `infopulse-exports` ReadWriteMany claim using a real cluster StorageClass; see `deploy/k8s/exports-pvc.example.yaml`. The workflow rejects missing, non-RWX or unbound claims. Back up the export volume with database metadata and retain it on rollback.
+
+Existing ReportExport rows contain absolute paths. Preserve the old path as a shared mount, or stop writes, back up, copy and verify files, and update storage keys before switching paths. A new empty volume alone does not migrate existing exports. Monitor storage cleanup outbox attempts and errors; do not drop failed records to hide incomplete deletion.
 
 Production deployment is manual through the protected GitHub `production` environment. Require two reviewers and restrict the environment to the default branch. Staging may use a separate kubeconfig and the same namespace because it is a separate cluster.
 

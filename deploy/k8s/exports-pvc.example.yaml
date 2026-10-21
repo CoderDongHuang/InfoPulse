@@ -1,0 +1,10 @@
+# Provision separately before releases. Choose a cluster-specific RWX StorageClass.
+# Retain this claim on rollback and backup it alongside the database.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: infopulse-exports, namespace: infopulse}
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: REPLACE_WITH_RWX_STORAGE_CLASS
+  resources:
+    requests: {storage: 10Gi}

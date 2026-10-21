@@ -10,6 +10,7 @@ data:
   AUTO_CREATE_TABLES: "false"
   RUN_BACKGROUND_WORKERS_IN_API: "false"
   TASK_SCHEDULER_ENABLED: "true"
+  REPORT_EXPORT_PATH: /shared/exports
   KNOWLEDGE_STORAGE_BACKEND: s3
   ORCHESTRATION_WORKER_ENABLED: "true"
   MEDIA_WORKER_ENABLED: "true"
@@ -17,6 +18,7 @@ data:
   MEDIA_FRAME_INTERVAL_SECONDS: "10"
   MEDIA_MAX_VIDEO_FRAMES: "24"
   CRAWLER_ENABLED: "true"
+  SOURCE_SYNC_ENABLED: "true"
 ---
 apiVersion: batch/v1
 kind: Job
@@ -28,7 +30,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: preflight
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["python","scripts/deployment_preflight.py"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
 ---
@@ -42,7 +44,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: migrate
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["alembic","upgrade","head"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
 ---
@@ -55,9 +57,13 @@ spec:
   template:
     metadata: {labels: {app: infopulse-api, track: stable}}
     spec:
+      volumes:
+        - name: exports
+          persistentVolumeClaim: {claimName: infopulse-exports}
       containers:
         - name: api
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          volumeMounts: [{name: exports, mountPath: /shared/exports}]
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000","--workers","2","--proxy-headers","--forwarded-allow-ips","*"]
           envFrom:
             - configMapRef: {name: infopulse-config}
@@ -78,9 +84,13 @@ spec:
   template:
     metadata: {labels: {app: infopulse-api, track: canary}}
     spec:
+      volumes:
+        - name: exports
+          persistentVolumeClaim: {claimName: infopulse-exports}
       containers:
         - name: api
-          image: ghcr.io/codexdonghuang/infopulse:CANARY_VERSION
+          volumeMounts: [{name: exports, mountPath: /shared/exports}]
+          image: ghcr.io/coderdonghuang/infopulse:CANARY_VERSION
           args: ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000","--workers","2","--proxy-headers","--forwarded-allow-ips","*"]
           envFrom:
             - configMapRef: {name: infopulse-config}
@@ -116,7 +126,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["python","-m","app.worker","--role","scheduler"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
           resources: {requests: {cpu: 250m, memory: 384Mi}, limits: {cpu: "1", memory: 1Gi}}
@@ -130,9 +140,13 @@ spec:
   template:
     metadata: {labels: {app: infopulse-knowledge-worker}}
     spec:
+      volumes:
+        - name: exports
+          persistentVolumeClaim: {claimName: infopulse-exports}
       containers:
         - name: worker
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          volumeMounts: [{name: exports, mountPath: /shared/exports}]
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["python","-m","app.worker","--role","knowledge"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
           resources: {requests: {cpu: 500m, memory: 768Mi}, limits: {cpu: "2", memory: 2Gi}}
@@ -158,7 +172,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["python","-m","app.worker","--role","orchestration"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
           resources: {requests: {cpu: 500m, memory: 768Mi}, limits: {cpu: "2", memory: 2Gi}}
@@ -183,7 +197,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: ghcr.io/codexdonghuang/infopulse:VERSION
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
           args: ["python","-m","app.worker","--role","media"]
           envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
           resources: {requests: {cpu: "1", memory: 1Gi}, limits: {cpu: "4", memory: 4Gi}}
@@ -214,7 +228,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/codexdonghuang/infopulse-web:VERSION
+          image: ghcr.io/coderdonghuang/infopulse-web:VERSION
           ports: [{name: http, containerPort: 80}]
           readinessProbe: {httpGet: {path: /, port: http}, periodSeconds: 10}
           resources: {requests: {cpu: 100m, memory: 96Mi}, limits: {cpu: 500m, memory: 256Mi}}
@@ -232,6 +246,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
     nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/proxy-body-size: "260m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 spec:
   ingressClassName: nginx
   tls: [{hosts: [app.example.com], secretName: infopulse-web-tls}]
@@ -259,7 +276,7 @@ metadata:
   namespace: infopulse
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
-    nginx.ingress.kubernetes.io/canary-weight: "10"
+    nginx.ingress.kubernetes.io/canary-weight: "0"
 spec:
   ingressClassName: nginx
   rules: [{host: api.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: api-canary, port: {number: 8000}}}}]}}]
@@ -276,3 +293,48 @@ spec:
   podSelector: {matchExpressions: [{key: app, operator: In, values: [infopulse-api, infopulse-web]}]}
   policyTypes: [Ingress]
   ingress: [{from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ingress-nginx}}}]}]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sources-worker, namespace: infopulse}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: infopulse-sources-worker}}
+  template:
+    metadata: {labels: {app: infopulse-sources-worker}}
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
+          args: ["python","-m","app.worker","--role","sources"]
+          envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
+          resources: {requests: {cpu: 250m, memory: 384Mi}, limits: {cpu: "1", memory: 1Gi}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: actions-worker, namespace: infopulse}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: infopulse-actions-worker}}
+  template:
+    metadata: {labels: {app: infopulse-actions-worker}}
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/coderdonghuang/infopulse:VERSION
+          args: ["python","-m","app.worker","--role","actions"]
+          envFrom: [{configMapRef: {name: infopulse-config}}, {secretRef: {name: infopulse-secrets}}]
+          resources: {requests: {cpu: 250m, memory: 384Mi}, limits: {cpu: "1", memory: 1Gi}}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-web-to-api, namespace: infopulse}
+spec:
+  podSelector: {matchLabels: {app: infopulse-api}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {app: infopulse-web}}}]
+      ports: [{protocol: TCP, port: 8000}]

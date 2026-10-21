@@ -1,0 +1,13 @@
+{
+  "database": "disposable SQLite",
+  "heads": [
+    "20261020_0036"
+  ],
+  "steps": [
+    "empty -> head",
+    "head -> 20260729_0013",
+    "20260729_0013 -> head"
+  ],
+  "passed": true,
+  "production_postgresql_tested": false
+}

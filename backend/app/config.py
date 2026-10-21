@@ -8,6 +8,7 @@ Uses pydantic-settings for validation and auto-loading.
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Literal
 
 
 class Settings(BaseSettings):
@@ -77,6 +78,7 @@ class Settings(BaseSettings):
     MEDIA_MAX_FILE_MB: int = 250
     MEDIA_VISION_MODEL: str = ""
     MEDIA_TRANSCRIPTION_MODEL: str = ""
+    MEDIA_TRANSCRIPTION_PROTOCOL: Literal["openai", "qwen_asr"] = "openai"
     MEDIA_FRAME_INTERVAL_SECONDS: int = 10
     MEDIA_MAX_VIDEO_FRAMES: int = 24
     MEDIA_WORKER_ENABLED: bool = True

@@ -1,0 +1,4609 @@
+{
+  "scope": "Formal source/configuration/documentation; excludes dependencies, runtime data, uploads, images and audit probes. All files inventoried and syntax/claim-scanned; this is not a claim of manual line-by-line review.",
+  "files": [
+    {
+      "path": ".github/dependabot.yml",
+      "lines": 27,
+      "sha256": "fc2f4c2b34b047399ec000ae0b989ce8ce465bc4ec9ee73b905865016a7ce824"
+    },
+    {
+      "path": ".github/workflows/codeql.yml",
+      "lines": 26,
+      "sha256": "5a0c0721560e83f9ec59fa2cf56ef25cefb0d1e6c0c3e9e3cdba6e801d03a734"
+    },
+    {
+      "path": ".github/workflows/deploy.yml",
+      "lines": 76,
+      "sha256": "8103c20d145c6618fa4b6950bbd783c31f38a1132e838cd41fb72c9a184850df"
+    },
+    {
+      "path": ".github/workflows/release-gate.yml",
+      "lines": 366,
+      "sha256": "060f8fbf22b44ea1508f833ad86528588f57b0a34e66a3eb7d871f9b24ca34b1"
+    },
+    {
+      "path": ".gitignore",
+      "lines": 50,
+      "sha256": "b0c2614b681a7b0693e8cb5494bac0475ef775e4babac382cfd866e280749b55"
+    },
+    {
+      "path": "backend/.dockerignore",
+      "lines": 13,
+      "sha256": "d805a9af5e20e0b468f267b6c63dd6fc073b720b77f22eb7c736cbd0a9d0fb59"
+    },
+    {
+      "path": "backend/.env.example",
+      "lines": 102,
+      "sha256": "c383840e932539435479a1fb80b2f583049ab9b7c69a57b5c60f0b234b598152"
+    },
+    {
+      "path": "backend/alembic/env.py",
+      "lines": 52,
+      "sha256": "335e71217348347b6f8f9fa3b3eecdbb0391bd56917b4d92b8dd7cbd32349c57"
+    },
+    {
+      "path": "backend/alembic/script.py.mako",
+      "lines": 24,
+      "sha256": "a5ac647137cc264669781005aca8642744b3666272769fbeb55cb83c5bdee2c3"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0001_intelligence_core.py",
+      "lines": 125,
+      "sha256": "5edb444ce43d4bed7fbfaff7dca09c31503431d5cde5d625a3baf7f918c08303"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0002_seed_hacker_news.py",
+      "lines": 36,
+      "sha256": "212cec0d22befa7a31c145a8588ac383b7b23c9133878b166af4b0045e45e494"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0003_seed_official_sources.py",
+      "lines": 39,
+      "sha256": "7a34d4918072c4f4f2607bfd8efd477cf8021073517b65fa865c93dd4d13d019"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0004_search_events.py",
+      "lines": 64,
+      "sha256": "ed4dce094ed3bee91e88be4ad054c2464db605fdb1e032bf7e3c627c288d18b0"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0005_personalization.py",
+      "lines": 23,
+      "sha256": "6b2bb07f7b41d72d3fd29de8882f176d3dda7d373265ed163b02aa6038615b6f"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0006_analyses.py",
+      "lines": 11,
+      "sha256": "403eba6361d8d9ed9636b75613166b28ca6af0bc716006ddae901a8fb9e23434"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0007_agent.py",
+      "lines": 12,
+      "sha256": "a04377c53a42e4e6cdb923222b8e38e0dd61a65b080d399d5bb73fac4ccbac8f"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0008_reports.py",
+      "lines": 10,
+      "sha256": "3c7337edf403aaf1e1964ffff72de8928c402f74a65f5b05fe06262283e8ade9"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0009_automation.py",
+      "lines": 29,
+      "sha256": "28dd29f1558918f3fe3e5ce52dd87479eb69ef02231b295a2d4f166b4bac61bb"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0010_knowledge_rag.py",
+      "lines": 31,
+      "sha256": "cafa4e88ffe1dda516787bf3cba8780d91ab6ed34c27848096fb75f0fa1a316b"
+    },
+    {
+      "path": "backend/alembic/versions/20260728_0011_knowledge_graph.py",
+      "lines": 16,
+      "sha256": "ae4d54e5d9851718f3de2cfeccd48cc98781be463779bcbaebd85336f2ad2458"
+    },
+    {
+      "path": "backend/alembic/versions/20260729_0012_alerts_bi.py",
+      "lines": 15,
+      "sha256": "3a3dc7ec9b37db3f7ff1b5793ed782999e7a5321d7bbf4aed21ce04229fe2c0c"
+    },
+    {
+      "path": "backend/alembic/versions/20260729_0013_production_indexes.py",
+      "lines": 29,
+      "sha256": "f1f1b62712461229ce56f80eb213df926d5f5577dbc5ba63c0ad376fe1f0701a"
+    },
+    {
+      "path": "backend/alembic/versions/20260729_0014_operations_feedback.py",
+      "lines": 14,
+      "sha256": "09f3e2915ee52b2f77a736b0f98712ba466cd8102ca2f10337aa5e21c9409560"
+    },
+    {
+      "path": "backend/alembic/versions/20260729_0015_enterprise_governance.py",
+      "lines": 71,
+      "sha256": "99dedd72d96a5abd1f6bbb10a87c48fc9044eadf49d8347a207a660cad605fd7"
+    },
+    {
+      "path": "backend/alembic/versions/20260730_0016_open_platform.py",
+      "lines": 41,
+      "sha256": "fcaaeeeff4b9fc63c2fd1e7d0d334b81b125ce802b042960c352d92d25217d52"
+    },
+    {
+      "path": "backend/alembic/versions/20260730_0017_agent_orchestration.py",
+      "lines": 36,
+      "sha256": "df330744900b0038d32c53c8bf99bf1d7f47650884e0052cfe8289fc8854a384"
+    },
+    {
+      "path": "backend/alembic/versions/20260730_0018_multimodal_collaboration.py",
+      "lines": 27,
+      "sha256": "f80cd2dba41317d57730af18381b18fd64d015eaad320f8668765bd18fa55263"
+    },
+    {
+      "path": "backend/alembic/versions/20260731_0019_global_intelligence.py",
+      "lines": 23,
+      "sha256": "1135fa6bf28054f120c3feb594c8ee4329d1672c7c578f1c8e9f1b9244684b4e"
+    },
+    {
+      "path": "backend/alembic/versions/20260731_0020_action_loop.py",
+      "lines": 20,
+      "sha256": "ef5a79f13d66f17eeded134c4116abc354b3f5554f10bc32b2282b0f572303b2"
+    },
+    {
+      "path": "backend/alembic/versions/20260801_0021_commercialization.py",
+      "lines": 18,
+      "sha256": "771e45df11687933144cbf194fa7f07065059e81ab629e1399690ee3b5312523"
+    },
+    {
+      "path": "backend/alembic/versions/20260801_0022_autonomous_enterprise.py",
+      "lines": 25,
+      "sha256": "31fb28439de3f05b6d8109d101cbcca24f91d1dd5d5aae48d5af3a504a604683"
+    },
+    {
+      "path": "backend/alembic/versions/20260801_0023_trusted_ecosystem.py",
+      "lines": 17,
+      "sha256": "96c86aebd2f9f118e430d1c9e3691e83c5cd4463da587344f5cbe3f4bdaca80c"
+    },
+    {
+      "path": "backend/alembic/versions/20260802_0024_global_coordination.py",
+      "lines": 22,
+      "sha256": "3d59794086f124229cb3af40b2835446d6b81bd5272542ee45b4c691bed87219"
+    },
+    {
+      "path": "backend/alembic/versions/20260802_0025_adaptive_intelligence.py",
+      "lines": 20,
+      "sha256": "c8ba25a0485b5b66eb97bc5596fde66fada03be8eb5b6f90c39f1a2a4baf2ef5"
+    },
+    {
+      "path": "backend/alembic/versions/20260803_0026_provable_autonomy.py",
+      "lines": 17,
+      "sha256": "4ffb8d814d06291da65dbc0666b747458ac98cb7d7af65289e865759a4883ca9"
+    },
+    {
+      "path": "backend/alembic/versions/20260803_0027_planetary_resilience.py",
+      "lines": 12,
+      "sha256": "e595d56d9feb4b1fdda981d94ac9c28f5b566c0e5add7401aa07728f152b637f"
+    },
+    {
+      "path": "backend/alembic/versions/20260804_0028_cognitive_infrastructure.py",
+      "lines": 12,
+      "sha256": "0f3cbce28b92de621c45587aeb7ea48c52bb97323a90b15b0727a096b587f849"
+    },
+    {
+      "path": "backend/alembic/versions/20260804_0029_cognitive_commons.py",
+      "lines": 12,
+      "sha256": "73b9a0d8def6455089a2c56508290002efcbbb8ff54144f1544511b87232deb6"
+    },
+    {
+      "path": "backend/alembic/versions/20261009_0030_dispatch.py",
+      "lines": 40,
+      "sha256": "e91d6f080e99555449b92513405003b115a0b7dd0bae4c63d37a4940b2bb5541"
+    },
+    {
+      "path": "backend/alembic/versions/20261009_0031_auth_sessions.py",
+      "lines": 22,
+      "sha256": "19ee154de3f6fc57280f3f86ca0fd65e090114a1dabd66c587a02df7c83605c4"
+    },
+    {
+      "path": "backend/alembic/versions/20261009_0032_execution_fingerprint.py",
+      "lines": 18,
+      "sha256": "164e44d03ff3d2b5d2c79b639c0310e4e6955423dac15e2c4e87f83f3daac490"
+    },
+    {
+      "path": "backend/alembic/versions/20261009_0033_rate_limits.py",
+      "lines": 20,
+      "sha256": "7d7b0f8e433c834b507b578857b3bb9eceb45f87857f33cb2d45f4ee4f94fc93"
+    },
+    {
+      "path": "backend/alembic/versions/20261014_0034_identity_uniqueness.py",
+      "lines": 32,
+      "sha256": "ea6a2982b1a3a3182941ad694533747e34e5dd863f15c49b26f9867abb2054a8"
+    },
+    {
+      "path": "backend/alembic/versions/20261018_0035_private_service_settings.py",
+      "lines": 19,
+      "sha256": "63b7898a615b4b1a7305da20ec08be5deeb38155aff23ee84a20b466fd3bba39"
+    },
+    {
+      "path": "backend/alembic/versions/20261020_0036_user_avatars.py",
+      "lines": 19,
+      "sha256": "0fb6f53dbf2017fe6f646f071c56e47bab487a1bc351911046f428c99cc9f15e"
+    },
+    {
+      "path": "backend/alembic.ini",
+      "lines": 31,
+      "sha256": "8877765386021509b32d5428f26b72831fb4f6e6d0cb4f8d5f4c803f9fa36e25"
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/api/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/api/action_loop.py",
+      "lines": 96,
+      "sha256": "91622e0400a118661907bd570a19cc797f606f51cd736f388a2d5eda9e8be2ba"
+    },
+    {
+      "path": "backend/app/api/adaptive_intelligence.py",
+      "lines": 92,
+      "sha256": "de9feeadfb8a5a9781a79a5dae597677e5a2336225fa6a95b9e18fa858ac11df"
+    },
+    {
+      "path": "backend/app/api/agent.py",
+      "lines": 83,
+      "sha256": "d8f035b93553b1aa0c62314d952dd36ea722544c8e3397bab360969c4e8bae5e"
+    },
+    {
+      "path": "backend/app/api/analyses.py",
+      "lines": 38,
+      "sha256": "54420e57718c83bcfa0e88f2fd0e57738b8e4bc17af8396fc9956babb15a1017"
+    },
+    {
+      "path": "backend/app/api/auth.py",
+      "lines": 244,
+      "sha256": "002fc14dccd5b8e824bdbf90f725092eadf95476af29205727430df77ad744c3"
+    },
+    {
+      "path": "backend/app/api/automation.py",
+      "lines": 175,
+      "sha256": "37a1ee048d742b710932faea6698afacadb619fcc1d134f3aacb84a891e8a93e"
+    },
+    {
+      "path": "backend/app/api/autonomous_enterprise.py",
+      "lines": 84,
+      "sha256": "8f01a1cff498f836fe75ae3d57f0be5925e21298466d52120894dbceb0441143"
+    },
+    {
+      "path": "backend/app/api/cognitive_commons.py",
+      "lines": 54,
+      "sha256": "3396cce7be6a8b934e5594081f85915a4f5fe40662cc9956aa4366badc289f80"
+    },
+    {
+      "path": "backend/app/api/cognitive_infrastructure.py",
+      "lines": 52,
+      "sha256": "a41a0f6511225c9bce6e9bd7f30d88d7926592afa1d18773aff5104356bbc59f"
+    },
+    {
+      "path": "backend/app/api/commercialization.py",
+      "lines": 69,
+      "sha256": "9771294941a6478654e4a440f32fcf81183f82dc6c945d12546db80ba784f2c6"
+    },
+    {
+      "path": "backend/app/api/contents.py",
+      "lines": 30,
+      "sha256": "58f42ff015cc1f4ba3f5b7f122506b927656b0b219b799f74fe5f0596965b3ca"
+    },
+    {
+      "path": "backend/app/api/enterprise.py",
+      "lines": 286,
+      "sha256": "3b4a58609e58450f187478625dbef47034e9f475cae3c8234dbe64adec92273e"
+    },
+    {
+      "path": "backend/app/api/events.py",
+      "lines": 113,
+      "sha256": "46792ab09c2532e67263a70c47fb423a4b8dd23b2704a5dd04016dc9a92156ac"
+    },
+    {
+      "path": "backend/app/api/global_coordination.py",
+      "lines": 120,
+      "sha256": "842c6a004aefbdcd6507981dcdf537c18cb0fe7fc671007be23b575f1610dcc9"
+    },
+    {
+      "path": "backend/app/api/global_intelligence.py",
+      "lines": 79,
+      "sha256": "c9657d12000c995485851343bd9a60b9d3763b3b585b13ab9828930bf268feb7"
+    },
+    {
+      "path": "backend/app/api/graph.py",
+      "lines": 65,
+      "sha256": "1f5fa84e2c173ec6a75a7c97a8291ca0ad70c0c4216ada81b54d90278cc06718"
+    },
+    {
+      "path": "backend/app/api/history.py",
+      "lines": 77,
+      "sha256": "20de2cb465e180b0f3e0c4cf83ea2a47161f22cada6a1967d3c77435121ba76f"
+    },
+    {
+      "path": "backend/app/api/hot_search.py",
+      "lines": 23,
+      "sha256": "4b6939ba5352b9762a025cfe70a2d4544ddb4cab9ce20c68422a5eaf9aca47bd"
+    },
+    {
+      "path": "backend/app/api/insights.py",
+      "lines": 115,
+      "sha256": "b7a49d3740776710fde31f27463b37ef5b9ad910fc75cf56803ace7d6c6be554"
+    },
+    {
+      "path": "backend/app/api/knowledge.py",
+      "lines": 81,
+      "sha256": "efb55c1de0edf7347fe8a7215138567f9d5a52fd1af7c843c78d486551579748"
+    },
+    {
+      "path": "backend/app/api/mouthpiece.py",
+      "lines": 31,
+      "sha256": "c1fb75d995f60f5b8cfb0a87cfde10b5e3b5bc5c9ff1d93a55702fcaa2cd4779"
+    },
+    {
+      "path": "backend/app/api/multimodal.py",
+      "lines": 189,
+      "sha256": "6886d6fa9f7bf115241213f3f35dd72b2adb3c12b77137d52f5b5098386b3a18"
+    },
+    {
+      "path": "backend/app/api/operations.py",
+      "lines": 44,
+      "sha256": "af036ef4650850308366fe20b8cab255c361cad452d8dc4ea9af710693a364b8"
+    },
+    {
+      "path": "backend/app/api/operations_center.py",
+      "lines": 50,
+      "sha256": "3d59c584f5c825cf75494cae8088374a7172598f6d6a6f62695a56b4cf76fff6"
+    },
+    {
+      "path": "backend/app/api/orchestration.py",
+      "lines": 195,
+      "sha256": "30efebaeef8e783119bbd4f069f6403da29403e73f724db27e00980ae9094e4d"
+    },
+    {
+      "path": "backend/app/api/personalization.py",
+      "lines": 67,
+      "sha256": "70330d687a69dcd1017af8e51c4f5b72ae7a20ad3c33ce38a7b9c6d0bd59ad87"
+    },
+    {
+      "path": "backend/app/api/planetary_resilience.py",
+      "lines": 90,
+      "sha256": "248fafb62d392c5b497068fda1b9fe7b6f436542d8e7825bb523c9e9bc93eb67"
+    },
+    {
+      "path": "backend/app/api/platform.py",
+      "lines": 241,
+      "sha256": "1e9fce5469c46b3a38f970bd4acb04e963db3cc7a78daa541eea35f609e040bc"
+    },
+    {
+      "path": "backend/app/api/provable_autonomy.py",
+      "lines": 106,
+      "sha256": "e2e3e8c1cf096f5ba504edc3af1a585f18c4a2fd80fd9677170fdb670ca1bc5e"
+    },
+    {
+      "path": "backend/app/api/reports.py",
+      "lines": 87,
+      "sha256": "0bdf0e476c48567286e7b1c2ddad9c3692b83238d5c1593db8bc3c737531f82e"
+    },
+    {
+      "path": "backend/app/api/search.py",
+      "lines": 63,
+      "sha256": "995dc0264ecdd46fe4375c55880ef9950659e5e3859f6c7bb80f743b050bb01e"
+    },
+    {
+      "path": "backend/app/api/service_settings.py",
+      "lines": 58,
+      "sha256": "5e508da70c13b5755a3c79d455da1eaa9af2ef340dc0ca09a63977b5a4e9c083"
+    },
+    {
+      "path": "backend/app/api/sources.py",
+      "lines": 161,
+      "sha256": "903632e24baceb98b3ce9ab2ca7ce355e6c176e403573bc1cb13f798434c3291"
+    },
+    {
+      "path": "backend/app/api/stage10.py",
+      "lines": 69,
+      "sha256": "6adf9d0aba9e2f6bb4fb70d47c005098ecbabe33ba7bdb02edd31e9b0e1ee6c1"
+    },
+    {
+      "path": "backend/app/api/stage3.py",
+      "lines": 40,
+      "sha256": "686acc4f2f64dc27a2f17c7d9cb71f6c22d68310eb755396822ed7564d466f28"
+    },
+    {
+      "path": "backend/app/api/timeline.py",
+      "lines": 34,
+      "sha256": "9f46a8ecfdf3e53337f6e5cfecdf5e8556582f1b9c33c5e71808b2fadf075957"
+    },
+    {
+      "path": "backend/app/api/trusted_ecosystem.py",
+      "lines": 63,
+      "sha256": "2d3a81f7f24765a4389422d02e2c21b8ae3f91bf227863d2c956c2d8a8aaf441"
+    },
+    {
+      "path": "backend/app/config.py",
+      "lines": 149,
+      "sha256": "e6b0bb48eef8bdfd714d74233b9c4286a403b4cfd22b1219fe12470b8479758c"
+    },
+    {
+      "path": "backend/app/core/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/core/database.py",
+      "lines": 108,
+      "sha256": "b5ba2b3610540b233f3a11d4d31b5ef515b79ff574ceadfa6bc0b9aa04926623"
+    },
+    {
+      "path": "backend/app/core/errors.py",
+      "lines": 66,
+      "sha256": "b4539217ddd79bdd890d3cc61042ec331543660976b0d5c6b744a13cac5a02b5"
+    },
+    {
+      "path": "backend/app/core/llm.py",
+      "lines": 94,
+      "sha256": "b4b1c9c0c2e4b522288a01fcb11c3125384951f6bbbb0bd1229372dfac03e642"
+    },
+    {
+      "path": "backend/app/core/model_compat.py",
+      "lines": 11,
+      "sha256": "11c8125c9689807f674467486f02275b76e2d59f890df1dcc4bf44a02e57d342"
+    },
+    {
+      "path": "backend/app/core/observability.py",
+      "lines": 146,
+      "sha256": "dcaee7ba331291f56a419639179f187cfb31a9d68e7c89718b900eca450f3027"
+    },
+    {
+      "path": "backend/app/core/outbound.py",
+      "lines": 71,
+      "sha256": "f65f752d4defabcda81d984fce9f68d95ebce11b580080b331065f88f0ec08df"
+    },
+    {
+      "path": "backend/app/core/private_clients.py",
+      "lines": 99,
+      "sha256": "a7cc27140e21a1cd6cb4a2754fdc82e81ff2b4a122d89db2c00491babdc8f775"
+    },
+    {
+      "path": "backend/app/core/redis.py",
+      "lines": 45,
+      "sha256": "698deb71e37f0453e08f24550abe681185e253c426cd949ace56a3967c9eb5dd"
+    },
+    {
+      "path": "backend/app/core/runtime_settings.py",
+      "lines": 25,
+      "sha256": "1c0fed8233b53667f2558fa9742c395a6aa7fe9025b170f1f0fb181bb28468bf"
+    },
+    {
+      "path": "backend/app/core/security.py",
+      "lines": 61,
+      "sha256": "8766c74b80ef121313aea3f62144ac8d5ea72eb2f43a9e2494e32c36661402f2"
+    },
+    {
+      "path": "backend/app/core/time.py",
+      "lines": 6,
+      "sha256": "898be0267f56f35e84065826e470f98b362869d8c158b3b81824aed0e2ed80ce"
+    },
+    {
+      "path": "backend/app/dependencies.py",
+      "lines": 90,
+      "sha256": "115bee98801c99589db4f71240367594efbf13c1987346d6f275dd9df02fa4b5"
+    },
+    {
+      "path": "backend/app/main.py",
+      "lines": 160,
+      "sha256": "d7bd3957fae6f527339d0f4163f1f8b6fec12ab24612a56bf79e7c437ea778b7"
+    },
+    {
+      "path": "backend/app/middleware/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/middleware/cors.py",
+      "lines": 23,
+      "sha256": "fd177e286082250c8f1dbda0d5f2b808671975ab0920138896172cf2657f220e"
+    },
+    {
+      "path": "backend/app/middleware/rate_limit.py",
+      "lines": 76,
+      "sha256": "d11bd3679848c26dd35bd882937f4c7d90804c8ab18fa87c52da7b70a117e7b9"
+    },
+    {
+      "path": "backend/app/models/__init__.py",
+      "lines": 62,
+      "sha256": "e06f089ec553cd37791975a30fae73839ea7feabf44a531d98c0bce3049603f8"
+    },
+    {
+      "path": "backend/app/models/action_loop.py",
+      "lines": 69,
+      "sha256": "a12af8b19ca114fb31be669a4e5b0b691f063342f30024ff4e16fb4a45f44c01"
+    },
+    {
+      "path": "backend/app/models/adaptive_intelligence.py",
+      "lines": 179,
+      "sha256": "f2028916d7ad3f38c5ea85784a5892cc6bccc26e08fd463ff9fe95cbbf4835be"
+    },
+    {
+      "path": "backend/app/models/analysis_history.py",
+      "lines": 54,
+      "sha256": "6774c553f1b1445ae362064a93ae52218ec145b9dc61af6545b1f924252d21aa"
+    },
+    {
+      "path": "backend/app/models/auth_session.py",
+      "lines": 14,
+      "sha256": "4e831c40ee1f955cf0fb101d7d3a87ed272aa70561e3420ff1d914dd54b4a360"
+    },
+    {
+      "path": "backend/app/models/autonomous_enterprise.py",
+      "lines": 37,
+      "sha256": "26baf4805c44b2e51d14eea4574fb49cc059b68fe13987336eeb48e2a7c5959b"
+    },
+    {
+      "path": "backend/app/models/avatar.py",
+      "lines": 11,
+      "sha256": "fe3d3c1e397cd01aa84e5b7b6946be0495f257f18d9ce343233dc79709c9a373"
+    },
+    {
+      "path": "backend/app/models/cognitive_commons.py",
+      "lines": 28,
+      "sha256": "b0602fcd79ed9afee8523ff6fb22606a1e9bdd93a48e84688486800618ae4b62"
+    },
+    {
+      "path": "backend/app/models/cognitive_infrastructure.py",
+      "lines": 30,
+      "sha256": "6b060e5930fa17b0b97224d6f01845df2f6c99da37eab9fae36c0b50141c13dc"
+    },
+    {
+      "path": "backend/app/models/commercialization.py",
+      "lines": 85,
+      "sha256": "9b75df3697ec30982b46d0da33666e0b27cd7bb7d78397eadc061ed7b8c855b2"
+    },
+    {
+      "path": "backend/app/models/dispatch.py",
+      "lines": 24,
+      "sha256": "35b5088121f100a813c0b20352ad28d20155ed371aa8932f2bc5fea2f0fc9788"
+    },
+    {
+      "path": "backend/app/models/enterprise.py",
+      "lines": 164,
+      "sha256": "e91f2e3a9b4ed3c862bbc957c7e9050dc3a3868015e69607983e6232ac77b9a1"
+    },
+    {
+      "path": "backend/app/models/global_coordination.py",
+      "lines": 34,
+      "sha256": "b7b5827834ff2ada09e03e9e4e88fbcaaf33f3ddcadd09ca1f805da139f78113"
+    },
+    {
+      "path": "backend/app/models/global_intelligence.py",
+      "lines": 29,
+      "sha256": "beb8e4ea50aa3360f9d91c8979095bd4931113bd83d4f8d96a7399c0828b37bb"
+    },
+    {
+      "path": "backend/app/models/intelligence.py",
+      "lines": 649,
+      "sha256": "e7de632ebf10bcd5289649aa78b1f7b6b4104dacc5ff3644d8c848cb25c4f485"
+    },
+    {
+      "path": "backend/app/models/multimodal.py",
+      "lines": 43,
+      "sha256": "648e0e9b45fdb9c52e849cf0b1436cfa5da00442a7b7f5f6cf9fc5fdc90d3cad"
+    },
+    {
+      "path": "backend/app/models/orchestration.py",
+      "lines": 217,
+      "sha256": "56399fda160879e0a82c89b70df93fc25b54c23f566640dd7bd3e6c7b2ce8daa"
+    },
+    {
+      "path": "backend/app/models/planetary_resilience.py",
+      "lines": 65,
+      "sha256": "90391454b1b516f1e265e4e59c4ab80fdd3b129588cbd65a304162933080f0e3"
+    },
+    {
+      "path": "backend/app/models/platform.py",
+      "lines": 176,
+      "sha256": "61fd2bbc6749dcb6e0a36e528af5e05b1c8efb9fd69da18b9dc48a46710b8970"
+    },
+    {
+      "path": "backend/app/models/provable_autonomy.py",
+      "lines": 177,
+      "sha256": "7809ce74912b53ab837cdb7f9000f26f45da7ea142c3ed3d9c590546e891eb4a"
+    },
+    {
+      "path": "backend/app/models/rate_limit.py",
+      "lines": 11,
+      "sha256": "37808fd0262b1af7150927aff4be097ae700bc69c14dc96f5803e0f272ab28dd"
+    },
+    {
+      "path": "backend/app/models/service_settings.py",
+      "lines": 13,
+      "sha256": "7b7c2f2ded983428be7a2268455ccd653697e9ccb79f9fca2bc8222219c659f1"
+    },
+    {
+      "path": "backend/app/models/trusted_ecosystem.py",
+      "lines": 38,
+      "sha256": "f37c30823f1483718f22819dee42424a5f60f4c8f45e6274e6cb0e487accf862"
+    },
+    {
+      "path": "backend/app/models/user.py",
+      "lines": 47,
+      "sha256": "993f90acf045c7f48a694c4aa2de56063ba10bc4aa2460fdd8e47a24521915d2"
+    },
+    {
+      "path": "backend/app/schemas/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/schemas/action_loop.py",
+      "lines": 20,
+      "sha256": "7079cc193dd0ebabc7ec31d2d361af93b1adc405ca39a7df7d04ddf382776f46"
+    },
+    {
+      "path": "backend/app/schemas/adaptive_intelligence.py",
+      "lines": 91,
+      "sha256": "05b83bdf3513cbf2676bd176c1c786bd088294d5a109f7a36cd40878520b3f40"
+    },
+    {
+      "path": "backend/app/schemas/agent.py",
+      "lines": 8,
+      "sha256": "ee96c0a3a59adb6ecc4fdf309d6581eaee5fa94d4ef11d9789614b20660ffea5"
+    },
+    {
+      "path": "backend/app/schemas/analyses.py",
+      "lines": 11,
+      "sha256": "1c70a33392a8281cbae034e34c93d3043e2fc32beac660b143491da024944d88"
+    },
+    {
+      "path": "backend/app/schemas/auth.py",
+      "lines": 106,
+      "sha256": "687044125975936fb1c9cbddee3d45421bfe1eb0110026c276bd6eb67bca5562"
+    },
+    {
+      "path": "backend/app/schemas/automation.py",
+      "lines": 58,
+      "sha256": "3e643181a0baadbe5abea1ba93a32a57856d351a63df9e65fead4308b47d9bf7"
+    },
+    {
+      "path": "backend/app/schemas/autonomous_enterprise.py",
+      "lines": 17,
+      "sha256": "289add2a1a91dbe288d535a66475dd256b3eb2809cd0450241e179edbb69c8d9"
+    },
+    {
+      "path": "backend/app/schemas/cognitive_commons.py",
+      "lines": 11,
+      "sha256": "9aae58b2d46f319e3d1e11266390f56815f33d9fe62803b4a49c5cff7fb94a63"
+    },
+    {
+      "path": "backend/app/schemas/cognitive_infrastructure.py",
+      "lines": 13,
+      "sha256": "9e318013386f87572ad4c9a8afbff20411abfcc6e59b6f57b632049b7e084cc4"
+    },
+    {
+      "path": "backend/app/schemas/commercialization.py",
+      "lines": 20,
+      "sha256": "2b1ab1d049c7f5c9e79dd86071c4443c4c62ca77d7b382926f7f330eae310e21"
+    },
+    {
+      "path": "backend/app/schemas/common.py",
+      "lines": 26,
+      "sha256": "cf9e600cfa5c5d78a84eaaee9d016b48f58544466f663817acbd25d7e47793c6"
+    },
+    {
+      "path": "backend/app/schemas/enterprise.py",
+      "lines": 117,
+      "sha256": "1d299db67e24004c6f9e1f19b19d9a9e1a8535e5c5248943a195e1d7be5103ef"
+    },
+    {
+      "path": "backend/app/schemas/events.py",
+      "lines": 45,
+      "sha256": "985f5e7686e89ceebe329aa0553b67da67f11083cf334235ce137307076055bd"
+    },
+    {
+      "path": "backend/app/schemas/global_coordination.py",
+      "lines": 115,
+      "sha256": "9027ef84089daf9390944df218bd3c337d9d551ee43ba4a36bc56f7dee8893dd"
+    },
+    {
+      "path": "backend/app/schemas/global_intelligence.py",
+      "lines": 8,
+      "sha256": "580b5a9e32b09daa55ec22a4572895ba2f0a331a9e882fddae7165dcdd541bcf"
+    },
+    {
+      "path": "backend/app/schemas/graph.py",
+      "lines": 8,
+      "sha256": "c409ad90e03fc95271d37aa9d55f89838473420cafb49d06c6fc7996dc3005dc"
+    },
+    {
+      "path": "backend/app/schemas/knowledge.py",
+      "lines": 16,
+      "sha256": "6d49800a9546477bb577c362492ee8559c586e25ec3d80e6f0d6c71bb84c8e3e"
+    },
+    {
+      "path": "backend/app/schemas/multimodal.py",
+      "lines": 19,
+      "sha256": "2dbeba34e62544d16419238913f0e5450413512f45da631ae00abe8c752fdbfa"
+    },
+    {
+      "path": "backend/app/schemas/operations.py",
+      "lines": 29,
+      "sha256": "916f455fb52cf8d8d9efb2675b532bd027f2d419ec1319c34cf95dff2ebfd576"
+    },
+    {
+      "path": "backend/app/schemas/orchestration.py",
+      "lines": 27,
+      "sha256": "b346e2cf05a129dde1ee47ee7af2764bffab38bed519ad99d68dec0e55adb787"
+    },
+    {
+      "path": "backend/app/schemas/personalization.py",
+      "lines": 15,
+      "sha256": "9bfb6eb5f259791383b13d406f348980490544c794760c0ec26ba6cf321da709"
+    },
+    {
+      "path": "backend/app/schemas/planetary_resilience.py",
+      "lines": 21,
+      "sha256": "c9b03197502fed5863818c8428b360471cb65ae6653dce4a9c8b0bd204bccc47"
+    },
+    {
+      "path": "backend/app/schemas/platform.py",
+      "lines": 79,
+      "sha256": "82efa2f5c5b53131fd077dac764835f1b7a2d1119e19578650d57c17df5e858a"
+    },
+    {
+      "path": "backend/app/schemas/provable_autonomy.py",
+      "lines": 49,
+      "sha256": "ab3e9fe60c7f31f29a314220844481992b492628d028439e92ecbaabeeccc236"
+    },
+    {
+      "path": "backend/app/schemas/reports.py",
+      "lines": 9,
+      "sha256": "82138e1896c512785d6d67e10960d4d3eb9db83d937fe076e21496dd050bbf4d"
+    },
+    {
+      "path": "backend/app/schemas/search.py",
+      "lines": 56,
+      "sha256": "3fa2e00aad2171f7bc1a7d2c68b4e776c715ea1702ff5ee113c6f5780641f368"
+    },
+    {
+      "path": "backend/app/schemas/service_settings.py",
+      "lines": 75,
+      "sha256": "29479d4bd324763b3dac14132558c3d6ee5337d2950e45e64676834160a7f4eb"
+    },
+    {
+      "path": "backend/app/schemas/sources.py",
+      "lines": 72,
+      "sha256": "febbc9d6895225d05ced9d92de49105171fedd02c99b7da27fc48a328a14f3a4"
+    },
+    {
+      "path": "backend/app/schemas/stage10.py",
+      "lines": 9,
+      "sha256": "05fab720573d05d9aab7ac33a85fbe07ae2afeee0c32358b9cd825a44af7a016"
+    },
+    {
+      "path": "backend/app/schemas/trusted_ecosystem.py",
+      "lines": 15,
+      "sha256": "c5951786f89720aa6ad4999e05d563f30969ba163902b49f2fbc47494d53503e"
+    },
+    {
+      "path": "backend/app/schemas/workflows.py",
+      "lines": 50,
+      "sha256": "2add4280cefaa1c111ec1fdc5936d5fb4f38dfdda8ec1543c8573c1c607d7c8d"
+    },
+    {
+      "path": "backend/app/services/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/services/action_loop.py",
+      "lines": 66,
+      "sha256": "c668f618564100e22d55e04f6034db33d9cd44798ea05293ea524749846509e1"
+    },
+    {
+      "path": "backend/app/services/action_worker.py",
+      "lines": 25,
+      "sha256": "5b91600760a37d050528b443c873c47cf0ca687cd87c2978fd326d51450d7996"
+    },
+    {
+      "path": "backend/app/services/adaptive_intelligence.py",
+      "lines": 85,
+      "sha256": "3e1d3fc1cc7c796909b60bed8aabb32ecc3b4eebd143606f5f01380295e2a3b3"
+    },
+    {
+      "path": "backend/app/services/agent_service.py",
+      "lines": 36,
+      "sha256": "f6e1f40cb4a51e4d6f01076e8c1d0f2df7158fce1e6593be4727450b45d33ac1"
+    },
+    {
+      "path": "backend/app/services/alerts.py",
+      "lines": 46,
+      "sha256": "dd1b1352adf1ed18a1623bc620c84ecaf7abc70c0f72401540b633df11b2a6e7"
+    },
+    {
+      "path": "backend/app/services/analysis_service.py",
+      "lines": 48,
+      "sha256": "7bd11fdadb4654df5c37909de5eaa7e20e5826e80ba55f4c969b8840f9a8ffde"
+    },
+    {
+      "path": "backend/app/services/auth_service.py",
+      "lines": 129,
+      "sha256": "489645fa0153d84d663d355da5523a3e9dece7ffb4fe880cca8307ca2fbb1a6e"
+    },
+    {
+      "path": "backend/app/services/automation.py",
+      "lines": 206,
+      "sha256": "258237d5ddac3c2ac1ea1b891afb55e1c944e66ff75effee299871331f205f9f"
+    },
+    {
+      "path": "backend/app/services/autonomous_enterprise.py",
+      "lines": 48,
+      "sha256": "0e166d095e7928b41f4d0c5798cd29c2add9d0f3282b2225fcd612171e9a4ca2"
+    },
+    {
+      "path": "backend/app/services/avatars.py",
+      "lines": 37,
+      "sha256": "163454be6b1eec7b362a7216cadc5d21cd1297dc787c38cee24d68dde2f3e90c"
+    },
+    {
+      "path": "backend/app/services/cleaner.py",
+      "lines": 75,
+      "sha256": "5133f4a811a7e8ab463a9c4fb29a451070264317703788ed48f3dd749a9b3f1e"
+    },
+    {
+      "path": "backend/app/services/cognitive_commons.py",
+      "lines": 37,
+      "sha256": "237325cf199bb2ac216f9f954dd790e97665016dc9a91ec821b5db1d00f14cd2"
+    },
+    {
+      "path": "backend/app/services/cognitive_infrastructure.py",
+      "lines": 55,
+      "sha256": "010c03180488157a7c7cb9f528862dd0ec47b7600bad838ba9a4284d4eac4bec"
+    },
+    {
+      "path": "backend/app/services/collaboration.py",
+      "lines": 78,
+      "sha256": "34b4d769f7d4c2691c50f2ba32031d3fa21bfa0414ddffe2637540446c437f71"
+    },
+    {
+      "path": "backend/app/services/collectors/__init__.py",
+      "lines": 11,
+      "sha256": "42bbe2d9c1c5e7ecbd97ff2fe8d8fe38dea5649f03ea86a7efb1e7f6ed6d1afd"
+    },
+    {
+      "path": "backend/app/services/collectors/arxiv.py",
+      "lines": 152,
+      "sha256": "884e46ddad5d97487f2342171e9c97175ed465ca9b527a5dd38306e779562785"
+    },
+    {
+      "path": "backend/app/services/collectors/base.py",
+      "lines": 31,
+      "sha256": "d4aaf63c2bc4c96df37e4659c6ece2be97861591c5b7e54b06560d844678f021"
+    },
+    {
+      "path": "backend/app/services/collectors/devto.py",
+      "lines": 44,
+      "sha256": "339277e18714c3af7603d4827c4460a22308754481a4603a8db5950225bd487c"
+    },
+    {
+      "path": "backend/app/services/collectors/github.py",
+      "lines": 51,
+      "sha256": "2fdceb030fedba5bc44c46e873c17b171b229e8a736ce6fd6162dfd0efb6d40a"
+    },
+    {
+      "path": "backend/app/services/collectors/hacker_news.py",
+      "lines": 82,
+      "sha256": "575e42711fb45a6a7a2df3532b3cb03d28ae0e94fd63105c4adcd7909971f51b"
+    },
+    {
+      "path": "backend/app/services/collectors/http.py",
+      "lines": 61,
+      "sha256": "8104628a3a507a75a05cd027e6a6d2de4cf81dcb46059924b70cf1040762607a"
+    },
+    {
+      "path": "backend/app/services/collectors/rss.py",
+      "lines": 95,
+      "sha256": "e1fd80b65fee5a42ce07b0912d7072de337049d8ffc8412ff89b033ba9014421"
+    },
+    {
+      "path": "backend/app/services/commercialization.py",
+      "lines": 89,
+      "sha256": "e6e47ae8d9fffc6d61e871235ac9747fdb62a8744e70e218448d8c1e04734840"
+    },
+    {
+      "path": "backend/app/services/content_feed.py",
+      "lines": 54,
+      "sha256": "5cc5f1312e4ecc2def5bf56f540ebc751c232418c8503d638ce8c538557f48b2"
+    },
+    {
+      "path": "backend/app/services/controlled_bi.py",
+      "lines": 18,
+      "sha256": "4c6eefba1bd946c16958b6459a7ac8ff8065809c8c2287273bd376b12833d01e"
+    },
+    {
+      "path": "backend/app/services/crawler/__init__.py",
+      "lines": 31,
+      "sha256": "d66f44facbffed612c8b33fa8847e57a080ee9ab259da9ba8e0a4c9061357d4e"
+    },
+    {
+      "path": "backend/app/services/crawler/base.py",
+      "lines": 50,
+      "sha256": "ac6a213a41fa6fe1dbf4d2a39c9032b4dcfb49025bce155793364bd047fa1f0f"
+    },
+    {
+      "path": "backend/app/services/crawler/bilibili.py",
+      "lines": 148,
+      "sha256": "77684b92168db057fd3128f3b6e5f12c4d2611f0ac9f3ba2ab55f9b713511465"
+    },
+    {
+      "path": "backend/app/services/crawler/browser_manager.py",
+      "lines": 177,
+      "sha256": "62ee387c377952699a5770164ff733aeae4afc40858435efe2c6921329f7afc8"
+    },
+    {
+      "path": "backend/app/services/crawler/plugins/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/app/services/crawler/plugins/README.md",
+      "lines": 42,
+      "sha256": "f4a1927f245dbf101adaa6951ce2144fffb49b47ecc807a021290c599e0bf49e"
+    },
+    {
+      "path": "backend/app/services/crawler/stealth_patcher.py",
+      "lines": 34,
+      "sha256": "3ea32169b773a1546b3797ee72fbf88182350c9521c9e46fbeb5337ea79de00e"
+    },
+    {
+      "path": "backend/app/services/crawler/tieba.py",
+      "lines": 167,
+      "sha256": "5441fd275707fb86267228d1e687921faa1433fc1446ae4cd9ac03eb13ac06d4"
+    },
+    {
+      "path": "backend/app/services/crawler/weibo.py",
+      "lines": 182,
+      "sha256": "176a7f3522f4ada8db7b1287f408a7687f5edc48eb1e27a509023e3c3c6e2172"
+    },
+    {
+      "path": "backend/app/services/dispatch.py",
+      "lines": 57,
+      "sha256": "2dfdc82044634ae2db25910223b853d9d09ff91abbfa27754eeb891fa4835549"
+    },
+    {
+      "path": "backend/app/services/enterprise.py",
+      "lines": 94,
+      "sha256": "73c0137fcbcc52630eca746a41f4a9eac95e766265090d124ad0258afdfa72fe"
+    },
+    {
+      "path": "backend/app/services/event_clustering.py",
+      "lines": 128,
+      "sha256": "065f74b1996cca9933d606c05decc7659fbee6564712a682ed04260397fa24b0"
+    },
+    {
+      "path": "backend/app/services/event_service.py",
+      "lines": 84,
+      "sha256": "ab0067d0c91599b28f26e9f06fa841de10a0218b3d3970853c1db0eddf1d3ab5"
+    },
+    {
+      "path": "backend/app/services/global_coordination.py",
+      "lines": 114,
+      "sha256": "26b0af50b158981dac26af92138925d450814476ed8d5f27e596888676d681b8"
+    },
+    {
+      "path": "backend/app/services/global_intelligence.py",
+      "lines": 58,
+      "sha256": "6596428d7d2a06f1cffd4c2e6edac974e8cde2ef82ed87535e5013754106e91a"
+    },
+    {
+      "path": "backend/app/services/knowledge.py",
+      "lines": 198,
+      "sha256": "7766939f9c8dcc9395dca506ff62d1e0ec645771d655711ca8b6d2634d5609bd"
+    },
+    {
+      "path": "backend/app/services/knowledge_graph.py",
+      "lines": 70,
+      "sha256": "7faf911af4c6b209683eb431eb6b5d8a9db41079c63f57c742bcffceb8ed9bd8"
+    },
+    {
+      "path": "backend/app/services/multimodal.py",
+      "lines": 207,
+      "sha256": "0a56eb203f1dc863f86b4c419ab5c5c884e3af095da1a7264d3d2920fed4ee4a"
+    },
+    {
+      "path": "backend/app/services/orchestration.py",
+      "lines": 216,
+      "sha256": "3422a44e413c03a73d5a324780f683817e2e34ae6cce654f1a41e9d4a5dc15b6"
+    },
+    {
+      "path": "backend/app/services/personalization.py",
+      "lines": 46,
+      "sha256": "c484856ccf4a8b47252000763ae763b5f7f138cd7f173de863b8552d918d3911"
+    },
+    {
+      "path": "backend/app/services/planetary_resilience.py",
+      "lines": 63,
+      "sha256": "c6b1a083d735b7ff425b3a08bc3a72d7d7b9d8247d23aa8edfd08ef8602f80c0"
+    },
+    {
+      "path": "backend/app/services/platform.py",
+      "lines": 151,
+      "sha256": "67b19fb42f70897852c6d60e73bf0f0aae67b7e0298b2574808c163eea93ad34"
+    },
+    {
+      "path": "backend/app/services/provable_autonomy.py",
+      "lines": 113,
+      "sha256": "0021249de52e33ca13e00e963173f1c758c94354359007cfd5cbfab312349cbb"
+    },
+    {
+      "path": "backend/app/services/report_export.py",
+      "lines": 156,
+      "sha256": "aeff232fc3b78efda9999a8303aa492badeb60dc585a4002ae8fee942611bec0"
+    },
+    {
+      "path": "backend/app/services/retention.py",
+      "lines": 17,
+      "sha256": "1113933fbe1ceda826591f0bb2e7c4a44287f3806dfb33c5ac0ae5356717c84a"
+    },
+    {
+      "path": "backend/app/services/search_service.py",
+      "lines": 103,
+      "sha256": "40859f73280a94d9211ff820a5371f9efd0f8f11841e5b051e1a384157278ea0"
+    },
+    {
+      "path": "backend/app/services/service_settings.py",
+      "lines": 102,
+      "sha256": "d61f0c600237d11dd6b5b5f98bdcb211fb9b2a8e6312f1ba46db469a6460f738"
+    },
+    {
+      "path": "backend/app/services/source_sync.py",
+      "lines": 219,
+      "sha256": "1516953e78c571a88470c53b7face6b6e47de19f20bbc213f388adec1b720bfc"
+    },
+    {
+      "path": "backend/app/services/stage3.py",
+      "lines": 125,
+      "sha256": "b86f0e492a174c2d06265c26333e87517c00125b817a570ed58edd5746019ef7"
+    },
+    {
+      "path": "backend/app/services/trusted_ecosystem.py",
+      "lines": 54,
+      "sha256": "e548ab95fda2874dfdf8386bf0e39b20f964ab16b2238a47d1402c9322e8fdb0"
+    },
+    {
+      "path": "backend/app/services/workflows.py",
+      "lines": 200,
+      "sha256": "58e8136cf5b11e23b79d20b67ee9ee8a06b2ffdcbdb9e4a09ed2f46d70ba6d76"
+    },
+    {
+      "path": "backend/app/worker.py",
+      "lines": 43,
+      "sha256": "5288569ad2c1508912dd593cbe06004d48bea549885759048963800263e5b938"
+    },
+    {
+      "path": "backend/Dockerfile",
+      "lines": 68,
+      "sha256": "c96cf410b2e174abbffc48e3d644844ee4aff4ee417122c00a61c09f17dc3f9e"
+    },
+    {
+      "path": "backend/Dockerfile.render",
+      "lines": 38,
+      "sha256": "17cce1e1c2de2e45e1770580bc26aeb6f804f0268aa19ff6436b2ebdbabf3023"
+    },
+    {
+      "path": "backend/requirements-base.txt",
+      "lines": 28,
+      "sha256": "02a4107eecd3a7d5a07d5ce3958c35a6f8ad5adef416731d62666e234100ca67"
+    },
+    {
+      "path": "backend/requirements.render.txt",
+      "lines": 2,
+      "sha256": "a5b4a0d58925363da51cebc14ac6447d0ee168559c3d9459ceab4b0b39790290"
+    },
+    {
+      "path": "backend/requirements.txt",
+      "lines": 4,
+      "sha256": "2918653512deaad677ed411cbc63ec849b96aeec157b5d00daa57ada8df4dd4a"
+    },
+    {
+      "path": "backend/scripts/__init__.py",
+      "lines": 1,
+      "sha256": "db3569072095d5005e673a388134e56e05cc35796bee16e02349adb7f18b8bff"
+    },
+    {
+      "path": "backend/scripts/acceptance_server.py",
+      "lines": 42,
+      "sha256": "8c5d31c58a96cf8119cc9ed8d41e22e05338adbce19b314bff577e1b84dedccf"
+    },
+    {
+      "path": "backend/scripts/admin.py",
+      "lines": 22,
+      "sha256": "626300baf7b56d2dba230ff434f3363f1e25344dd7da3c2d036aa57fcfe4716e"
+    },
+    {
+      "path": "backend/scripts/api_contract_check.py",
+      "lines": 64,
+      "sha256": "ee66a15858fcb240ca951583ab430db2c8108f83af2069ae6571045d45de09e8"
+    },
+    {
+      "path": "backend/scripts/backup_restore_drill.py",
+      "lines": 34,
+      "sha256": "c6ce3bdf769aa17adc26bcea90feb4fd4803df75ef1007f33328a09a6029cbcf"
+    },
+    {
+      "path": "backend/scripts/deployment_preflight.py",
+      "lines": 45,
+      "sha256": "4a32e41041f7807f866494484bb02358249869dcca64599ec9d9670f89184b48"
+    },
+    {
+      "path": "backend/scripts/failover_verify.py",
+      "lines": 24,
+      "sha256": "c77f60a5be532bf76fbb90016d2054edb16b4802598357d23ba5aed208c02a68"
+    },
+    {
+      "path": "backend/scripts/full_runtime_smoke.py",
+      "lines": 113,
+      "sha256": "75711dd5b1c142d95366e6a9b0d0dbdd77fb0d339d651188246908b062bcc1b9"
+    },
+    {
+      "path": "backend/scripts/identity_uniqueness_smoke.py",
+      "lines": 145,
+      "sha256": "bf7b5d93253b971d6911e474281f175dfaba2348805324be6b0a43b7da14c1e4"
+    },
+    {
+      "path": "backend/scripts/init_local.py",
+      "lines": 34,
+      "sha256": "2e146f32966209864dcfdcfacf6e8c6d5ccdd64fe954cd8d24beaddd6f72d250"
+    },
+    {
+      "path": "backend/scripts/load_test.py",
+      "lines": 45,
+      "sha256": "3249258641aa3216c7d9e53710660ae666bbbee0d1821204e2ca4e2f7fda1f1a"
+    },
+    {
+      "path": "backend/scripts/postgres_recovery_smoke.py",
+      "lines": 245,
+      "sha256": "b9e01cf5230db80cb3df98f57459c3e337da6c1fc865bda9318e2674f95ca9b2"
+    },
+    {
+      "path": "backend/scripts/product_smoke.py",
+      "lines": 261,
+      "sha256": "de1d02831daaa36ad4b6903d04e6300ac3af10b5927bc9d82590d131fb342c8f"
+    },
+    {
+      "path": "backend/scripts/production_check.py",
+      "lines": 32,
+      "sha256": "696d4941cf2b5ae105dd486a4455561f3d4c7207bba04635f9d909576dd1ff50"
+    },
+    {
+      "path": "backend/scripts/public_data_smoke.py",
+      "lines": 130,
+      "sha256": "db695eab682440203696609ee2d7338ae50352852d0f201dcc4cc0719a6f1b50"
+    },
+    {
+      "path": "backend/scripts/public_server.py",
+      "lines": 97,
+      "sha256": "6d79db2ab33e27a86c8f546ac405afe004abdd6c4a5010dad5c00c2e8f3f947c"
+    },
+    {
+      "path": "backend/scripts/recovery_worker.py",
+      "lines": 53,
+      "sha256": "e9a68b1a8e3261053607e350524608212928a2fe68a0a2d47070812a2e3d6f64"
+    },
+    {
+      "path": "backend/scripts/run_retention.py",
+      "lines": 22,
+      "sha256": "62a075d434f8b34ed6b0290641af355b0373a4da7430e5c98c60e156253664e4"
+    },
+    {
+      "path": "backend/scripts/stage20_release_gate.py",
+      "lines": 20,
+      "sha256": "2741fa844e659c234cb053563afc21115f2ebf8738418a7589955327f168e359"
+    },
+    {
+      "path": "backend/scripts/stage21_release_gate.py",
+      "lines": 19,
+      "sha256": "831bab11b2e167e4e5a05f7df6d1f149b7546ba4e07a7ef08f4e2fbe12524750"
+    },
+    {
+      "path": "backend/scripts/stage22_release_gate.py",
+      "lines": 11,
+      "sha256": "2a4ef2a448e838896d58e6c1fdc194a3bfc270003d599514d822c0b64e2504d0"
+    },
+    {
+      "path": "backend/scripts/stage23_release_gate.py",
+      "lines": 23,
+      "sha256": "418ec3c4eb0bd7f5b96b05a954cbe4b6c90afd88b3c763852831a595f6b2f1c1"
+    },
+    {
+      "path": "backend/scripts/stage24_release_gate.py",
+      "lines": 19,
+      "sha256": "b461b19d1bce8305b74b705d58617b1b0e5864c7c281d58e4a673bc2804c4716"
+    },
+    {
+      "path": "backend/scripts/stage25_release_gate.py",
+      "lines": 14,
+      "sha256": "51f0baac86535b5f32fa7535c63ee079acc0423a2ebd5c150c68fa55d43dcdf0"
+    },
+    {
+      "path": "backend/scripts/stage26_release_gate.py",
+      "lines": 9,
+      "sha256": "00c3208f959ced847e67ca60002642caa83eb6019915a323bebfe09d1e52e626"
+    },
+    {
+      "path": "backend/scripts/stage27_release_gate.py",
+      "lines": 9,
+      "sha256": "f573f542c74f7f3da5524011ca29605a55e5776687b1b175de5e69c256a057f5"
+    },
+    {
+      "path": "backend/scripts/stage28_release_gate.py",
+      "lines": 8,
+      "sha256": "39b584e5fd6eaaf000c93763605339834f89e732d9d5283b6cc957376f2dae53"
+    },
+    {
+      "path": "backend/scripts/stage29_release_gate.py",
+      "lines": 35,
+      "sha256": "be21120fa0164069e90517810e858ddfd387fe71c0e9c06b98bf1a5bd14cd5ae"
+    },
+    {
+      "path": "backend/scripts/test_suites.py",
+      "lines": 146,
+      "sha256": "e1e19d13e01bb474ec474e318a0622f412e23f8f448507323dbf898e4eb4dc34"
+    },
+    {
+      "path": "backend/scripts/ui_agent_smoke.py",
+      "lines": 131,
+      "sha256": "835fe9bec47ec59c4ef737368912954860c90deb415a8129a4e0f3a1a875f26a"
+    },
+    {
+      "path": "backend/scripts/ui_settings_smoke.py",
+      "lines": 130,
+      "sha256": "ed0159159b4fb459f05745672b3d839ea476fdac01470787f17ccf398ce337a8"
+    },
+    {
+      "path": "backend/scripts/ui_shell_smoke.py",
+      "lines": 183,
+      "sha256": "297af7bed46a36e0bf217490d308c089ddc18f7a69bdb59b436197d24d5f563e"
+    },
+    {
+      "path": "backend/scripts/verify_test_reports.py",
+      "lines": 54,
+      "sha256": "41c7095e21d020dc93cee26f26e3f14271c6b6bbcf432e93cbe3804f50aa6e2d"
+    },
+    {
+      "path": "backend/test_playwright.py",
+      "lines": 88,
+      "sha256": "34cf9f4721039bb0d484db7f6a562382b37864840f3715c2d3f9004197669581"
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/tests/test_adaptive_intelligence.py",
+      "lines": 60,
+      "sha256": "bda289479bbcc7c76a3aef2ee45f1f9f17ee576f4719f434cebeb9dae9c5978d"
+    },
+    {
+      "path": "backend/tests/test_agent.py",
+      "lines": 22,
+      "sha256": "bfb50dea9ec9cf8dfad579aff6a866781d6f8076567b8dfea105f5ed691efd82"
+    },
+    {
+      "path": "backend/tests/test_agent_transactions.py",
+      "lines": 62,
+      "sha256": "bc04f820c96bf7ffcb0ec224afcaf33cba2b883237bfa57178c11274a7b684d4"
+    },
+    {
+      "path": "backend/tests/test_analyses.py",
+      "lines": 29,
+      "sha256": "67b1fd337af674258976028314d0c53b867d6f5edc02d989413ab48caa5fae22"
+    },
+    {
+      "path": "backend/tests/test_api_contract_gate.py",
+      "lines": 19,
+      "sha256": "e5745fa4f5b50d552a206483300a19528deed738212df411f1f2846fe34a6f20"
+    },
+    {
+      "path": "backend/tests/test_arxiv_resilience.py",
+      "lines": 148,
+      "sha256": "3dbc92db8df3c20bc6eb0c1333082ac24d04863755e56006d68414c6b21fb2ef"
+    },
+    {
+      "path": "backend/tests/test_audit_regressions.py",
+      "lines": 134,
+      "sha256": "ed3d672438c154a1ce6ef03cfee5112a2a39c4198f85a1ec91eda3a2409ac72b"
+    },
+    {
+      "path": "backend/tests/test_auth.py",
+      "lines": 42,
+      "sha256": "a48f434ea6bfed7361b3e5f7befa7c496d9d746d05e3579734ebe57d26c8f272"
+    },
+    {
+      "path": "backend/tests/test_auth_issuance_transactions.py",
+      "lines": 116,
+      "sha256": "46ddc1e7c71274033d0fbbd1267d588b18140140c88b4e80d6c7f0387b596ba6"
+    },
+    {
+      "path": "backend/tests/test_auth_transactions.py",
+      "lines": 65,
+      "sha256": "4541fdf52558562e523141ee0d5497f3755351997b3a89016681ec39f32adc36"
+    },
+    {
+      "path": "backend/tests/test_automation.py",
+      "lines": 65,
+      "sha256": "2b0c8d9e02c0f2e4a135472d8055175d5aa03394be82f3ddd7679b69d3e19f09"
+    },
+    {
+      "path": "backend/tests/test_autonomous_enterprise.py",
+      "lines": 31,
+      "sha256": "a3b71e639dadcaef155ac78f73af8645b17eb48a0711ad0b40b2ff2dcd2ae5aa"
+    },
+    {
+      "path": "backend/tests/test_avatars.py",
+      "lines": 155,
+      "sha256": "42c5865481ac0af6619ffe8036b454d55ebeadd96008b34d27322c0a4e1d4ebc"
+    },
+    {
+      "path": "backend/tests/test_catalog_initialization.py",
+      "lines": 69,
+      "sha256": "124ac4586e37c96d8a942b1414dcd778b76a648e85d646bbedc463391a9c8fc0"
+    },
+    {
+      "path": "backend/tests/test_cognitive_commons.py",
+      "lines": 25,
+      "sha256": "ecd371bbf5d6a7f099730504fe89cad30ec8d2a42c4aab95a5306be6d324dee1"
+    },
+    {
+      "path": "backend/tests/test_cognitive_infrastructure.py",
+      "lines": 28,
+      "sha256": "c3b8e39c40405105018dfa3be6c271ffe562e0f8cb97b21a83197eba1f347463"
+    },
+    {
+      "path": "backend/tests/test_collaboration.py",
+      "lines": 32,
+      "sha256": "c7a7ec2c04ec7f6e0eebd9ec7d747728702169fb223d16cfcd6ef12e76e0842c"
+    },
+    {
+      "path": "backend/tests/test_collaboration_transactions.py",
+      "lines": 99,
+      "sha256": "07c888d60f99fe3b4587ab5e53d61b834fb64385383c534f1540a369d56c5c32"
+    },
+    {
+      "path": "backend/tests/test_commercialization.py",
+      "lines": 40,
+      "sha256": "f088a229e09eec243c279aa6adc7bd79df4a2b876be9328b8a536837df12ba97"
+    },
+    {
+      "path": "backend/tests/test_common_contracts.py",
+      "lines": 54,
+      "sha256": "782814080f13c0ac6bf80694e089b0eae28d174916f285565b9bf9027e805460"
+    },
+    {
+      "path": "backend/tests/test_delivery_security.py",
+      "lines": 156,
+      "sha256": "53ebd4b7793bf410683f24dfcada4dae2ccd4b9357e191eb41e0ece31164e1ab"
+    },
+    {
+      "path": "backend/tests/test_enterprise.py",
+      "lines": 86,
+      "sha256": "5ff0ef9040da5840cbc1c067beb2d92ee0780b8ec2866ba2d0d5caa1de08ad15"
+    },
+    {
+      "path": "backend/tests/test_environment_notice.py",
+      "lines": 19,
+      "sha256": "5ee687f7e2258d51dc83a6ee4361febb25942dafc823482472e15dc24c036e4e"
+    },
+    {
+      "path": "backend/tests/test_events.py",
+      "lines": 86,
+      "sha256": "6295a2894b4be4470ec6a73e01bae7de7304256f141e39f2da639db14a23b61f"
+    },
+    {
+      "path": "backend/tests/test_execution_regressions.py",
+      "lines": 288,
+      "sha256": "b7b94f7c654b3e4e39a705d569dd49ab94897f3ba3741d50d178c295de5ca695"
+    },
+    {
+      "path": "backend/tests/test_global_coordination.py",
+      "lines": 74,
+      "sha256": "3f263dce994bc778b658ab22998a778e0f57bea928c286b86266e15288be69e7"
+    },
+    {
+      "path": "backend/tests/test_global_intelligence.py",
+      "lines": 31,
+      "sha256": "86dc9a666e6a2cb063e5b1c43705094301b8e27fb9f1506efdbf8f6aca3ea59e"
+    },
+    {
+      "path": "backend/tests/test_identity_migration.py",
+      "lines": 62,
+      "sha256": "3263cb1177761729a626a4e57b9129439df96d3ec2be0219d0dfa905a3808919"
+    },
+    {
+      "path": "backend/tests/test_knowledge.py",
+      "lines": 46,
+      "sha256": "b3e838d4477ea82b9652380593c2a7069b3d36832307bf69344938c6ec003dcc"
+    },
+    {
+      "path": "backend/tests/test_knowledge_graph.py",
+      "lines": 30,
+      "sha256": "8f0a454b4fe00fdb4d02a28366f0d828a919d440737a952c8f3698c665173977"
+    },
+    {
+      "path": "backend/tests/test_knowledge_lifecycle.py",
+      "lines": 100,
+      "sha256": "637eec149c4bd35d83fcdd385165a2659f41af902ed06baadb0a9f72ffe59688"
+    },
+    {
+      "path": "backend/tests/test_local_storage.py",
+      "lines": 34,
+      "sha256": "e36a850668280e74c8719e5e9e47241cc0b3ca235cd4ced255989a176d21b949"
+    },
+    {
+      "path": "backend/tests/test_login_identity.py",
+      "lines": 52,
+      "sha256": "acefc51e3f98b064d36aff6d4c51c564020d6f995fe2d657b161d8560fc6c632"
+    },
+    {
+      "path": "backend/tests/test_media_failures.py",
+      "lines": 168,
+      "sha256": "c74dd5a376663f1936518cc1fefcb7f7888005782523154785b0dde025155bd7"
+    },
+    {
+      "path": "backend/tests/test_multimodal.py",
+      "lines": 49,
+      "sha256": "094a765d48abf8fb50cf8db1b5f942123fe139bec54455a033b59005b94a1b36"
+    },
+    {
+      "path": "backend/tests/test_open_platform.py",
+      "lines": 77,
+      "sha256": "0f1c54681b8cb464748430345154de610e1562dd65e6644fee036ec5889ffdf2"
+    },
+    {
+      "path": "backend/tests/test_operations_center.py",
+      "lines": 26,
+      "sha256": "0a9d204b8ec5af3eec476bf3a9c369c1a617d911ff13f12923a21acb2b5d03ca"
+    },
+    {
+      "path": "backend/tests/test_orchestration.py",
+      "lines": 51,
+      "sha256": "1f44bbc893016ac942ce3b515ad83788e9f4d5485644eaabe02daa119abfcc17"
+    },
+    {
+      "path": "backend/tests/test_planetary_resilience.py",
+      "lines": 42,
+      "sha256": "6525882686531228a5423a97c6a415b241509e22072b475472d692670aaac138"
+    },
+    {
+      "path": "backend/tests/test_production_readiness.py",
+      "lines": 118,
+      "sha256": "cd0918b45aeb304f2772ae9efabd46f6f827df26b505664c484d4b7f82cc60c4"
+    },
+    {
+      "path": "backend/tests/test_profile_transactions.py",
+      "lines": 65,
+      "sha256": "372c72215805136e1d3aa0c83765b46156cfea94d455ac2a632c69aff2093eca"
+    },
+    {
+      "path": "backend/tests/test_profile_validation.py",
+      "lines": 119,
+      "sha256": "71e0345fab63a6d985585e0bb7f6a4a6a59afbfe3886e2933accfcefb8b08eb5"
+    },
+    {
+      "path": "backend/tests/test_provable_autonomy.py",
+      "lines": 52,
+      "sha256": "1cc4430b61f2ce5c5a3714530aca08b4d45acbc546df3dab1520617f5d9050c0"
+    },
+    {
+      "path": "backend/tests/test_public_data.py",
+      "lines": 126,
+      "sha256": "ac3ab6594f3e6aa52e00258cb1cd88e54474d6ae66538f7826fd20abe6af280c"
+    },
+    {
+      "path": "backend/tests/test_qwen_models.py",
+      "lines": 82,
+      "sha256": "fa2de86fdd62f7706277808a12d492597a4ff4c141f0551979982c7d8f020bbc"
+    },
+    {
+      "path": "backend/tests/test_recovery_harness.py",
+      "lines": 31,
+      "sha256": "08eed234d42940b6b5b06a5fa99ef4c1831e3a8430b018d7b82d395fcacceeb7"
+    },
+    {
+      "path": "backend/tests/test_redis_startup.py",
+      "lines": 26,
+      "sha256": "f165bbbdb5c029e8185daf1051e9a79e24e9cc53120e35a8e8df9dcf639121f8"
+    },
+    {
+      "path": "backend/tests/test_reports.py",
+      "lines": 74,
+      "sha256": "fc1b9d5a131d042e3d13e692624de7b38d8a97063ca2ac4b84c6c15efe24b518"
+    },
+    {
+      "path": "backend/tests/test_search.py",
+      "lines": 77,
+      "sha256": "101975896aed96ff2c4ab4ed61d1882d124de4a67651e0afca5da0d7be625163"
+    },
+    {
+      "path": "backend/tests/test_service_settings.py",
+      "lines": 323,
+      "sha256": "0a7f3750dfd5a68dbf35914cf7a482ab16d12ed0946756fcd03b60687fb64204"
+    },
+    {
+      "path": "backend/tests/test_sources.py",
+      "lines": 209,
+      "sha256": "f1e6891e0450d1f67bae5779de28974fc5cd71ded4a8f9670b33b3b4f26b0eff"
+    },
+    {
+      "path": "backend/tests/test_stage10.py",
+      "lines": 30,
+      "sha256": "1c1a5e567aaab0bc199811f1a10c005f04aed334369f2257fde2fdbb4478634d"
+    },
+    {
+      "path": "backend/tests/test_stage18_19_e2e.py",
+      "lines": 27,
+      "sha256": "87c3c1f7c0257a7b2524cf67aa3c3b54a7709fc2640bd806c87e578dabc3c0dc"
+    },
+    {
+      "path": "backend/tests/test_stage3.py",
+      "lines": 60,
+      "sha256": "bbefea722f4c81660b73d3b053f7ae4c75c33bc27622c3074c8746d1c8293b2f"
+    },
+    {
+      "path": "backend/tests/test_test_suites.py",
+      "lines": 88,
+      "sha256": "b6d3a89a07a9065f47c25c4cf04efe06467d1c88f8fab7fe1d1ed1fca8ce15e2"
+    },
+    {
+      "path": "backend/tests/test_trusted_ecosystem.py",
+      "lines": 30,
+      "sha256": "adbdb55f1c7f65e4a13decb7e39891454fc530cc3d04f106a1ae8e9e211d61f7"
+    },
+    {
+      "path": "backend/tests/test_workflows.py",
+      "lines": 61,
+      "sha256": "8aca29bfeec8f18d558a06d8174f2a33f9d680e2cc15fdd5900e2532d96d1a7a"
+    },
+    {
+      "path": "backend/tests/test_workspace_activity_durability.py",
+      "lines": 61,
+      "sha256": "2944ddb2f5168174656e8c3417017cdcd320a083c99d01c9fd8591443d72cebf"
+    },
+    {
+      "path": "backend/tests/test_workspace_personalization.py",
+      "lines": 155,
+      "sha256": "d1c52547e22dde20cf337c11185cae3cecd48dfe00d3c8e56b48fd6d8cdf3d71"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "lines": 33,
+      "sha256": "6870b760bbfe15373bd2dbd8d7e55a60ef5293065d211af0438b625d745d3d47"
+    },
+    {
+      "path": "deploy/k8s/monitoring.yaml",
+      "lines": 41,
+      "sha256": "b71eedee5c11961ebad961a477cb910ca0599761c033b63edf0097f216aeb0d1"
+    },
+    {
+      "path": "deploy/k8s/production.yaml",
+      "lines": 278,
+      "sha256": "1d609e78ad32e577322db623b65e916c2d4162e573d651b6aa98abf2f5e5bbdd"
+    },
+    {
+      "path": "deploy/k8s/secrets.example.yaml",
+      "lines": 26,
+      "sha256": "5de5279b266da7878719f62a54c13a616124b2b8fc386ae989c9ee04a2766596"
+    },
+    {
+      "path": "deploy/scripts/render_manifests.py",
+      "lines": 32,
+      "sha256": "6309989dd84ec974c258325772f8d2742a2d1aad3b17794a87f283b163daa35a"
+    },
+    {
+      "path": "deploy/staging.compose.yml",
+      "lines": 128,
+      "sha256": "fce46260c1a8561f178ce2bcf3f2414384424cd4978171c5f4b9a5ccb82054f9"
+    },
+    {
+      "path": "docker-compose.audit-full.yml",
+      "lines": 5,
+      "sha256": "e9b64671051ef09dcae10c9d61cc6162ab8b5e927c09d4a31fdc598dca77b064"
+    },
+    {
+      "path": "docker-compose.audit.yml",
+      "lines": 50,
+      "sha256": "04c7bb76d3edf926e0dcc2b485e9d09d78c35b0c05977e57bc70fc7b2ad1001a"
+    },
+    {
+      "path": "docker-compose.local.yml",
+      "lines": 10,
+      "sha256": "c13cd86aeb14f4062ca0418210e426ce18256196a07bfda8fed5855105d352a4"
+    },
+    {
+      "path": "docker-compose.yml",
+      "lines": 64,
+      "sha256": "5ab15939cfa58ab0d0b573c9b91d4eec940fe5732a7b69715fe063773d8f39b2"
+    },
+    {
+      "path": "docs/01-产品PRD.md",
+      "lines": 308,
+      "sha256": "5da10ed2b46c4c1a6f14fcf5d4651a1514f5ee5691d67b40fe9abae4bca07484"
+    },
+    {
+      "path": "docs/02-UI设计规范.md",
+      "lines": 258,
+      "sha256": "d1eb4c3c4471cf534b761421cda16052c5292a4aace67301447e99e5c9c677a5"
+    },
+    {
+      "path": "docs/03-数据库设计.md",
+      "lines": 309,
+      "sha256": "20de7a877b12490695f76950b116df4987a7643f315d0ece5c356e42b0d7b524"
+    },
+    {
+      "path": "docs/04-接口文档.md",
+      "lines": 435,
+      "sha256": "9527d387a071ad4dda70264410e3abd167501dba64e5358390ae6600e2f289c9"
+    },
+    {
+      "path": "docs/05-开发计划.md",
+      "lines": 233,
+      "sha256": "e50648a656f51e35fe73cc49fee9e236b83cabffc0e16f1948b72f8ff86a8b90"
+    },
+    {
+      "path": "docs/06-production-runbook.md",
+      "lines": 44,
+      "sha256": "7b625fa698b393b5c77706c2936acc777d15abebaee346a9bbf87205756c32d8"
+    },
+    {
+      "path": "docs/07-security-privacy.md",
+      "lines": 39,
+      "sha256": "0eb37368e8c6c9c7e136cd9b0f644aad0d638d9d81ccdb7ed4a5fd6a6a6ac4f1"
+    },
+    {
+      "path": "docs/08-release-checklist.md",
+      "lines": 44,
+      "sha256": "39b9bba4a172bc79416871ca23b0a4b2ca73a49dcb5e37f28be76ab730ade3c0"
+    },
+    {
+      "path": "docs/09-performance-baseline.md",
+      "lines": 14,
+      "sha256": "7467292cb088e7a33044e130c0d649f961a64e86677eb5f3f164d9a6dea1ef64"
+    },
+    {
+      "path": "docs/10-production-deployment.md",
+      "lines": 44,
+      "sha256": "897be4ec72396416ccf9e112565572ec556b474f2b7991d64f981ee015193015"
+    },
+    {
+      "path": "docs/11-slo-oncall.md",
+      "lines": 25,
+      "sha256": "0c77204e1d0274295495921cf21f870c1516dba86dd07a5dc113684822de1619"
+    },
+    {
+      "path": "docs/12-release-notes-template.md",
+      "lines": 37,
+      "sha256": "ff3d7576261a194f8b3887414e35a4c73c88c2e9ae5668ad2fca1d2df3a9ef9c"
+    },
+    {
+      "path": "docs/13-stage12-drill-results.md",
+      "lines": 26,
+      "sha256": "188bf117f8e536c9cae3d6fa82f63ad944b1b177f03b6c2b87193a9df82d2b11"
+    },
+    {
+      "path": "docs/14-enterprise-governance.md",
+      "lines": 42,
+      "sha256": "7b0ce7445abad59016d71c8b4ff271304bb1a11d38cc12c24de0fcb5674436e0"
+    },
+    {
+      "path": "docs/15-open-platform.md",
+      "lines": 30,
+      "sha256": "f8d8050c65de1ee4c136cd615ef7ebd89ae7f9e3aefdfb0a7dea2afc1bc95659"
+    },
+    {
+      "path": "docs/16-agent-orchestration.md",
+      "lines": 29,
+      "sha256": "b61a34c7905b327bf1492e56e0ddb1ce3a1e249b2b019444372f4f7fd8e4e250"
+    },
+    {
+      "path": "docs/17-multimodal-collaboration.md",
+      "lines": 49,
+      "sha256": "56ad430429ae0683470ec71e929a89fb9b4851ee51d5119441929336489d1a6f"
+    },
+    {
+      "path": "docs/18-global-intelligence-decision.md",
+      "lines": 30,
+      "sha256": "b4a6a2c8bb36774ef0514cc7469d9eaee89a5cffc030a0c517089030ea970b18"
+    },
+    {
+      "path": "docs/19-action-loop-impact.md",
+      "lines": 23,
+      "sha256": "cac039a760ed0f514a8fcb52f1cca1b4160487012e81de0773d3102b830ca78d"
+    },
+    {
+      "path": "docs/20-decision-productization-commercialization.md",
+      "lines": 26,
+      "sha256": "65f8595cd6e50eacdd772e6e36dd9f98eb43060b550bbbf32658430d263dd44e"
+    },
+    {
+      "path": "docs/21-autonomous-enterprise-intelligence.md",
+      "lines": 35,
+      "sha256": "76be43375d2f55221912193a801b24af6ba803c2c807c26602987143bdca8415"
+    },
+    {
+      "path": "docs/22-intelligence-network-and-trust-marketplace.md",
+      "lines": 39,
+      "sha256": "ab78fe8ee79dee29335abf52f9508ecc8a2b17b41d115d8113a00728ddc20820"
+    },
+    {
+      "path": "docs/23-global-intelligence-coordination.md",
+      "lines": 38,
+      "sha256": "25381d5e09e7c172fd2599de2bfe24cef3a1898a86d1da862f3ed3d27c3fb704"
+    },
+    {
+      "path": "docs/24-adaptive-global-intelligence-os.md",
+      "lines": 36,
+      "sha256": "8162b19ac3453bfb7bfe58722e4a72bcb11ab4fb56815215ae85a0fb81cd1fcf"
+    },
+    {
+      "path": "docs/25-provable-autonomy-global-continuous-intelligence.md",
+      "lines": 38,
+      "sha256": "3e17a176f2ad2047e41dd16b20b375ecbad5bcaa015a8b49030b488b2c0bab61"
+    },
+    {
+      "path": "docs/26-planetary-intelligence-resilience.md",
+      "lines": 38,
+      "sha256": "757a7727f4cadc53a256496c9422eb4c2ff7374d79c05f3ae8a68089884f191a"
+    },
+    {
+      "path": "docs/27-global-cognitive-infrastructure.md",
+      "lines": 37,
+      "sha256": "40776a70ca5edb373f90a4d4594bc5a2c1c3c01273c55ba557138940b0c957de"
+    },
+    {
+      "path": "docs/28-global-cognitive-commons.md",
+      "lines": 36,
+      "sha256": "02d65c7acd69bdcb82338656c94124166d68d6a0d90d9305a89772ddcbb0d9c6"
+    },
+    {
+      "path": "docs/29-configuration-guide.md",
+      "lines": 123,
+      "sha256": "d6935413c579d1970f0175eb61f18aaab58a4a36727a838b7dd3654d8237fb5a"
+    },
+    {
+      "path": "docs/29-global-production-convergence.md",
+      "lines": 25,
+      "sha256": "9a0b1b4b735bc2d5bb6f8a0c2de5af720bf6144d15d9b75b93103dd3d321980b"
+    },
+    {
+      "path": "docs/29-operations-handbook.md",
+      "lines": 40,
+      "sha256": "8e8ce6cd5a9fcb25650ce4abdd36c17d6a8578f6ab661bafb1c00ecea1647ac7"
+    },
+    {
+      "path": "docs/29-release-certification.md",
+      "lines": 28,
+      "sha256": "aa49ef62de48524aa2c3ffa5081ee4cbf46541f14799d035f54e3ae840898353"
+    },
+    {
+      "path": "docs/30-open-source-roadmap.md",
+      "lines": 122,
+      "sha256": "df03304463d5eeee77695d806591b4869f7924d411fd5d2aeffbf6852036722a"
+    },
+    {
+      "path": "docs/31-dependency-upgrade-policy.md",
+      "lines": 52,
+      "sha256": "c801ae143f5a3e96c71aca133f23f83bf5ee486567dc2cb28cecc0356c728afe"
+    },
+    {
+      "path": "docs/32-capability-matrix.md",
+      "lines": 44,
+      "sha256": "0e36d5bcb77eb03389a613457f99771d6ee7d6d0d0ac4d95e34144edf3ef4d63"
+    },
+    {
+      "path": "docs/api-contract-v1.json",
+      "lines": 32392,
+      "sha256": "805bf305efde8c976cf55da24b17f2130d54738525a6e5308208d342233dc63e"
+    },
+    {
+      "path": "docs/api-deprecation-policy.md",
+      "lines": 24,
+      "sha256": "1f80862bbea5c82333406432698fa84126cba38c93362ce8f1745f4c040acb8c"
+    },
+    {
+      "path": "docs/audits/2026-10-09-project-audit.md",
+      "lines": 365,
+      "sha256": "dbccc9f8165bc673ec3ddf6d9ac5a8af02a84f88cc8061fac9945c5987506ee9"
+    },
+    {
+      "path": "docs/audits/2026-10-09-remediation.md",
+      "lines": 139,
+      "sha256": "91efd0db616bb39a0a382ff05897deaabd325483564f68ba570850ba2ab96be0"
+    },
+    {
+      "path": "docs/audits/2026-10-13-auth-durability.md",
+      "lines": 30,
+      "sha256": "3bd825b0b1ac5925f72fad63478a30a92922e8c1a0f283c9c0046cf4ba5be1db"
+    },
+    {
+      "path": "docs/audits/2026-10-13-profile-durability.md",
+      "lines": 26,
+      "sha256": "19f57592f054489525f30eed7e1bbe4e57970be74cfece5ccded8285384dd3b3"
+    },
+    {
+      "path": "docs/audits/2026-10-13-rate-limit-clock.md",
+      "lines": 19,
+      "sha256": "d2af997440fddee56ca866e46610b080ed06925b295ec4eedf8424b31ff4840a"
+    },
+    {
+      "path": "docs/audits/2026-10-13-roadmap-progress.md",
+      "lines": 264,
+      "sha256": "92e78e6325cdda4430bac29ab79cbb92bb9632d74f118ba7c08851766f293d73"
+    },
+    {
+      "path": "docs/audits/2026-10-13-windows-budget.md",
+      "lines": 19,
+      "sha256": "d0de36be24a6754151a60996600dcc86b724e3da4d4c8d914e90d33c076f1a9b"
+    },
+    {
+      "path": "docs/audits/2026-10-14-identity-uniqueness.md",
+      "lines": 29,
+      "sha256": "846932fbd931310692c5854115d4bf648abce0e7f06f802042b976f015320bc1"
+    },
+    {
+      "path": "docs/audits/2026-10-14-login-namespace.md",
+      "lines": 11,
+      "sha256": "a22861d4cd887cc7c28cd2f8c39befaf6fb37b7179c263319fe899c5361daea5"
+    },
+    {
+      "path": "docs/audits/2026-10-14-profile-validation.md",
+      "lines": 34,
+      "sha256": "21e9e65a0b69c9cd2ce4ae5f400a29d0414ae0281c5720f33be30ecb44e5cb38"
+    },
+    {
+      "path": "docs/audits/2026-10-14-test-layers.md",
+      "lines": 62,
+      "sha256": "204e4ffd7947ee2d5db85d6916c553478483be2ac64a3a427b56ff541baf4cf3"
+    },
+    {
+      "path": "docs/audits/2026-10-15-top-navigation-profile.md",
+      "lines": 53,
+      "sha256": "d1b75a2ae29dbfcf76383c0b4949f94ff6417bac7b1fed6dd94566b8125439d7"
+    },
+    {
+      "path": "docs/audits/2026-10-15-workspace-reliability.md",
+      "lines": 37,
+      "sha256": "cc118b88ae598d8ee0b950086d64c710b9cc551022b45c665ec43a706282e997"
+    },
+    {
+      "path": "docs/audits/2026-10-16-public-use.md",
+      "lines": 73,
+      "sha256": "c8562ea50d9e3940e8ae27dee2ab0d626a9dc4c4f9af248d7311e01dc1bf9396"
+    },
+    {
+      "path": "docs/audits/2026-10-17-navigation-chat.md",
+      "lines": 67,
+      "sha256": "b2fd55603d71e8f1a97f51342f2716b2c4df7e4c886c54c77d7139b51b0d345c"
+    },
+    {
+      "path": "docs/audits/2026-10-18-optional-redis.md",
+      "lines": 13,
+      "sha256": "f161b7e3a4b6273fa0c7aca2bf8e21cc132cfb11ea3124b4c951fb9d3ede34f3"
+    },
+    {
+      "path": "docs/audits/2026-10-18-private-configuration.md",
+      "lines": 102,
+      "sha256": "729b1fa3c217faa953dd5c79fa8314e28704f7f286a037152089d7168a3e7910"
+    },
+    {
+      "path": "docs/audits/2026-10-18-public-workspace-entry.md",
+      "lines": 76,
+      "sha256": "650ace0497cc10ea1eb892d186792ca526c641c1c8094833b11cdf68bc188a88"
+    },
+    {
+      "path": "docs/audits/2026-10-18-settings-alignment.md",
+      "lines": 15,
+      "sha256": "5e8b89e74e3941bc2e253670a263864e4d7062d3fd3a83531cf68be3eef94e75"
+    },
+    {
+      "path": "docs/audits/2026-10-18-unified-logo.md",
+      "lines": 15,
+      "sha256": "848a74d83594859d11f42bff5674882b4ce10e33e1fcf535d0f32d21ddd9e7d8"
+    },
+    {
+      "path": "docs/audits/2026-10-19-qwen-and-public-connectivity.md",
+      "lines": 34,
+      "sha256": "fc20675c48520732cc4bf4abe2549db15a7fd8fb50fb762e4834476d1145aaa9"
+    },
+    {
+      "path": "docs/audits/2026-10-20-arxiv-rate-limit.md",
+      "lines": 16,
+      "sha256": "fba3d3d4ac6fdaf1d8ce77d18820745edc33c2791e1c88e16d06cd8e5360712d"
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-crop.md",
+      "lines": 62,
+      "sha256": "139ab486478538ec757e5e580d3fbb97fd562f0b23c0dc4657c3fbd66b3de950"
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-direct-crop.md",
+      "lines": 26,
+      "sha256": "6cdf349a64b0e0a15f6a59da3be51ccc687e4c9fc96cadd276356f883be4bd8e"
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-fixed-webp.md",
+      "lines": 54,
+      "sha256": "e61e9e4c448a0910a526046083f20cfb7eb06c770bf816a74869ce2d5713ae4f"
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-simple-controls.md",
+      "lines": 36,
+      "sha256": "55ebd3cc83719156d81bc2985d2d4296ad3bc8f3163ac81e9165018838d4d0e0"
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-webp-storage.md",
+      "lines": 32,
+      "sha256": "e3a30aff25a06e969bd9e9b653c07904bc2cb40b2d55a14a97e6b996d7529d27"
+    },
+    {
+      "path": "docs/audits/2026-10-20-local-avatar.md",
+      "lines": 54,
+      "sha256": "bf3354e04325aa4467968d554d276513fa3c35e396042e4bed5397cc80a00d8a"
+    },
+    {
+      "path": "docs/audits/2026-10-20-workspace-activity.md",
+      "lines": 66,
+      "sha256": "9f9a394981841e46852dee1df8efbbe733159348ff1d47140d437eec8a14ac2c"
+    },
+    {
+      "path": "docs/audits/2026-10-20-workspace-personalization.md",
+      "lines": 49,
+      "sha256": "8205747ab2c7c08ad63dd87d77100049c94cadc5fec2338f9cf1b828cbe77b55"
+    },
+    {
+      "path": "docs/audits/python-dependency-audit.json",
+      "lines": 1,
+      "sha256": "6075f61862be12f9bf4f1c0691f5b0e63bf5227ad3f6ec2e03cb3ccc0c0fad91"
+    },
+    {
+      "path": "docs/blog/infopulse-open-source-engineering.md",
+      "lines": 2476,
+      "sha256": "15a822cd182c341a7aa4ee48e6f9f6037920da1ac1c746cdd950902652aaa5fd"
+    },
+    {
+      "path": "docs/blog-assets/2026-10-13/README.md",
+      "lines": 13,
+      "sha256": "1c5e1125a8feed20f15c86626de61b90739dba3a27a78887c1498c101ff90f3a"
+    },
+    {
+      "path": "docs/blog-assets/2026-10-14/identity-boundaries.svg",
+      "lines": 29,
+      "sha256": "2b10d270b214cf96930ba6541ce8c77b43d8ce40568cc5834e0fe220d3023cbc"
+    },
+    {
+      "path": "docs/blog-assets/2026-10-14/README.md",
+      "lines": 5,
+      "sha256": "490d41c242bd2120411a0c19538ec73674b02db476dddd043d3d85f84448d8a4"
+    },
+    {
+      "path": "docs/blog-assets/2026-10-15/README.md",
+      "lines": 13,
+      "sha256": "28c655afb8925b7f1d0bfcf4bf321c5e63040469efda017610f4c0a7de2e89d7"
+    },
+    {
+      "path": "docs/README.md",
+      "lines": 81,
+      "sha256": "77b80db2b2303113e98940353b19b922b29b78123f593ac540acaf25dc3d6a80"
+    },
+    {
+      "path": "frontend/.dockerignore",
+      "lines": 5,
+      "sha256": "24be990515840446b8ff553f5cb1e57f9fa494ab3c3115c5868f278a226bad1d"
+    },
+    {
+      "path": "frontend/.gitignore",
+      "lines": 24,
+      "sha256": "fe718e7babb14f3cbad2d97f08889b9ce5215ed3fe0e43b2b8cfbfb3b9b844e8"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "lines": 15,
+      "sha256": "58f84a66371f9e2fc14d7fecadaef19cb67390ee7f3103951910be06a6295686"
+    },
+    {
+      "path": "frontend/index.html",
+      "lines": 14,
+      "sha256": "397f609fc565872edfbb3444d6ed0e9515fa4d28b99580908a49d05b2a19bc29"
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "lines": 40,
+      "sha256": "c039ff0fa739ea388ab24df67af33441b4f8d081d4d726169e8e6f7f34d31fc8"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "lines": 1834,
+      "sha256": "b6db119e67513fc6ced84d0603f679dea5b31f8b5b9b904e9a16809909968c18"
+    },
+    {
+      "path": "frontend/package.json",
+      "lines": 28,
+      "sha256": "c71eef185ac4b5681f84b47df0585e63e3c888a024b5d8af1f53c42c58a54378"
+    },
+    {
+      "path": "frontend/README.md",
+      "lines": 9,
+      "sha256": "739304b0db9f38525e36e63b7c3093a28338135fc164dcf38b0cfb08a4a94cdc"
+    },
+    {
+      "path": "frontend/scripts/check-bundle.mjs",
+      "lines": 58,
+      "sha256": "f1de3c61a7744588e057bc00bbde318100691614abb0c4fd618e59f7ebedecf0"
+    },
+    {
+      "path": "frontend/src/api/actionLoop.ts",
+      "lines": 3,
+      "sha256": "2036ee41d7ce638c369fb00137cb61c5794275e5f8e7fbc212efe25d78ea3caf"
+    },
+    {
+      "path": "frontend/src/api/adaptiveOs.ts",
+      "lines": 9,
+      "sha256": "102cdeca162de656f477a294882d3315c8d77b53938163c05a291b17acdfc4a4"
+    },
+    {
+      "path": "frontend/src/api/agent.ts",
+      "lines": 4,
+      "sha256": "ada1c0ba3906a1ff5098c80f24277a16c3693ec8a4e07a5174ee6b71b905bd08"
+    },
+    {
+      "path": "frontend/src/api/analyses.ts",
+      "lines": 14,
+      "sha256": "2b47fd47f9e187fcf74208b426b53ea1d4897aae765349964f82bac8ad05492e"
+    },
+    {
+      "path": "frontend/src/api/auth.ts",
+      "lines": 87,
+      "sha256": "2a53ca90dcbae96bc58969929413539192f2d87fae64584b0747be904a4b93a4"
+    },
+    {
+      "path": "frontend/src/api/automation.ts",
+      "lines": 22,
+      "sha256": "8541e39933af14f73252d8c3d59b6d4846d0c0103c76ebc12cc613ce4707040d"
+    },
+    {
+      "path": "frontend/src/api/autonomy.ts",
+      "lines": 2,
+      "sha256": "e150e97e9c381e46152c2ff950f1429f0031e6ae1d690e4911137ada404f15a2"
+    },
+    {
+      "path": "frontend/src/api/cognitiveCommons.ts",
+      "lines": 2,
+      "sha256": "9f519175622fe86d20fea72d5ce198c23b4a994232de7a12705d20e19647cd3e"
+    },
+    {
+      "path": "frontend/src/api/cognitiveInfrastructure.ts",
+      "lines": 2,
+      "sha256": "0744b80e51800342dfcdad23adb0644c8b16429cb61e596b2000a8e4c461f163"
+    },
+    {
+      "path": "frontend/src/api/commercial.ts",
+      "lines": 13,
+      "sha256": "3e61308a72e3a246f8e2bb82b8b98dbdc96b8b2b67f66bad0eedf541bcc41fa9"
+    },
+    {
+      "path": "frontend/src/api/enterprise.ts",
+      "lines": 18,
+      "sha256": "d829f8eec64c7ea3e1ccab9bf532ace2229eb6d222dd2893913c738fa1d1c47f"
+    },
+    {
+      "path": "frontend/src/api/globalCoordination.ts",
+      "lines": 10,
+      "sha256": "d9a5efdc86f45e2be1d978c46ae8af5efdc525587141d85b4f84b7fc8ac8503f"
+    },
+    {
+      "path": "frontend/src/api/globalIntelligence.ts",
+      "lines": 3,
+      "sha256": "0bdeec62b02422ea89a5409768184691dc12cdfeae944992cc3a974f9e41b38a"
+    },
+    {
+      "path": "frontend/src/api/graph.ts",
+      "lines": 26,
+      "sha256": "a446b9ebda364f1ece4818a78ef3812c08e022847810657276e79fe4f882dbab"
+    },
+    {
+      "path": "frontend/src/api/intelligence.ts",
+      "lines": 33,
+      "sha256": "ce052dd80d141522c35bba0b579a3e99455e0d80e10b99d2e5206a6257957c71"
+    },
+    {
+      "path": "frontend/src/api/knowledge.ts",
+      "lines": 29,
+      "sha256": "a67ead4af7653227d46bb5bc6f18b62ca4765de76e922cf64de31bc51d093471"
+    },
+    {
+      "path": "frontend/src/api/multimodal.ts",
+      "lines": 10,
+      "sha256": "7b486bfd7a1c6822fca4be6d208d4c77a408662ab95acdb8e196acdcc2561ecc"
+    },
+    {
+      "path": "frontend/src/api/operations.ts",
+      "lines": 10,
+      "sha256": "588f55b7df265483cf84065124929cc300d32bc663c4de9c36558f9058e8ae54"
+    },
+    {
+      "path": "frontend/src/api/orchestration.ts",
+      "lines": 12,
+      "sha256": "cffaea32af2046f87458109bcd5edf644c1646fd2a565d211e04c36303329cc4"
+    },
+    {
+      "path": "frontend/src/api/planetaryResilience.ts",
+      "lines": 2,
+      "sha256": "2c194097af23d3707a42092eb78d95965ef99322c9abaf3dfcb743991bc5ebdc"
+    },
+    {
+      "path": "frontend/src/api/platform.ts",
+      "lines": 11,
+      "sha256": "6f7366b756c5487a81329456cd3b0104a430486d9c03b20c8fc940ce008c482b"
+    },
+    {
+      "path": "frontend/src/api/provableAutonomy.ts",
+      "lines": 2,
+      "sha256": "9f388e492954aef74ae43397f64dfad8810fa1f1bda74ec9b4bf149f7aac027e"
+    },
+    {
+      "path": "frontend/src/api/reports.ts",
+      "lines": 20,
+      "sha256": "4635b01939bf6e3494139c4402b30e5223abb0e8b5cae8288e86e51252fa7823"
+    },
+    {
+      "path": "frontend/src/api/request.ts",
+      "lines": 103,
+      "sha256": "72d2366d4b28e5f7608c33068936a6cdaa6c8653823bdd489a38ca5e7e0c3a43"
+    },
+    {
+      "path": "frontend/src/api/serviceSettings.ts",
+      "lines": 27,
+      "sha256": "8444de150aaf5184f2d91cc38d959f33b388b6a700f7375dec315f94d9dc5984"
+    },
+    {
+      "path": "frontend/src/api/sources.ts",
+      "lines": 27,
+      "sha256": "0914f935b85e984a1ef5d2f17f77bcd63d1ea14e551d71610829d45b2bfcce54"
+    },
+    {
+      "path": "frontend/src/api/stage10.ts",
+      "lines": 2,
+      "sha256": "5eda02b054881fbba08d52c23db5971f18f96faeff4fb7c7138a98c654e4db51"
+    },
+    {
+      "path": "frontend/src/api/stage3.ts",
+      "lines": 35,
+      "sha256": "42ea862799cdc388eda6535fccfd17a7a5e97a868fe0cf755652ce7eb73a39e8"
+    },
+    {
+      "path": "frontend/src/api/trustNetwork.ts",
+      "lines": 2,
+      "sha256": "e0c21f58fc8336ac470aacac58bcbc58b2c0ce05a52c63837522e79775eacdb6"
+    },
+    {
+      "path": "frontend/src/api/workflows.ts",
+      "lines": 38,
+      "sha256": "fdd621673eb66338437b34c410898fa3860c70b6edce4496e90995e77b4b2d9b"
+    },
+    {
+      "path": "frontend/src/App.vue",
+      "lines": 12,
+      "sha256": "2f49525d7de0ed315f0eb49934780a63001a9afeff43da089d8f33b53419f26c"
+    },
+    {
+      "path": "frontend/src/assets/styles/global.css",
+      "lines": 30,
+      "sha256": "f16503717512e45476898a6bf6de745b9cceb8c2bb719a5119f71b6fb0d3ba36"
+    },
+    {
+      "path": "frontend/src/assets/styles/stage3.css",
+      "lines": 302,
+      "sha256": "b68609ebba61462ae3698e0d97614d49ca32668e71cff2d21879b401478adf09"
+    },
+    {
+      "path": "frontend/src/assets/styles/transitions.css",
+      "lines": 46,
+      "sha256": "52766ed426eeef261a0746d7c81ff39429902944d16e86281576492c9d5441a5"
+    },
+    {
+      "path": "frontend/src/assets/styles/variables.css",
+      "lines": 46,
+      "sha256": "28275b42f5a3f151e37d801705b9beb47515356628036d85ab851e3f3edb57ce"
+    },
+    {
+      "path": "frontend/src/components/auth/LoginCard.vue",
+      "lines": 80,
+      "sha256": "ea543ddc729a3c14ecb298b45b448635171070317b95a30360a34340fcff96ed"
+    },
+    {
+      "path": "frontend/src/components/common/AvatarCropper.vue",
+      "lines": 114,
+      "sha256": "cf88b15119a19b68599400213c5b869a5e5fff4eb20f53979682b50ac62fc933"
+    },
+    {
+      "path": "frontend/src/components/common/EmptyState.vue",
+      "lines": 8,
+      "sha256": "385337f33b5f8d0206485cca5322a2bb03814133eb6ef9248fb6f5a34625bb1b"
+    },
+    {
+      "path": "frontend/src/components/common/ErrorState.vue",
+      "lines": 9,
+      "sha256": "4c0e41fc9848c3d501fa9589ae337b9522f578d589a183d3336c987b136f692b"
+    },
+    {
+      "path": "frontend/src/components/common/LoadingState.vue",
+      "lines": 5,
+      "sha256": "caf02509f385b6a753624c5d71b92544ff4f1bb2623785173c013f58a717202f"
+    },
+    {
+      "path": "frontend/src/components/common/WorkflowResult.vue",
+      "lines": 23,
+      "sha256": "d120a3efb0a5f56133008e70aa6c9637a9034fc82b514b5f21d66089ac76ff33"
+    },
+    {
+      "path": "frontend/src/components/layout/AppFooter.vue",
+      "lines": 14,
+      "sha256": "572ac824e19b64c32d0994477cc7e750d60e3d0ffd04986e2a63cdddd9a70950"
+    },
+    {
+      "path": "frontend/src/components/layout/AppHeader.vue",
+      "lines": 128,
+      "sha256": "6a3ff11fc33162c025f1dfa9bffb6768619496be19fe8c9b499458a1263f9d43"
+    },
+    {
+      "path": "frontend/src/components/layout/AppLayout.vue",
+      "lines": 38,
+      "sha256": "36cb3b6bec48bae9986d5565a0c4ded6dbe68f31ec14931ee08c0e5da1fa7d64"
+    },
+    {
+      "path": "frontend/src/components/layout/EnvironmentNotice.vue",
+      "lines": 27,
+      "sha256": "90d3cffe4eedaa84101bcb228afbdf749b0d6a4ba75c99631539c9a102e0f705"
+    },
+    {
+      "path": "frontend/src/components/layout/navigation.ts",
+      "lines": 76,
+      "sha256": "8bb777355d559c0f2ab8aa3a2f8c84d1fb5808343e0f06b4a8d54aed69ad24a0"
+    },
+    {
+      "path": "frontend/src/components/layout/TopToolbar.vue",
+      "lines": 44,
+      "sha256": "895caaba5b589dc8315e26f09401664cadca46c9a046e140c2966b0622c203b2"
+    },
+    {
+      "path": "frontend/src/components/layout/UserAvatar.vue",
+      "lines": 34,
+      "sha256": "62830f6866e1f163e5a846d3856e5cd06588426f34df392cab19c1d07ba88b2d"
+    },
+    {
+      "path": "frontend/src/composables/useAgentChat.ts",
+      "lines": 117,
+      "sha256": "264a386ceeb77d0fbd14940695c1b028316c13e70bedf2c89e4eeee374433131"
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "lines": 143,
+      "sha256": "e53e952b36ba4e706798fad49dcbfc0dc579b451313ea9066224402ead70f866"
+    },
+    {
+      "path": "frontend/src/plugins/element.ts",
+      "lines": 45,
+      "sha256": "6a1674c6f67df4d65b3181d185f3797b55b0628c65465973fce0a3c3d32fc3bf"
+    },
+    {
+      "path": "frontend/src/router/index.ts",
+      "lines": 214,
+      "sha256": "4684e052cfa931d199cbf861e46a49a6ce3fc8685c32d61ac3b4d9f47de8a7a9"
+    },
+    {
+      "path": "frontend/src/stores/user.ts",
+      "lines": 134,
+      "sha256": "7d05617cd3c7a15bb52733cdf24535f568fdcd0e1b0bb78d37b34e9666d2731b"
+    },
+    {
+      "path": "frontend/src/stores/watchlist.ts",
+      "lines": 102,
+      "sha256": "9e7992eff459638a3dc647aa4f036a856b7dfa9b29469c61eb92ac6241b85a53"
+    },
+    {
+      "path": "frontend/src/utils/avatarCrop.ts",
+      "lines": 79,
+      "sha256": "c737fe0c6f7aed98741f60acfd2561fe8f3b1c4bd9a33e2f83426e9bd558772d"
+    },
+    {
+      "path": "frontend/src/utils/clipboard.ts",
+      "lines": 33,
+      "sha256": "e61d11ae58df89e9356ca7996adad8106f1aed2935ffb67bc993e980e7a7a537"
+    },
+    {
+      "path": "frontend/src/utils/dialog.ts",
+      "lines": 9,
+      "sha256": "5d73dae01e8d7876c789d3744bd0c153081d8745b17ad56f6b562e443d131d03"
+    },
+    {
+      "path": "frontend/src/utils/modelPresets.ts",
+      "lines": 14,
+      "sha256": "8c0055cac4329e023753646e207bc633b1194189f5209606d6c0d632f262709d"
+    },
+    {
+      "path": "frontend/src/utils/profile.ts",
+      "lines": 41,
+      "sha256": "9d781ca3749cc1705ae49994a6b3b17f29c95c838935565e08af30d2f1aa27b2"
+    },
+    {
+      "path": "frontend/src/utils/recentViews.ts",
+      "lines": 16,
+      "sha256": "92ecaaafcafe0da1b485feaf994d2cd774295a2127ac06046f9551338f55d563"
+    },
+    {
+      "path": "frontend/src/utils/sse.ts",
+      "lines": 113,
+      "sha256": "4bafd4ca4b9fe450423740e8a5de56292f3fc6923410d3fb0967b3ddc0c7d539"
+    },
+    {
+      "path": "frontend/src/views/ActionLoopView.vue",
+      "lines": 7,
+      "sha256": "4c45d12b1b71664502a7f983c9b664010fe10033768c07dae36c2fe924b672e8"
+    },
+    {
+      "path": "frontend/src/views/AdaptiveOsView.vue",
+      "lines": 21,
+      "sha256": "98f6040d347473f6ca39649f92e21b765aaf05d7f981c1f7b198ea4fede0a727"
+    },
+    {
+      "path": "frontend/src/views/AdminView.vue",
+      "lines": 13,
+      "sha256": "99e0b0fb8cfa76444d5943abbd6e8ec65719025cfcb4d32030c03f7c460754ed"
+    },
+    {
+      "path": "frontend/src/views/AgentView.vue",
+      "lines": 152,
+      "sha256": "77991e2e02b75f2b43093044b21f943bc1d56f64864c5664fdeeabef257197e0"
+    },
+    {
+      "path": "frontend/src/views/AlertsView.vue",
+      "lines": 11,
+      "sha256": "060996a2b67767abebb939091ad2258d82df0c0045664634f0abc4913284a0a2"
+    },
+    {
+      "path": "frontend/src/views/AnalysisView.vue",
+      "lines": 275,
+      "sha256": "7c200d2e944ed08cbdf6d15da305dfad620775c01a7fda01442145cc304bc0cc"
+    },
+    {
+      "path": "frontend/src/views/AuthView.vue",
+      "lines": 58,
+      "sha256": "f2a80e660eb5cddcc66df2b2cfe33683bf8c97a74eac8d6a54e276e5dd3cb998"
+    },
+    {
+      "path": "frontend/src/views/AutonomousEnterpriseView.vue",
+      "lines": 17,
+      "sha256": "11d7f0fa4c98398a647fea567540a7605f03c443719604b2ebb5f3a07d555064"
+    },
+    {
+      "path": "frontend/src/views/BIView.vue",
+      "lines": 3,
+      "sha256": "52a15bc8551f14fcd9f057c15a6399f4c604b83678fe5275b9107c52fcc1fcd0"
+    },
+    {
+      "path": "frontend/src/views/CognitiveCommonsView.vue",
+      "lines": 3,
+      "sha256": "8475f7fce44e6c34b6dd8d63ba590d6a5d4e6bd1fd98542cad63781fc7548ee1"
+    },
+    {
+      "path": "frontend/src/views/CognitiveInfrastructureView.vue",
+      "lines": 3,
+      "sha256": "b119147955af36a32e7a2ada9b60c0d805b8a28c9ff7077761aa70932a4eb6ce"
+    },
+    {
+      "path": "frontend/src/views/CommercialOperationsView.vue",
+      "lines": 20,
+      "sha256": "dfb686b2823bd456da0c09745e6f994aa2f667522ab8d0aa95a154b6941e69ec"
+    },
+    {
+      "path": "frontend/src/views/DashboardView.vue",
+      "lines": 2,
+      "sha256": "2c15ab4ec9c3d04cf18699ef8b9582b42d00927df610c8e42dec5605a4808fa8"
+    },
+    {
+      "path": "frontend/src/views/DeveloperPlatformView.vue",
+      "lines": 28,
+      "sha256": "9eab63ffdac20184033737c1c666855ce38d213a0656e03c9f4e14159cae7c5b"
+    },
+    {
+      "path": "frontend/src/views/DiscoverView.vue",
+      "lines": 70,
+      "sha256": "1c972b884445a2e4c6147a84554966de49b1ddb9a93a35ed2304fefb16f9ed23"
+    },
+    {
+      "path": "frontend/src/views/EnterpriseView.vue",
+      "lines": 38,
+      "sha256": "03efd8b6460dcc1fa4f09401d999b51f2df6d201e039d30123d93165d85acc8b"
+    },
+    {
+      "path": "frontend/src/views/EventDetailView.vue",
+      "lines": 557,
+      "sha256": "90cf800ac4b9f973d7ee7fdc3d8aa90bdc6b9f10e17cf2ad90b7cd2c933a73ba"
+    },
+    {
+      "path": "frontend/src/views/EventsView.vue",
+      "lines": 24,
+      "sha256": "6cd87358a78032af8c684aa83e3487bfb31130e2e87259e08165be14adc9bb43"
+    },
+    {
+      "path": "frontend/src/views/GlobalCoordinationView.vue",
+      "lines": 38,
+      "sha256": "b7adc1688d18abb3a17c5ba41fd3319b2432cf19ec3fa682d9b9a0c67f4e6f37"
+    },
+    {
+      "path": "frontend/src/views/GlobalIntelligenceView.vue",
+      "lines": 21,
+      "sha256": "738b6005237e1ac3b4a736a5481f4c8797df09d6bb58d4e8b08c940db8d8fafa"
+    },
+    {
+      "path": "frontend/src/views/GraphView.vue",
+      "lines": 732,
+      "sha256": "796732b45c5bd0ff3ef9d8115cc0ce18e080f746d4b84fd18986b52d751cc59e"
+    },
+    {
+      "path": "frontend/src/views/HelpView.vue",
+      "lines": 9,
+      "sha256": "19f234ee6a46e3d2b8574367e6a6698830fa7ae35299c2a9636a6e177f91eb08"
+    },
+    {
+      "path": "frontend/src/views/HistoryView.vue",
+      "lines": 103,
+      "sha256": "95eccbad11eae346bded62d656795d6cebae2eafd18d41443f20d8fcc03580a6"
+    },
+    {
+      "path": "frontend/src/views/HomeView.vue",
+      "lines": 110,
+      "sha256": "f5056ceda3a1420384c59eaf88921332f460912e40264f0fb5817e4162975942"
+    },
+    {
+      "path": "frontend/src/views/HotSearchView.vue",
+      "lines": 124,
+      "sha256": "01eaa3e525f087197411c2501dc8cda72468621454a162dd83d3c578ef6bb127"
+    },
+    {
+      "path": "frontend/src/views/insight/InsightView.vue",
+      "lines": 160,
+      "sha256": "c2aec06e7e7e5dfbbefd8e3302558f1516501ba149f36518d778d4579543af80"
+    },
+    {
+      "path": "frontend/src/views/KnowledgeView.vue",
+      "lines": 509,
+      "sha256": "e0b765e4d3493e3747ae670060213301a5301fcb578cf3663f5bbcf4e463c863"
+    },
+    {
+      "path": "frontend/src/views/mouthpiece/MouthpieceView.vue",
+      "lines": 89,
+      "sha256": "c34a5f5f49d08e03c3be1cb647904a35c77d486c3891d5e46b4ee658a6e02e16"
+    },
+    {
+      "path": "frontend/src/views/MultimodalView.vue",
+      "lines": 30,
+      "sha256": "aa8ed54b7b86d4e512d78b47653bcfffcf36e0957bd197495c6e361551d83251"
+    },
+    {
+      "path": "frontend/src/views/NotificationsView.vue",
+      "lines": 16,
+      "sha256": "dd0e311aaf5ad0dc659793ef4c9bed0e2772e8a35200085c01fa908030e2a927"
+    },
+    {
+      "path": "frontend/src/views/OrchestrationView.vue",
+      "lines": 34,
+      "sha256": "5680e6f900106405c03c9903d8b820cb9ba18c8d26e029b1cc013a053806c9e0"
+    },
+    {
+      "path": "frontend/src/views/PlanetaryResilienceView.vue",
+      "lines": 3,
+      "sha256": "b3d067a673e9585fe7e9a1279ae17aefc079a6389bcb4d4fa9faf418f98d98cf"
+    },
+    {
+      "path": "frontend/src/views/ProfileView.vue",
+      "lines": 125,
+      "sha256": "34a1bfa75f6d74df5c22b98c8d0d69f5e8d3f03eaeada016f99ca0344516f882"
+    },
+    {
+      "path": "frontend/src/views/ProvableAutonomyView.vue",
+      "lines": 3,
+      "sha256": "ea6c318d368ef71f36ca4625ae3439cd03d394dffd4c8e6c1220087eb1923c66"
+    },
+    {
+      "path": "frontend/src/views/ReportEditorView.vue",
+      "lines": 32,
+      "sha256": "3bee18ec3089f9f774bac24c0fcab7398853c3335447abaaec6c302d3936fbf1"
+    },
+    {
+      "path": "frontend/src/views/ReportsView.vue",
+      "lines": 31,
+      "sha256": "310f777e6d8745f42e11640fcf1ae5e698cb902434377a8cbf86878587407538"
+    },
+    {
+      "path": "frontend/src/views/SearchView.vue",
+      "lines": 83,
+      "sha256": "ace060aeb6f04d5f573082426a4e18478fdc3ffd7a6d3601acaf3b03ba31daf3"
+    },
+    {
+      "path": "frontend/src/views/SettingsView.vue",
+      "lines": 118,
+      "sha256": "14e8da8e011e0bec307f7758427b509c5741ea4c447cf37ce2c783c9fb83d862"
+    },
+    {
+      "path": "frontend/src/views/SourcesView.vue",
+      "lines": 142,
+      "sha256": "3c2cfae52f9d3b5cb9f2039053fcfd44b6fd6d216d2599823e0e9c2a8cd07ec0"
+    },
+    {
+      "path": "frontend/src/views/SubscriptionsView.vue",
+      "lines": 39,
+      "sha256": "f33c8ae09bcd2eec9902cde1c33e2219454c9a90678eea028383274c39ee5944"
+    },
+    {
+      "path": "frontend/src/views/TasksView.vue",
+      "lines": 19,
+      "sha256": "3c14e69556acc3f1b4d6c18fcebd93c7823b8e05c91f861e808322c11c795705"
+    },
+    {
+      "path": "frontend/src/views/timeline/TimelineView.vue",
+      "lines": 83,
+      "sha256": "e08c467fe752d7b8efff023ea1ecc591a6bc337810c84c7ca3cb948cf5027889"
+    },
+    {
+      "path": "frontend/src/views/TrustNetworkView.vue",
+      "lines": 16,
+      "sha256": "48b30f614f15d8931b286efc863cf47188a983f9b6b3c3c8c3199898c385d0b5"
+    },
+    {
+      "path": "frontend/src/views/WatchlistView.vue",
+      "lines": 52,
+      "sha256": "828c37912cdc3ac8f088e011b3a216ceeb28ef6bfb7dc01848fa026b23657eb0"
+    },
+    {
+      "path": "frontend/tests/agent-chat.test.mjs",
+      "lines": 110,
+      "sha256": "24ba388d6514023944fc8b74be8a8a11a3e803ca290a6683698159a93496bca2"
+    },
+    {
+      "path": "frontend/tests/avatar-crop.test.mjs",
+      "lines": 234,
+      "sha256": "ab61f701d3fa1032ab6c971d2bbcabd574d60382f98fbb15480983672f0d2b3d"
+    },
+    {
+      "path": "frontend/tests/bundle.test.mjs",
+      "lines": 31,
+      "sha256": "d0fc978ee4c0e24d742b7be086bd71e609576980ca9241ff2ff2501138ebf9a0"
+    },
+    {
+      "path": "frontend/tests/domain-dialogs.test.mjs",
+      "lines": 109,
+      "sha256": "ebc4876a9e9540d78ca31f49a61cae4cb77527025da04dd19d79f7d2a7c54ae4"
+    },
+    {
+      "path": "frontend/tests/element.test.mjs",
+      "lines": 50,
+      "sha256": "168e8fdc162896f8be33ab8ed0a16ca90388c329df44e20c968cdc9f99c5b9ab"
+    },
+    {
+      "path": "frontend/tests/model-presets.test.mjs",
+      "lines": 36,
+      "sha256": "eab212b3c0007092db880c9b61d4c2828e52178ba4e97b3404d87bd0a8269cd3"
+    },
+    {
+      "path": "frontend/tests/navigation-profile.test.mjs",
+      "lines": 112,
+      "sha256": "ccccb403b74c63eb620c3a79c2ef8a0ff99c2369ee0e95af0afe8c8bcc0986d1"
+    },
+    {
+      "path": "frontend/tests/public-data.test.mjs",
+      "lines": 61,
+      "sha256": "25f9086610e118404df30c495083fb09bda3f7846e340de7e43dbb979058d8ca"
+    },
+    {
+      "path": "frontend/tests/recent-views.test.mjs",
+      "lines": 26,
+      "sha256": "ef6f50056dd252e248f9f6f2d843cf7b19eee1ed4445f76e8a3eb6ff4a4937f0"
+    },
+    {
+      "path": "frontend/tests/report-confirmation.test.mjs",
+      "lines": 57,
+      "sha256": "3cd5035b4b91cbadb93e3bc2e863f81e45336d2c0f6ba13a537e6f011cc29d3a"
+    },
+    {
+      "path": "frontend/tests/search-state.test.mjs",
+      "lines": 49,
+      "sha256": "0e7d041ad332f14614dcacde34db537f594bcc6501010640e35a48fb0e4b40a6"
+    },
+    {
+      "path": "frontend/tests/sse.test.mjs",
+      "lines": 28,
+      "sha256": "a95934304e884737019bf53c6145fb666d08d1b27eda6c9319f8c5469c9acb52"
+    },
+    {
+      "path": "frontend/tests/watchlist.test.mjs",
+      "lines": 106,
+      "sha256": "1c89c794ec492df97f0b3b577973f11b9004a187cb1678fa2b4f0dc6a611fb05"
+    },
+    {
+      "path": "frontend/tests/workspace.test.mjs",
+      "lines": 83,
+      "sha256": "f56c69b20ad25c1a97b4bd0f809d721090f74fd9ea6aadb07f8264a6eb12a4c0"
+    },
+    {
+      "path": "frontend/tsconfig.app.json",
+      "lines": 20,
+      "sha256": "d384b0853cc77d7838081b51bf1b3fe659744715611873a5e19acb07e058ad52"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "lines": 7,
+      "sha256": "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808"
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "lines": 23,
+      "sha256": "d366cc0827139db39c61815f22491bbfda56c654354a42ad7795143d314e45e8"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "lines": 34,
+      "sha256": "9d6e35f9d52824ca72420129eae615351a5bdf6a28b1a1fdc4fd91d35575f3c3"
+    },
+    {
+      "path": "LICENSE",
+      "lines": 21,
+      "sha256": "0a795d97ad405edfc967c9cc8750dad5ff8b23d7a800cc61b5f2b89ac738b7a2"
+    },
+    {
+      "path": "README.md",
+      "lines": 208,
+      "sha256": "dc4d2ad7cb80623601369c13ec20344e20f50f52c53637aad13b50f60cf7f1d1"
+    },
+    {
+      "path": "sdk/python/infopulse_sdk/__init__.py",
+      "lines": 2,
+      "sha256": "cdda003706ea691ba6ae2915253abccb42e690f97833c4ee4503a4729c3ca2a9"
+    },
+    {
+      "path": "sdk/python/infopulse_sdk/client.py",
+      "lines": 42,
+      "sha256": "57c6ece4e50bf6a382b6ba36ccac3ebee39e8bccb9c855c491f7a646c52a6f37"
+    },
+    {
+      "path": "sdk/python/pyproject.toml",
+      "lines": 13,
+      "sha256": "d980aad874c6959680ff660dc67a0aa97268e659dea6fb5fd24b52b92e0efdf9"
+    },
+    {
+      "path": "sdk/typescript/package-lock.json",
+      "lines": 391,
+      "sha256": "cca5e991e221a740a19704e3128544e443ce4c25470e37bb1d6d90d1068688a8"
+    },
+    {
+      "path": "sdk/typescript/package.json",
+      "lines": 22,
+      "sha256": "3d81219f114637e2f9c4670bf0b4724d51ff4600575497f29ae4f496f7ed9bdb"
+    },
+    {
+      "path": "sdk/typescript/src/index.ts",
+      "lines": 18,
+      "sha256": "8d90b2e44a84a4045fc385780f486b67556223509cec77ba5e64c7029c170fe0"
+    },
+    {
+      "path": "sdk/typescript/tsconfig.json",
+      "lines": 1,
+      "sha256": "c3bc89788e8b55ab18e6f718c4d5576ad686fba9fb2f4da76fa507acf4f87b02"
+    },
+    {
+      "path": "SECURITY.md",
+      "lines": 22,
+      "sha256": "24fa1dd7b662a0b0539ffd677be4d6d1f81496465e0cda79c5f495c777386d88"
+    },
+    {
+      "path": "开发步骤.md",
+      "lines": 418,
+      "sha256": "d612a89d9bc26f283ab4bac1771b7b0c33427811ef885df6378678fc22bfc52e"
+    },
+    {
+      "path": "架构说明书.md",
+      "lines": 344,
+      "sha256": "c3ef7dd4f483d7c1b4583b4bd9d019c6b716e72ee360ed8ada3e707cb8e2a68f"
+    },
+    {
+      "path": "重构方案.md",
+      "lines": 692,
+      "sha256": "e9268ff632f703da191502381a682d395a1cc9870f34b1b449362f2c312e961f"
+    },
+    {
+      "path": "需求.md",
+      "lines": 248,
+      "sha256": "e37d961b2f67bf3b5dcfd9e81c9952931d56103c5e384c2f2383b52aa6bf7d4d"
+    }
+  ],
+  "syntax_errors": [],
+  "counts": {
+    ".github/dependabot.yml": 1,
+    ".github/workflows": 3,
+    ".gitignore": 1,
+    "backend/.dockerignore": 1,
+    "backend/.env.example": 1,
+    "backend/alembic": 38,
+    "backend/alembic.ini": 1,
+    "backend/app": 171,
+    "backend/Dockerfile": 1,
+    "backend/Dockerfile.render": 1,
+    "backend/requirements-base.txt": 1,
+    "backend/requirements.render.txt": 1,
+    "backend/requirements.txt": 1,
+    "backend/scripts": 33,
+    "backend/test_playwright.py": 1,
+    "backend/tests": 60,
+    "CONTRIBUTING.md": 1,
+    "deploy/k8s": 3,
+    "deploy/scripts": 1,
+    "deploy/staging.compose.yml": 1,
+    "docker-compose.audit-full.yml": 1,
+    "docker-compose.audit.yml": 1,
+    "docker-compose.local.yml": 1,
+    "docker-compose.yml": 1,
+    "docs/01-产品PRD.md": 1,
+    "docs/02-UI设计规范.md": 1,
+    "docs/03-数据库设计.md": 1,
+    "docs/04-接口文档.md": 1,
+    "docs/05-开发计划.md": 1,
+    "docs/06-production-runbook.md": 1,
+    "docs/07-security-privacy.md": 1,
+    "docs/08-release-checklist.md": 1,
+    "docs/09-performance-baseline.md": 1,
+    "docs/10-production-deployment.md": 1,
+    "docs/11-slo-oncall.md": 1,
+    "docs/12-release-notes-template.md": 1,
+    "docs/13-stage12-drill-results.md": 1,
+    "docs/14-enterprise-governance.md": 1,
+    "docs/15-open-platform.md": 1,
+    "docs/16-agent-orchestration.md": 1,
+    "docs/17-multimodal-collaboration.md": 1,
+    "docs/18-global-intelligence-decision.md": 1,
+    "docs/19-action-loop-impact.md": 1,
+    "docs/20-decision-productization-commercialization.md": 1,
+    "docs/21-autonomous-enterprise-intelligence.md": 1,
+    "docs/22-intelligence-network-and-trust-marketplace.md": 1,
+    "docs/23-global-intelligence-coordination.md": 1,
+    "docs/24-adaptive-global-intelligence-os.md": 1,
+    "docs/25-provable-autonomy-global-continuous-intelligence.md": 1,
+    "docs/26-planetary-intelligence-resilience.md": 1,
+    "docs/27-global-cognitive-infrastructure.md": 1,
+    "docs/28-global-cognitive-commons.md": 1,
+    "docs/29-configuration-guide.md": 1,
+    "docs/29-global-production-convergence.md": 1,
+    "docs/29-operations-handbook.md": 1,
+    "docs/29-release-certification.md": 1,
+    "docs/30-open-source-roadmap.md": 1,
+    "docs/31-dependency-upgrade-policy.md": 1,
+    "docs/32-capability-matrix.md": 1,
+    "docs/api-contract-v1.json": 1,
+    "docs/api-deprecation-policy.md": 1,
+    "docs/audits": 31,
+    "docs/blog": 1,
+    "docs/blog-assets": 4,
+    "docs/README.md": 1,
+    "frontend/.dockerignore": 1,
+    "frontend/.gitignore": 1,
+    "frontend/Dockerfile": 1,
+    "frontend/index.html": 1,
+    "frontend/nginx.conf": 1,
+    "frontend/package-lock.json": 1,
+    "frontend/package.json": 1,
+    "frontend/README.md": 1,
+    "frontend/scripts": 1,
+    "frontend/src": 105,
+    "frontend/tests": 14,
+    "frontend/tsconfig.app.json": 1,
+    "frontend/tsconfig.json": 1,
+    "frontend/tsconfig.node.json": 1,
+    "frontend/vite.config.ts": 1,
+    "LICENSE": 1,
+    "README.md": 1,
+    "sdk/python": 3,
+    "sdk/typescript": 4,
+    "SECURITY.md": 1,
+    "开发步骤.md": 1,
+    "架构说明书.md": 1,
+    "重构方案.md": 1,
+    "需求.md": 1
+  },
+  "documentation": [
+    {
+      "path": "backend/app/services/crawler/plugins/README.md",
+      "lines": 42,
+      "headings": [
+        "# 第三方爬虫插件目录",
+        "## 如何添加数据源",
+        "## 开发新插件",
+        "## ⚠️ 重要提示"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "lines": 33,
+      "headings": [
+        "# Contributing",
+        "## Development Setup",
+        "## Before Opening a Pull Request",
+        "## Scope and Safety"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/01-产品PRD.md",
+      "lines": 308,
+      "headings": [
+        "# InfoPulse AI Intelligence Platform 产品 PRD",
+        "## 1. 产品目标",
+        "## 2. 用户角色",
+        "## 3. 全局框架",
+        "### 3.1 左侧导航",
+        "### 3.2 顶部工具栏",
+        "### 3.3 通用弹窗",
+        "## 4. 登录与注册",
+        "### 4.1 登录页 `/auth/login`",
+        "### 4.2 注册页 `/auth/register`",
+        "### 4.3 首次引导 `/onboarding`",
+        "## 5. Workspace `/workspace`",
+        "## 6. Dashboard `/dashboard`",
+        "## 7. Discover `/discover`",
+        "## 8. 搜索中心 `/search`",
+        "## 9. 事件中心 `/events`",
+        "### 9.1 事件详情 `/events/:id`",
+        "## 10. AI 分析 `/analysis`",
+        "## 11. 数据分析 `/analytics`",
+        "## 12. AI Agent `/agent`",
+        "## 13. 报告中心 `/reports`",
+        "## 14. 收藏与订阅 `/collections`",
+        "## 15. 任务中心 `/tasks`",
+        "## 16. 通知中心 `/notifications`",
+        "## 17. 知识库 `/knowledge`",
+        "## 18. 数据源中心 `/sources`",
+        "## 19. 系统设置 `/settings`",
+        "## 20. 关键业务流程",
+        "### 20.1 数据到建议",
+        "### 20.2 订阅自动化",
+        "### 20.3 RAG 问答",
+        "### 20.4 事件报告",
+        "## 21. 通用状态与异常",
+        "## 22. 非功能要求"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/02-UI设计规范.md",
+      "lines": 258,
+      "headings": [
+        "# InfoPulse UI 设计规范",
+        "## 1. 设计原则",
+        "## 2. 设计令牌",
+        "### 2.1 颜色",
+        "### 2.2 字体",
+        "### 2.3 间距与尺寸",
+        "### 2.4 圆角与阴影",
+        "## 3. 布局规范",
+        "## 4. 导航",
+        "### 4.1 顶部导航与账户菜单",
+        "### 4.2 面包屑与标签页",
+        "## 5. 按钮",
+        "## 6. 表单",
+        "## 7. 搜索与筛选",
+        "## 8. 表格与列表",
+        "## 9. 卡片",
+        "## 10. 弹窗、抽屉和浮层",
+        "## 11. 状态反馈",
+        "### 11.1 加载",
+        "### 11.2 空状态",
+        "### 11.3 错误与部分失败",
+        "## 12. AI 内容规范",
+        "## 13. 图表规范",
+        "## 14. 动效",
+        "## 15. 响应式断点",
+        "## 16. 无障碍",
+        "## 17. 推荐组件清单"
+      ],
+      "claims_and_gaps": [
+        "123: - 默认头像为姓名首字；远程头像只渲染无用户名密码的 HTTP/HTTPS 地址，加载失败回退，不支持文件上传。"
+      ]
+    },
+    {
+      "path": "docs/03-数据库设计.md",
+      "lines": 309,
+      "headings": [
+        "# InfoPulse 数据库设计",
+        "## 1. 约定",
+        "## 2. ER 图",
+        "## 3. 身份与设置",
+        "### 3.1 `users`",
+        "### 3.2 `auth_identities`",
+        "### 3.3 `refresh_tokens`",
+        "### 3.4 `user_preferences`",
+        "### 3.5 `model_providers`",
+        "### 3.6 `model_profiles`",
+        "## 4. 数据源与采集",
+        "### 4.1 `data_sources`",
+        "### 4.2 `sync_runs`",
+        "### 4.3 `content_items`",
+        "### 4.4 `comments`",
+        "## 5. 事件与知识分析",
+        "### 5.1 `events`",
+        "### 5.2 `event_contents`",
+        "### 5.3 `entities`",
+        "### 5.4 `entity_aliases`",
+        "### 5.5 `event_entities`",
+        "### 5.6 `analyses`",
+        "### 5.7 `analysis_citations`",
+        "### 5.8 `propagation_nodes`",
+        "### 5.9 `propagation_edges`",
+        "## 6. 用户工作与自动化",
+        "### 6.1 `collection_folders`",
+        "### 6.2 `collection_items`",
+        "### 6.3 `subscriptions`",
+        "### 6.4 `agent_tasks`",
+        "### 6.5 `task_runs`",
+        "### 6.6 `notifications`",
+        "### 6.7 `recent_views`",
+        "### 6.8 `recommendations`",
+        "### 6.9 `recommendation_feedback`",
+        "## 7. AI 会话与报告",
+        "### 7.1 `conversations`",
+        "### 7.2 `messages`",
+        "### 7.3 `message_citations`",
+        "### 7.4 `reports`",
+        "### 7.5 `report_versions`",
+        "### 7.6 `report_exports`",
+        "## 8. 知识库",
+        "### 8.1 `knowledge_bases`",
+        "### 8.2 `knowledge_documents`",
+        "### 8.3 `knowledge_chunks`",
+        "## 9. 审计与文件",
+        "### 9.1 `audit_logs`",
+        "### 9.2 `stored_files`",
+        "## 10. 数据完整性",
+        "### 已实现：个人服务配置（2026-10-18）",
+        "## 11. 迁移策略",
+        "## 12. 备份与保留"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/04-接口文档.md",
+      "lines": 435,
+      "headings": [
+        "# InfoPulse API 接口文档",
+        "## 1. 通用约定",
+        "### 1.1 认证",
+        "### 1.2 分页响应",
+        "### 1.3 错误响应",
+        "### 1.4 长任务",
+        "### 1.5 时间与幂等",
+        "## 2. 认证与用户",
+        "### `POST /auth/register`",
+        "### `POST /auth/login`",
+        "### `POST /auth/refresh`",
+        "### `POST /auth/logout`",
+        "### 其他",
+        "## 3. Workspace 与 Dashboard",
+        "### `GET /workspace`",
+        "### `PATCH /workspace/layout`",
+        "### `GET /dashboard`",
+        "### `GET /dashboard/trends`",
+        "## 4. Discover",
+        "### `GET /discover`",
+        "### `GET /discover/channels`",
+        "### `POST /discover/channels/{id}/follow`",
+        "### `POST /discover/items/{id}/feedback`",
+        "## 5. 搜索与内容",
+        "### `GET /search`",
+        "### `GET /contents/{id}`",
+        "### `GET /contents/{id}/comments`",
+        "### `POST /saved-searches`",
+        "## 6. 事件",
+        "### `GET /events`",
+        "### `POST /events`",
+        "### `GET /events/{id}`",
+        "### `PATCH /events/{id}`",
+        "### 事件子资源",
+        "### `POST /events/merge`",
+        "## 7. AI 分析",
+        "### `POST /analyses`",
+        "### `GET /analyses/{id}`",
+        "### `POST /analyses/{id}/regenerate`",
+        "## 8. 数据分析",
+        "## 9. AI Agent",
+        "### 会话",
+        "### `POST /conversations/{id}/messages`",
+        "### `POST /conversations/{id}/messages/{message_id}/feedback`",
+        "## 10. 报告",
+        "### `GET /reports`",
+        "### `POST /reports`",
+        "### 报告操作",
+        "## 11. 收藏与订阅",
+        "### 收藏",
+        "### 订阅",
+        "## 12. 任务",
+        "## 13. 通知",
+        "## 14. 知识库",
+        "## 15. 数据源",
+        "## 16. AI 建议与最近浏览",
+        "## 17. 设置",
+        "## 18. 健康与管理",
+        "## 19. 安全要求",
+        "## 私人配置接口补充（2026-10-18）"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/05-开发计划.md",
+      "lines": 233,
+      "headings": [
+        "# InfoPulse 重构开发计划",
+        "## 1. 交付原则",
+        "## 2. 技术前置决策",
+        "## 3. 阶段 0：重构基础（第 1-2 周）",
+        "## 4. 阶段 1：真实数据中心（第 3-4 周）",
+        "## 5. 阶段 2：搜索与事件（第 5-6 周）",
+        "## 6. 阶段 3：Dashboard、Discover 与 Workspace（第 7-8 周）",
+        "## 7. 阶段 4：AI 分析与引用（第 9-10 周）",
+        "## 8. 阶段 5：AI Agent（第 11-12 周）",
+        "## 9. 阶段 6：报告中心（第 13-14 周）",
+        "## 10. 阶段 7：订阅、任务与通知（第 15-16 周）",
+        "## 11. 阶段 8：知识库 RAG（第 17-18 周）",
+        "## 12. 阶段 9：知识图谱与传播路径（第 19-20 周）",
+        "## 13. 阶段 10：预警与自然语言 BI（第 21-22 周）",
+        "## 14. 上线准备（第 23-24 周）",
+        "## 15. 迭代工作分解模板",
+        "## 16. 测试策略",
+        "## 17. 风险与应对",
+        "## 18. 阶段完成定义"
+      ],
+      "claims_and_gaps": [
+        "224: ## 18. 阶段完成定义"
+      ]
+    },
+    {
+      "path": "docs/06-production-runbook.md",
+      "lines": 44,
+      "headings": [
+        "# Production Runbook",
+        "## Service objectives",
+        "## Monitoring",
+        "## Incident response",
+        "## Failure drills",
+        "## Backup and restore",
+        "## Rollback"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/07-security-privacy.md",
+      "lines": 39,
+      "headings": [
+        "# Security, Privacy and Data Lifecycle",
+        "## Access boundary",
+        "## Network and ingestion",
+        "## Secrets and logs",
+        "## Retention and deletion",
+        "## Required security regression"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/08-release-checklist.md",
+      "lines": 44,
+      "headings": [
+        "# Release Checklist",
+        "## Scope: local developer preview versus production",
+        "## Automated gate",
+        "## Operational gate",
+        "## Production commands"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/09-performance-baseline.md",
+      "lines": 14,
+      "headings": [
+        "# Performance Baseline"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/10-production-deployment.md",
+      "lines": 44,
+      "headings": [
+        "# Production Deployment and Operations",
+        "## Environments",
+        "## Release flow",
+        "## Domain, TLS, CDN and WAF",
+        "## Credentials",
+        "## Backup and failover drill"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/11-slo-oncall.md",
+      "lines": 25,
+      "headings": [
+        "# SLO, Error Budget and On-call",
+        "## Objectives",
+        "## Ownership",
+        "## Operational reports"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/12-release-notes-template.md",
+      "lines": 37,
+      "headings": [
+        "# Release VERSION",
+        "## User-visible changes",
+        "## Validation",
+        "## SLO impact",
+        "## Rollback"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/13-stage12-drill-results.md",
+      "lines": 26,
+      "headings": [
+        "# Stage 12 staging drill results",
+        "## Scope",
+        "## Results",
+        "## Finding and remediation",
+        "## Production boundary"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/14-enterprise-governance.md",
+      "lines": 42,
+      "headings": [
+        "# Enterprise multi-tenancy and governance",
+        "## Tenant boundary",
+        "## Roles, approvals and legal holds",
+        "## OIDC and SAML",
+        "## SCIM 2.0",
+        "## Data residency",
+        "## Quotas, cost and SLA"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/15-open-platform.md",
+      "lines": 30,
+      "headings": [
+        "# 开放平台与生态集成",
+        "## 安全边界",
+        "## Scope 与 OAuth",
+        "## Webhook 与连接器",
+        "## 用量、SDK 与生产清单"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/16-agent-orchestration.md",
+      "lines": 29,
+      "headings": [
+        "# 智能自治与 Agent 编排",
+        "## 执行模型",
+        "## 工具与审批",
+        "## Prompt、模型与成本",
+        "## 记忆隔离",
+        "## 评测与发布门禁",
+        "## 生产运行"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/17-multimodal-collaboration.md",
+      "lines": 49,
+      "headings": [
+        "# 阶段 16：多模态情报与实时协同",
+        "## 已实现范围",
+        "## 证据与引用",
+        "## 协作一致性",
+        "## 生产配置",
+        "## 运维验证"
+      ],
+      "claims_and_gaps": [
+        "42: 2. 上传已授权 WAV，确认分段时间戳；模型不支持分离时不得出现伪说话人。"
+      ]
+    },
+    {
+      "path": "docs/18-global-intelligence-decision.md",
+      "lines": 30,
+      "headings": [
+        "# 阶段 17：跨语言全球情报与决策推演",
+        "## 证据规则",
+        "## 决策室治理",
+        "## 全球视图",
+        "## 长期评测",
+        "## 运行检查"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/19-action-loop-impact.md",
+      "lines": 23,
+      "headings": [
+        "# 阶段 18：行动闭环与影响验证",
+        "## 目标",
+        "## 数据与权限",
+        "## 状态与安全规则",
+        "## API",
+        "## 前端",
+        "## 后续"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/20-decision-productization-commercialization.md",
+      "lines": 26,
+      "headings": [
+        "# 阶段 20：智能决策产品化与商业化",
+        "## 已交付",
+        "## 生产门禁",
+        "## 安全边界"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/21-autonomous-enterprise-intelligence.md",
+      "lines": 35,
+      "headings": [
+        "# 阶段 21：自治型企业情报与合规规模化",
+        "## 完成状态",
+        "## 生产门禁"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/22-intelligence-network-and-trust-marketplace.md",
+      "lines": 39,
+      "headings": [
+        "# 阶段 22：可信情报网络与生态交易规模化",
+        "## 验收门槛",
+        "## 完成状态",
+        "## 生产门禁"
+      ],
+      "claims_and_gaps": [
+        "28: - 安全聚合仅持久化总和/均值与参与方数量，标记个体输入已丢弃；TEE 查询必须携带证明后才能完成。"
+      ]
+    },
+    {
+      "path": "docs/23-global-intelligence-coordination.md",
+      "lines": 38,
+      "headings": [
+        "# 阶段 23：全球情报协同与持续验证",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 数据与接口"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 23 已完成。系统新增 `/api/v1/global-coordination` 控制面和 `/global-coordination` 操作台，覆盖以下能力：",
+        "8: 2. 数据血缘、TEE、模型签名和责任链在线证明；证明失败时状态保持 `blocked`。",
+        "21: - 证明哈希、签名、责任链或 TEE 新鲜度失败时阻断执行。"
+      ]
+    },
+    {
+      "path": "docs/24-adaptive-global-intelligence-os.md",
+      "lines": 36,
+      "headings": [
+        "# 阶段 24：自适应全球情报操作系统",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 验证"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 24 已完成，新增 `/api/v1/adaptive-os` 控制面与 `/adaptive-os` 操作台。"
+      ]
+    },
+    {
+      "path": "docs/25-provable-autonomy-global-continuous-intelligence.md",
+      "lines": 38,
+      "headings": [
+        "# 阶段 25：可证明自治与全球连续智能",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 验证"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 25 已完成，新增 `/api/v1/provable-autonomy` 控制面与 `/provable-autonomy` 工作台。"
+      ]
+    },
+    {
+      "path": "docs/26-planetary-intelligence-resilience.md",
+      "lines": 38,
+      "headings": [
+        "# 阶段 26：行星级情报韧性与可信自治经济",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 验证"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 26 已完成，新增 `/api/v1/planetary-resilience` 控制面与 `/planetary-resilience` 工作台。",
+        "9: 3. 后量子迁移支持经典与 PQ 混合签名、算法协商和历史证明再签名。",
+        "22: - 身份、策略、证明和结算迁移必须同时保留经典签名与后量子签名。"
+      ]
+    },
+    {
+      "path": "docs/27-global-cognitive-infrastructure.md",
+      "lines": 37,
+      "headings": [
+        "# 阶段 27：全球认知基础设施与长期自治治理",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 验证"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 27 已完成，新增 `/api/v1/cognitive-infrastructure` 控制面与 `/cognitive-infrastructure` 工作台。",
+        "9: 3. 后量子透明档案使用向前链接根、时间戳见证和历史根再签名。"
+      ]
+    },
+    {
+      "path": "docs/28-global-cognitive-commons.md",
+      "lines": 36,
+      "headings": [
+        "# 阶段 28：全球认知公地与自演进治理",
+        "## 完成状态",
+        "## 生产门禁",
+        "## 验证"
+      ],
+      "claims_and_gaps": [
+        "5: 阶段 28 已完成，新增 `/api/v1/cognitive-commons` 控制面与 `/cognitive-commons` 工作台。"
+      ]
+    },
+    {
+      "path": "docs/29-configuration-guide.md",
+      "lines": 123,
+      "headings": [
+        "# 配置指南：私人服务与实例配置",
+        "## 1. 最少需要配置什么",
+        "## 2. 在界面保存和验证",
+        "### 千问：同一账号配置文本、视觉和语音",
+        "## 3. 私密性与运行边界",
+        "## 4. 实例管理员负责哪些配置",
+        "### 本地公开数据入口",
+        "### 自定义本机环境与可选企业部署",
+        "## 5. 不能只靠填写配置开启的能力",
+        "## 6. 排查与后续优化"
+      ],
+      "claims_and_gaps": [
+        "30: 5. 邮件服务需先开通 SMTP、验证发件身份。587 强制 STARTTLS，465 使用隐式 TLS，不支持明文 25 端口。",
+        "35: 多个标签页编辑同一配置时，过期版本得到 409，页面提示重新加载，不静默覆盖。断网保存失败保留输入供重试。离开页面或刷新会丢弃尚未保存的密码；应用不将它存入 localStorage/sessionStorage。",
+        "51: 千问 ASR 通过 `/chat/completions` 的 `input_audio` 调用，与 Whisper 的 `/audio/transcriptions` 不同。支持 `qwen3-asr-flash` 及其日期快照；Filetrans、Realtime、语音合成和实时对话需要不同适配器，当前不支持。输入为 WAV/MP3/M4A/OGG，Base64 编码后必须小于 10 MB；项目在请求前检查模型、扩展名和体积。音频还须少于 5 分钟，时长由服务商校验，项目暂未提供自动分段。",
+        "57: 参考官方文档：[OpenAI 兼容接口](https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope)、[视觉理解](https://help.aliyun.com/zh/model-studio/visual-reasoning)、[千问语音识别](https://help.aliyun.com/zh/model-studio/qwen-speech-recognition)。当前文本、视觉和转录共用一个地址及密钥，独立供应商配置仍在后续路线中。切换 DeepSeek 文本预设会清空媒体模型，避免向不支持的接口提交音频。",
+        "71: 因此 UI 当前不支持本机 Ollama、内网模型网关或依赖环境代理的服务连接。后续应增加管理员可控的可信端点/代理白名单及独立测试，不能直接放开所有内网目标。",
+        "108: Slack/Teams/飞书/钉钉需要实际应用、授权、连接器安装和凭据租约；企业 OIDC/SAML 需要身份代理与服务商验收。支付、税务、保险、清算、跨机构联邦和形式化相关模块包含实验规则/治理记录，还需真实适配器、外部机构与业务验证。"
+      ]
+    },
+    {
+      "path": "docs/29-global-production-convergence.md",
+      "lines": 25,
+      "headings": [
+        "# 阶段 29：全球生产收敛与正式发布认证",
+        "## 任务清单",
+        "## 完成标准"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/29-operations-handbook.md",
+      "lines": 40,
+      "headings": [
+        "# 阶段 29 生产运维手册",
+        "## 部署",
+        "## 升级与回滚",
+        "## 管理员操作",
+        "## 支持与事件响应",
+        "## SLO 与灾难恢复"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/29-release-certification.md",
+      "lines": 28,
+      "headings": [
+        "# 阶段 29 发布认证记录",
+        "## 认证状态",
+        "## 自动化证据",
+        "## 生产签署项"
+      ],
+      "claims_and_gaps": [
+        "7: 2026-08-05 本地认证证据：后端 154 项测试通过；前端生产构建通过；API 冻结快照包含 353 条路径；PostgreSQL 16 + pgvector 从空库升级、回滚至阶段 28、再升级至阶段 29 通过；500 请求、25 并发健康检查 0 失败，P95 310.18ms。真实浏览器完成注册、登录和阶段 20 至 28 九个工作区巡检，并修复 Element Plus 组件未注册问题。"
+      ]
+    },
+    {
+      "path": "docs/30-open-source-roadmap.md",
+      "lines": 122,
+      "headings": [
+        "# InfoPulse 开源优化路线图",
+        "## 本轮缺陷收敛",
+        "## P0：发布可靠性，下一批",
+        "## P1：结构收敛，1-2 个月",
+        "## P2：真实质量与运行保障，2-6 个月",
+        "## P3：稳定版与治理",
+        "## 明确不做"
+      ],
+      "claims_and_gaps": [
+        "3: 更新日期：2026-10-20。公开数据主链可本地自托管使用（beta），其余模块按能力矩阵保持明确边界，不是所有模块正式完工。`[x]` 仅表示下述明确范围完成；`[ ]` 表示待完成。详细问题与测试对应见 [修复验收报告](./audits/2026-10-09-remediation.md) 和 [逐项验收记录](./audits/2026-10-13-roadmap-progress.md)，实验边界见 [能力矩阵](./32-capability-matrix.md)。",
+        "15: - [x] R31（2026-10-20）：补齐文章/报告/档案浏览记录，工作台显示真实标题、来源、时间与入口；最近报告合并正式报告和已完成分析档案，新增本人保存结果查看；浏览及报告写入成功前提交。后端 20/20、前端 68/68、生产构建、接口契约及实际页面刷新持久化验收通过，见 [专项记录](./audits/2026-10-20-workspace-activity.md)。旧版未记录的浏览无法补回；完整历史分页与跨标签页实时推送另行优化。",
+        "18: - [ ] 关注动态历史分页、超过最近 500 条内容的匹配、主题编辑/启停，以及独立完整收藏管理页。",
+        "21: - [ ] 千问真实账号验收：由使用者在私人配置录入自己的密钥，分别验收文本、图片、短音频，核对权限、免费额度与费用。",
+        "22: - [ ] 千问长音频分段/异步 Filetrans、实时语音、语音合成、独立供应商密钥与每用户实际用量/预算控制。",
+        "41: - [x] R18：工作台真实最近报告（用户隔离/软删除/排序/上限）、失败重试、收藏和反馈请求状态，见 [专项验收](./audits/2026-10-15-workspace-reliability.md)。全站 DTO 和负向按钮矩阵仍待完成。",
+        "42: - [x] R19：顶部导航与右上头像菜单、真实个人资料编辑、键盘关闭与焦点恢复、320–1440px 外壳及个人中心布局、全局搜索参数和失败状态，见 [专项验收](./audits/2026-10-15-top-navigation-profile.md)。前端 36/36、Edge 产品 12/12；全站旧业务页视觉统一和全按钮负向测试仍待完成。",
+        "65: - [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration/media worker 中断恢复；不能把 knowledge 验收扩展为全部 worker。",
+        "73: - [ ] 账户删除的外部文件/数据库一致性、legal hold 与并发 worker 验收。",
+        "74: - [ ] 多平台版本约束文件和镜像 digest 维护；安装清单不等于版本锁定。",
+        "75: - [ ] 所有核心按钮、401/断网/取消/超时、两用户协作、跨租户负向 UI 测试；路由巡检不等于按钮验收。",
+        "76: - [x] 当前 7 个 MessageBox 页面取消/关闭正常退出，图谱多步输入每一步取消均无写入；知识库四操作真实浏览器验收，见 R05。其他负向 UI 场景仍待完成。",
+        "79: - [ ] 固定可重复 fixture：采集 -> 内容 -> 事件 -> 分析 -> 报告 -> 通知 -> 回执跨域业务验收。",
+        "85: - [ ] 私人配置主密钥版本化与轮换、备份恢复演练、多个模型提供商分别授权、费用上限与用量展示；本地模型/内网代理需管理员显式白名单及独立 SSRF 验收后支持。",
+        "86: - [ ] crawler/collector 来源契约统一，保留讨论样本与资讯的业务差异，不强行合成巨型服务。",
+        "87: - [ ] 通知、平台 webhook、业务 connector 共用技术投递基础设施，领域授权与回执独立。",
+        "88: - [ ] 严格 DTO/OpenAPI 类型生成，优先清理权限、工作流与知识 API 的高风险 `any`。",
+        "89: - [ ] 按领域拆分大型 Vue 页面、请求状态和 composables，补组件回归。",
+        "92: - [ ] SDK 真实 HTTP、分页、重试和版本兼容矩阵及发布流水线。",
+        "99: - [ ] 真实源长期可用性监测、错误分类/退避/Retry-After、RSS 实站矩阵及长期质量评估；单次 canary 不等于持续稳定。",
+        "100: - [ ] 真实 LLM、SMTP、S3、SSO/SCIM、Slack/Teams/飞书/钉钉提供商验收，密钥只通过 secret 注入。",
+        "101: - [ ] 固定模型评测集：引用完整率、无证据拒答、结构正确率、事实风险与失败降级。",
+        "102: - [ ] API/模型/采集/任务/投递的 trace_id、耗时、成本、重试原因和低基数指标。",
+        "103: - [ ] 对象/向量/缓存/备份删除一致性与恢复演练；建立 RPO/RTO 和性能基线。",
+        "104: - [ ] 实验模块 feature flag/插件隔离；只有明确用户需求时开发真实分布式或形式化能力。",
+        "110: - [ ] v1 API/SDK 支持周期、兼容性声明和发布迁移承诺。",
+        "111: - [ ] 最小权限插件、签名和沙箱，不相信客户端自报审批或 formal_result。",
+        "112: - [ ] ADR、威胁模型、维护者责任与社区治理；国际化、无障碍和合规评估。"
+      ]
+    },
+    {
+      "path": "docs/31-dependency-upgrade-policy.md",
+      "lines": 52,
+      "headings": [
+        "# InfoPulse 依赖升级政策",
+        "## 目标",
+        "## 更新分类",
+        "## 兼容性集合",
+        "## Dependabot 规则",
+        "## 删除未使用依赖",
+        "## 合并门禁",
+        "## 当前三个失败 PR 的结论"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/32-capability-matrix.md",
+      "lines": 44,
+      "headings": [
+        "# 能力分级与验证矩阵",
+        "## 默认拒绝与空配置",
+        "## 技术成功与业务成功"
+      ],
+      "claims_and_gaps": [
+        "3: 更新日期：2026-10-20。公开数据主链支持本地自托管 beta 使用；等级描述支持边界，不是安全认证。当前版本没有整体 stable/生产级承诺。",
+        "7: | 认证、会话、共享源权限 | beta | 公开注册非管理员、可撤销会话、单次 refresh、数据库限流；权限与并发回归 | 未完成全部 SSO/SCIM 真实提供商矩阵 |",
+        "9: | 私人服务配置（2026-10-18） | beta/外部依赖 | `/settings` 配置模型、视觉/转写与 SMTP；按账户加密、空密码保留、显式清除、版本冲突保护；请求与后台任务按所有者选取配置，见 [R24](./audits/2026-10-18-private-configuration.md) | 管理员掌握服务器主密钥；不继承全局模型/邮件凭据；仅公网 HTTPS 模型与 TLS SMTP；未实测付费提供商，不支持多提供商独立密钥、主密钥在线轮换 |",
+        "11: | 工作台个人活动（2026-10-20） | beta | 收藏真实标题、账号关注动态、文章/事件/报告/档案浏览记录，最近报告合并正式报告和已完成档案；保存结果查看、账户隔离、独立连接持久化与真实页面验收，见 [R30](./audits/2026-10-20-workspace-personalization.md)、[R31](./audits/2026-10-20-workspace-activity.md) | 工作台各最近列表限八条；旧浏览无法追溯补回，完整历史分页、跨标签页实时推送及所有功能入口覆盖仍待优化 |",
+        "14: | 编排与记忆 | beta | DAG 校验、审批、真实读写、outbox、等待实际投递、失败终态 | 不支持并行图；无模型或无执行器不冒充成功 |",
+        "17: | 协作 | beta | 同源 WS ticket、版本冲突控制、编辑生成工作流草稿；浏览器握手与草稿持久化 | 不自动切换已发布版本；未完成多地域/两用户压力验收 |",
+        "22: | 阶段 20-29 规则治理 | experimental | 存在规则计算、签名记录、拓扑模拟、声明状态 | 不是已部署的 BFT、真正分布式执行、形式化验证或多方可信审批 |",
+        "24: | 发布工程 | beta | 198 项后端基线回归及后续专项、354 路径 schema、前端/SDK；Linux/Windows Python 3.10/3.11 持续 CI；full/minimal 容器 Nginx 产品验收；PostgreSQL 14 表带数据迁移与独立知识 worker 恢复；依赖审计/SBOM | 其余领域迁移/worker 恢复、版本约束和镜像 digest、性能/可用性 SLO 仍待完成；详细计数按各 PR 最新日志 |"
+      ]
+    },
+    {
+      "path": "docs/api-deprecation-policy.md",
+      "lines": 24,
+      "headings": [
+        "# API 契约冻结与弃用策略",
+        "## 本次安全例外与迁移"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-09-project-audit.md",
+      "lines": 365,
+      "headings": [
+        "# InfoPulse 项目审计与收敛路线",
+        "## 1. 结论",
+        "## 2. 方法与验证边界",
+        "### 已执行的检查",
+        "### 未完成的验证",
+        "## 3. 真实架构与断点",
+        "## 4. 优先问题",
+        "### A01 / P1：注册可自报管理员邮箱取得管理员身份",
+        "### A02 / P1：RSS 重定向绕过内网地址限制",
+        "### A03 / P1：连接器允许对任意内网 URL 发起 POST",
+        "### A04 / P1：热搜解读匿名调用模型",
+        "### A05 / P1：普通用户可以修改全局数据源",
+        "### A06 / P1：行动回执创建必然产生重复关键字异常",
+        "### A07 / P1：SQLite 日期读回导致行动运营接口崩溃",
+        "### A08 / P1：SSE 成功/失败后不清理计时器",
+        "### A09 / P1：无匹配条件仍进入本应不执行的分支",
+        "### A10 / P1：编排工具“queued”不是实际投递",
+        "### A11 / P1：行动启动与执行回执之间没有完整闭环",
+        "### A12 / P1：工作流协作成功但不写回工作流",
+        "## 5. 重要稳定性与工程问题",
+        "### B01 / P2：测试环境与 requirements 不一致",
+        "### B02 / P2：超时预算不统一",
+        "### B03 / P2：知识处理状态可能永久停留 processing",
+        "### B04 / P2：默认网络边界与文档不符，WebSocket 代理缺失",
+        "### B05 / P2：认证撤销、限流与开发指标入口",
+        "### B06 / P2：API 契约与评测门禁覆盖不足",
+        "### B07 / P2：实验模块命名超出实现保证",
+        "## 6. 重叠代码应该怎样收敛",
+        "## 7. 模块完成度的判断",
+        "## 8. 为什么现有测试没有拦住这些问题",
+        "## 9. 优化路线与验收",
+        "### 第 1 阶段：0-2 周，安全与确定性故障",
+        "### 第 2 阶段：2-4 周，打通实际业务闭环",
+        "### 第 3 阶段：1-2 个月，测试与可维护性",
+        "### 第 4 阶段：3-6 个月，质量、可观测性和实验隔离",
+        "## 10. 文档应补全与更正的内容",
+        "## 11. GitHub 未合并 PR 补查",
+        "## 12. 下一步建议"
+      ],
+      "claims_and_gaps": [
+        "3: > 历史审计，描述修复前基线。当前整改状态、新增浏览器发现和验证边界见 [修复验收报告](./2026-10-09-remediation.md)。保留原始发现以便追溯，不能将下文的“尚未修复”视作最新状态。报告不包含真实凭据或用户数据。",
+        "7: 本文是本地审计记录，不是发布认证。包含尚未修复的安全问题，不建议直接公开或推送。审计没有修改业务源码、真实业务数据库、账号配置或 GitHub PR。",
+        "52: ### 未完成的验证",
+        "94: 触发条件是配置中存在管理员邮箱且该邮箱尚未被注册。模拟数据库与配置调用实际注册服务，得到 `self_claimed_admin_email_is_admin=True`。",
+        "234: [nginx.conf](../../frontend/nginx.conf#L10) 没有 WebSocket Upgrade/Connection 转发设置，而协作前端连接同源 `/api/v1/multimodal/ws/...`。这是容器入口的配置缺口，尚未运行完整容器进行握手复现。Vite 开发路径与 Docker 路径都需要单独验收。",
+        "254: 这些计算可以作为实验性规则模型，不能表述为已经完成分布式执行、形式化验证、真正多方审批或删除证明。建议分级为 stable/beta/experimental，不能由客户端声明替代可信审批事件与运行证据。",
+        "286: 此表不是逐个按钮全部实测通过的清单。没有真实外部账号或完整部署验证的能力均不能判为已完成。",
+        "336: - 只在用户需求明确的模块投入真实分布式、形式化或多方治理实现。",
+        "351: 现有长博客和路线图本轮未改，避免把尚未修复的结论直接发布为新的完成声明。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-09-remediation.md",
+      "lines": 139,
+      "headings": [
+        "# InfoPulse 修复与验收报告",
+        "## 1. 结论与完成定义",
+        "## 2. 缺陷逐项对应",
+        "## 3. 工程问题与剩余范围",
+        "## 4. 浏览器发现的额外故障",
+        "### 4.1 知识上传 422",
+        "### 4.2 空 PostgreSQL 外键与并发目录初始化",
+        "### 4.3 UI 状态与移动工具栏",
+        "### 4.4 容器上传入口与媒体有界读取",
+        "### 4.5 远端门禁发现的探针与构建工具问题",
+        "## 5. 实测证据",
+        "### 复现命令",
+        "# 另一个终端，frontend 目录",
+        "# backend 目录；未安装 Edge 时去掉 --browser-channel msedge",
+        "### 5.1 远端证据索引",
+        "## 6. 升级注意",
+        "## 7. 后续验收顺序"
+      ],
+      "claims_and_gaps": [
+        "25: | A11 行动无执行器 | 完成（人工/connector） | 人工等待回执；connector 执行、自动回执、完成连接；不支持的停止条件拒绝 | `action_worker.py`、`action_loop.py`；未知投递不得伪装完成 |",
+        "35: | B02 超时预算 | 完成配置与回归 | 模型 45 秒总预算，前端 120 秒，Nginx 180 秒；超预算终止 | 全长任务取消/恢复/跨域事务尚未统一，是独立后续优化 |",
+        "40: | B07 实验模块宣传 | 完成文档纠偏 | 能力矩阵标明实验/外部依赖，不再把 formal/BFT/删除声明当作证明 | 没有因此实现真实形式化验证或分布式共识 |",
+        "80: | TypeScript SDK 构建 | 通过 | 不等于 SDK 已完成真实 HTTP 兼容矩阵 |",
+        "88: | 完整 Chromium 镜像 | 尚未验收 | 本机 registry 拉取受限；最小容器通过不代表可选采集/媒体依赖通过 |"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-13-auth-durability.md",
+      "lines": 30,
+      "headings": [
+        "# R08：认证令牌签发的持久性边界",
+        "## 问题与修复范围",
+        "## 验证设计与结果",
+        "## 保留的限制"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-13-profile-durability.md",
+      "lines": 26,
+      "headings": [
+        "# R12：资料更新的响应前持久性",
+        "## 问题与修正",
+        "## 实际测试",
+        "## 未由此解决的事项"
+      ],
+      "claims_and_gaps": [
+        "26: 本项是资料写入的事务专项，未改变资料字段校验或并发唯一性约束。显式 null、非法邮箱、大小写冲突等输入边界仍需单独改善。账户删除会调用知识删除服务，其数据库和外部文件有不同提交边界，不能只增加一个最终 commit 就宣称删除原子性；跨存储删除、legal hold、恢复和并发 worker 必须另立专项。其他领域事务审计也未完成。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-13-rate-limit-clock.md",
+      "lines": 19,
+      "headings": [
+        "# R10：固定窗口限流的确定性测试",
+        "## 实际失败与根因",
+        "## 修复与验收合同"
+      ],
+      "claims_and_gaps": [
+        "3: 日期：2026-10-13。状态：已完成并正常合并 [PR #71](https://github.com/CoderDongHuang/InfoPulse/pull/71)。head `4d8ac9f` 的 [Release Gate 38386828324](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828324) 与 [CodeQL 38386828656](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38386828656) 全部通过，main 为 `159f1c1`。本机专项 **6/6** 通过（23.998 秒，Windows Python 3.10）。本项只改变测试夹具，不改变生产限流。",
+        "17: 这证明固定窗口的确定语义，不把它描述为任意滚动 60 秒限流。窗口边缘允许连续两分钟额度的突发是现有算法边界；滚动窗口/令牌桶和 PostgreSQL 多进程限流可另行立项，不能由本项假定已完成。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-13-roadmap-progress.md",
+      "lines": 264,
+      "headings": [
+        "# 路线图逐项验收记录（2026-10-13）",
+        "## R01：完整 Chromium / 媒体镜像",
+        "## R02：PostgreSQL 带数据迁移 / 独立知识 worker 恢复",
+        "## R03：前端按需组件与包体预算",
+        "# 生成 dist/bundle-budget.json；超限会导致 build 失败",
+        "## R04：Windows 后端持续验收",
+        "## R05：多页面对话框取消与写入边界",
+        "## R06：行动执行步骤表格结构",
+        "## R07：媒体失败原子性与不确定模型调用",
+        "## R08：认证令牌响应前持久化",
+        "## R09：文档、证据与长篇博客同步",
+        "## R10：限流测试的分钟边界",
+        "## R11：Windows 全量门禁预算",
+        "## R12：资料更新响应前持久化",
+        "## R13：资料输入校验与冲突响应",
+        "## R14：身份唯一性数据库约束",
+        "## R15：完整测试分层与并行覆盖",
+        "## R16：历史用户名与邮箱登录歧义",
+        "## R17：本轮文档与工程博客",
+        "## 2026-10-14 独立合并与集成结果",
+        "## R18：真实工作台报告与错误恢复",
+        "## R19：顶部导航、个人中心与搜索入口"
+      ],
+      "claims_and_gaps": [
+        "3: 每项以独立 PR 提交；只有实际测试通过才标记完成。A01–A12 的历史修复见 [前轮报告](./2026-10-09-remediation.md)，未完成工作见 [路线图](../30-open-source-roadmap.md)。本报告不将依赖运行验收扩大为真实提供商质量或全功能完成。",
+        "42: 3. staging 先落地，真正独立运行生产 worker 入口。在 claim 已提交后注入等待，再由操作系统 kill；原始上传仍存在，当前版本尚未提交。",
+        "60: 重要限制：降级会删除 revision 30–33 的 dispatch_jobs、auth_sessions、api_rate_limits 以及新增字段。本验收只证明 revision 29 已有核心数据保留，**不是全业务无损回滚保证**。仍须停 worker、备份数据库和文件、核对迁移版本，不能将脚本指向业务库。actions 的不确定投递不能自动重放；media / orchestration 恢复、其他领域表、完整备份恢复、RPO/RTO 仍为待完成事项。",
+        "103: 文档提交 `150c65a` 的 [Release Gate 38353290271](https://github.com/CoderDongHuang/InfoPulse/actions/runs/38353290271) 中 Python 3.10 产品验收在 WS 等待 connected/pong 时失败，其余门禁通过。日志显示票据 POST 成功后连接被接受，但未收到消息。票据创建没有响应前提交，独立 WS 连接可能看不到尚未提交的票据；同时文档创建也存在相同边界。两个接口现在成功响应前提交，新增文件数据库的独立连接可见性、审计同事务持久化和两种提交失败回归。WS 验收记录提前关闭的状态码，不再将关闭误报为等待超时；没有加入重试或放宽成功标准。",
+        "119: 边界：此项验证 Python 包安装、代码导入、后端逻辑及 SQLite 空库迁移，不验证 Windows Chromium/ffmpeg、Windows PostgreSQL worker kill、所有浏览器按钮或完整备份恢复。依赖版本清单只是证据，不是约束/锁文件；多平台版本约束、镜像 digest 仍独立待完成。",
+        "191: 保留后续未完成项，不把整份路线图勾选完成；真实第三方密钥、备份恢复、其他 worker、完整 UI 负向矩阵仍需独立证据。查看当前勾选范围请使用 [路线图](../30-open-source-roadmap.md)，而不是旧博客中的设计目标。",
+        "203: 文档 head `847de1d` 的 Release Gate 38387941056 两个 Windows job 被 30 分钟时限取消；3.10 单测试阶段已完成 217 项，1702.129 秒，后续步骤尚未结束；3.11 直到取消前持续通过。取消未当作成功，不用旧 head rerun 替代修正，详见 [运行预算报告](./2026-10-13-windows-budget.md)。P1 的测试分层/并行仍待完成。",
+        "235: 状态：文档实现与本机校验完成，独立文档 PR 同样需要最新 head 全部门禁，不以文档变更跳过 CI。博客增加第 69–73 节，解释 R13–R16 的输入合同、数据库竞争、迁移维护窗口、历史身份歧义、分片与精确覆盖，以及仍未完成的删除、worker 恢复和跨域链路。当前约 7.8 万字符，不称为中文词数或新增篇幅。",
+        "254: 文档与博客由独立 [PR #78](https://github.com/CoderDongHuang/InfoPulse/pull/78) 提交；补入上述合并记录后，仍要求最终 head 的完整 CI，通过与合并证据以该 PR 为准。本轮未完成账户删除跨存储一致性、其他 worker 的进程中断恢复、完整跨域 fixture、全按钮负向 UI、真实第三方验收和稳定版本承诺，路线图对应项保持 `[ ]`。",
+        "264: 设计规范、README、文档索引与博客同步更新，5 张真实截图独立存放；无个人业务数据和虚构模型结果。详见 [R19 专项](./2026-10-15-top-navigation-profile.md)。其他业务页视觉统一、其余按钮负向矩阵、删除一致性、worker 中断和真实提供商仍未完成，不因界面改版勾选。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-13-windows-budget.md",
+      "lines": 19,
+      "headings": [
+        "# R11：Windows 全量门禁的运行预算",
+        "## 取消的实际证据",
+        "## 修正与验证"
+      ],
+      "claims_and_gaps": [
+        "9: - Python 3.10 job `115264247066` 日志在取消前已显示 `Ran 217 tests in 1702.129s`，末尾 workflow 测试全部 `ok`；尚未完成契约、迁移和制品步骤。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-14-identity-uniqueness.md",
+      "lines": 29,
+      "headings": [
+        "# R14：身份唯一性、存量迁移与并发写入",
+        "## 问题与设计",
+        "## 升级操作",
+        "## 运行证据",
+        "## 未覆盖范围"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-14-login-namespace.md",
+      "lines": 11,
+      "headings": [
+        "# R16：历史身份数据与登录命名空间"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-14-profile-validation.md",
+      "lines": 34,
+      "headings": [
+        "# R13：资料输入边界与身份冲突",
+        "## 缺陷与修正",
+        "## 验收方法",
+        "## 本机结果",
+        "## CI 预算修正",
+        "## 仍待验证"
+      ],
+      "claims_and_gaps": [
+        "34: 本项完成请求校验和冲突响应；并发大小写唯一性必须由下一项数据库约束和迁移验证保证。账户删除、外部存储清理、真实提供商和全部 UI 负向场景仍未完成。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-14-test-layers.md",
+      "lines": 62,
+      "headings": [
+        "# R15：测试分层、并行执行与完整覆盖门禁",
+        "## 原因与分类",
+        "## CI 结构",
+        "## 本机复现",
+        "## 实验结果与限制"
+      ],
+      "claims_and_gaps": [
+        "60: 当前 SHA256 仅保证分配稳定，尚未按历史耗时平衡；新类加入可能导致某片变慢。CI job 最大预算暂留 45 分钟，需积累新分片统计再收紧。安装重复增加总计算成本；并行优化不表示总 CPU 时间变少。",
+        "62: 并行隔离可能改变历史全量进程的共享状态顺序，实际运行及三环境 CI 是必要验证。没有覆盖所有业务按钮、真实提供商、其他 worker 恢复或跨域业务 fixture，路线图对应条目仍保持待完成。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-15-top-navigation-profile.md",
+      "lines": 53,
+      "headings": [
+        "# R19：顶部导航、个人中心与搜索入口验收",
+        "## 已完成",
+        "## 本机验证结果",
+        "## 复现",
+        "## 尚未完成与优化顺序"
+      ],
+      "claims_and_gaps": [
+        "5: ## 已完成",
+        "45: ## 尚未完成与优化顺序"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-15-workspace-reliability.md",
+      "lines": 37,
+      "headings": [
+        "# R18：工作台真实报告与失败恢复",
+        "## 问题与修复",
+        "## 验证",
+        "## 复现方式与边界"
+      ],
+      "claims_and_gaps": [
+        "37: 首页 `tasks` 字段仍未接入任务聚合，UI 未展示虚构任务。其余页面的错误、超时和按钮矩阵，以及账户删除跨存储一致性等仍在路线图中未完成。CI 与合并状态以对应 PR 的实际结果为准，不由本地测试替代。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-16-public-use.md",
+      "lines": 73,
+      "headings": [
+        "# 2026-10-16：公众使用链路与界面验收",
+        "## R20：分类导航与项目页脚",
+        "## R21：无需密钥的真实公开数据主链",
+        "### 完成项与设计",
+        "### 真实运行结果",
+        "### 回归与复现",
+        "# 确定性测试：临时配置与临时库，不读取个人 .env",
+        "### 后续优化",
+        "## 使用范围"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-17-navigation-chat.md",
+      "lines": 67,
+      "headings": [
+        "# 2026-10-17：导航图标与 AI 对话界面",
+        "## R22：头像菜单与导航图标（完成）",
+        "## R23：DeepSeek 风格对话工作区（完成）",
+        "### 验证证据",
+        "### 界面预览",
+        "### 能力边界与后续方向"
+      ],
+      "claims_and_gaps": [
+        "22: - [x] 网络失败、服务端失败、同步异常均释放发送状态并保留输入；停止生成明确标记未完成草稿。",
+        "63: - [ ] 会话自动命名覆盖手动新建后的首问、重命名和按日期分组。",
+        "64: - [ ] 长历史分页/虚拟列表、滚动位置保留及可配置字号。",
+        "65: - [ ] 经消毒的 Markdown/代码高亮；当前纯文本路径优先确保输出安全。",
+        "66: - [ ] 服务端生成取消确认、多标签页协同和中断恢复协议。",
+        "67: - [ ] 用户自行配置模型后的真实模型质量与长上下文专项评测。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-18-optional-redis.md",
+      "lines": 13,
+      "headings": [
+        "# R25：Redis 可选启动失败后的连接池状态"
+      ],
+      "claims_and_gaps": [
+        "11: - [ ] Redis 运行中断线/重连和多进程故障恢复矩阵，不属于本次启动修复。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-18-private-configuration.md",
+      "lines": 102,
+      "headings": [
+        "# R24：私人配置中心设计与验收",
+        "## 使用目标与范围",
+        "## 设计与数据流",
+        "# 生产实现见 app/services/service_settings.py 与 core/runtime_settings.py。",
+        "## 密钥生命周期与出站约束",
+        "## 页面与失败恢复",
+        "## 本机验证记录",
+        "## 完成与后续工作"
+      ],
+      "claims_and_gaps": [
+        "95: - [ ] 使用用户自行提供的真实 LLM/SMTP，验证文本、图像、转录及最终邮件送达；不把 MockTransport 通过当作提供商验收。",
+        "96: - [ ] 多提供商分开授权、按能力选模型、额度上限及计费可见性。",
+        "97: - [ ] 加密主密钥版本化、在线轮换和带数据备份恢复演练。",
+        "98: - [ ] 管理员可控的本地模型/内网代理白名单，不直接放宽当前公网限制。",
+        "99: - [ ] PostgreSQL 私人配置带数据迁移与并发专项、媒体/编排进程中断恢复。",
+        "100: - [ ] 全部核心按钮的负向验收、实验模块隔离和真实业务适配器。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-18-public-workspace-entry.md",
+      "lines": 76,
+      "headings": [
+        "# R28 公开数据入口与空状态澄清",
+        "## 问题与证据",
+        "## 修改",
+        "## 实际运行结果",
+        "## 界面证据",
+        "## 复验",
+        "## 尚未覆盖"
+      ],
+      "claims_and_gaps": [
+        "3: 状态：已完成下述范围。验收日期：2026-10-18。",
+        "74: ## 尚未覆盖"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-18-settings-alignment.md",
+      "lines": 15,
+      "headings": [
+        "# R26 私人配置表单对齐验收",
+        "## 问题与修复",
+        "## 实际验证"
+      ],
+      "claims_and_gaps": [
+        "3: 状态：已完成。日期：2026-10-18。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-18-unified-logo.md",
+      "lines": 15,
+      "headings": [
+        "# R27 统一项目标志"
+      ],
+      "claims_and_gaps": [
+        "3: 状态：已完成。日期：2026-10-18。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-19-qwen-and-public-connectivity.md",
+      "lines": 34,
+      "headings": [
+        "# 公开来源联网恢复与千问适配",
+        "## 已完成",
+        "## 验证记录",
+        "## 待完成及使用限制"
+      ],
+      "claims_and_gaps": [
+        "5: ## 已完成",
+        "27: ## 待完成及使用限制",
+        "29: - [ ] 用户真实百炼账号下的文本、图片、音频效果与费用验收；不要把免费额度当成永久免费。",
+        "30: - [ ] 客户端音频时长检查与自动分段。当前本地检查体积，少于 5 分钟的要求由上游校验。",
+        "31: - [ ] Filetrans 时间戳、Realtime、语音合成和跨供应商独立密钥。",
+        "32: - [ ] 界面用量余额展示及真实费用限额控制；当前成本估算不代表服务商账单。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-arxiv-rate-limit.md",
+      "lines": 16,
+      "headings": [
+        "# arXiv 429 修复记录"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-crop.md",
+      "lines": 62,
+      "headings": [
+        "# R33：先裁剪头像，再校验上传大小",
+        "## 已完成",
+        "## 实现",
+        "## 测试与页面验收",
+        "## 边界与后续"
+      ],
+      "claims_and_gaps": [
+        "7: ## 已完成",
+        "59: - 不支持自由比例、手动旋转、滤镜和动画头像；当前目标为固定尺寸的个人头像。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-direct-crop.md",
+      "lines": 26,
+      "headings": [
+        "# R35：无数值控件的直接头像裁剪",
+        "## 已完成",
+        "## 本轮验证",
+        "## 边界"
+      ],
+      "claims_and_gaps": [
+        "5: ## 已完成",
+        "26: 内部仍限制缩放范围并保持图片填满选区，但不要求使用者理解或选择缩放数值。保留单指拖动；尚未支持触屏双指捏合，移除按钮后不承诺纯触屏缩放体验。旋转、动画头像和全设备矩阵验收仍未覆盖。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-fixed-webp.md",
+      "lines": 54,
+      "headings": [
+        "# R36-B：固定裁剪框、移动缩放图片（已完成）",
+        "## 已完成项",
+        "## 实现与边界",
+        "## 自动化测试",
+        "## 本地浏览器验收",
+        "## 后续可选优化"
+      ],
+      "claims_and_gaps": [
+        "1: # R36-B：固定裁剪框、移动缩放图片（已完成）",
+        "5: ## 已完成项",
+        "22: 原图只保留本地引用，关闭后释放 Object URL。保留 PNG/JPEG/WebP 类型和非空校验；超大原图仍可能受浏览器解码能力及可用内存限制，会明确提示读取失败，不承诺无限大图片可用。不支持 WebP 编码的旧浏览器会提示更新，不能用 PNG 冒充 WebP。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-simple-controls.md",
+      "lines": 36,
+      "headings": [
+        "# R34：简化头像裁剪交互",
+        "## 已完成",
+        "## 实现与测试",
+        "## 边界"
+      ],
+      "claims_and_gaps": [
+        "7: ## 已完成",
+        "36: 不支持双指捏合缩放、旋转或动画头像；手机可用加减按钮和单指拖动，本轮未做全移动设备矩阵验收。缩小到 100% 时保持图片填满头像，不提供留白或任意比例裁剪。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-avatar-webp-storage.md",
+      "lines": 32,
+      "headings": [
+        "# R36-A：私有头像 WebP 存储（已完成）",
+        "## 验收契约",
+        "## 测试证据",
+        "## 部署到本地已有安装",
+        "## 后续边界"
+      ],
+      "claims_and_gaps": [
+        "1: # R36-A：私有头像 WebP 存储（已完成）"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-local-avatar.md",
+      "lines": 54,
+      "headings": [
+        "# R32：个人中心本地头像上传",
+        "## 已完成",
+        "## 使用方式",
+        "## 验证结果",
+        "## 边界与后续优化"
+      ],
+      "claims_and_gaps": [
+        "5: ## 已完成",
+        "13: - [x] 个人中心和顶部账户菜单同步展示；独立上传不清空尚未保存的用户名、邮箱输入。",
+        "54: - 本次只验收头像链路，不代表全站所有功能已完成验收。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-workspace-activity.md",
+      "lines": 66,
+      "headings": [
+        "# R31：工作台最近浏览与最近报告同步验收",
+        "## 故障与原因",
+        "## 已完成修改",
+        "## 自动化验证",
+        "## 实际页面验收",
+        "## 验证边界与后续优化"
+      ],
+      "claims_and_gaps": [
+        "3: 日期：2026-10-20。范围：本地自托管工作台的浏览记录、正式报告与已完成分析档案。状态：下列修复和验证已完成；不表示全站功能已达到稳定版。",
+        "12: ## 已完成修改",
+        "18: - [x] 最近报告合并本人未删除正式报告与已完成的三类内容档案，按时间取最近八条，显示中文状态并分别链接报告编辑器或档案结果。",
+        "31: 包括真实 HTTP 路由的浏览新增/去重/顺序/UTC、真实标题、删除后失效、账户隔离、合并已完成档案、档案详情所有权及删除后的工作台结果。额外使用临时文件 SQLite 和独立读连接验证报告创建、改名、浏览、保存版本、恢复与删除在处理函数返回时已可见。",
+        "62: - 旧版未曾写入的浏览行为无法追溯补回；已存在的本人正式报告及已完成分析档案可直接读取，无需重新生成。"
+      ]
+    },
+    {
+      "path": "docs/audits/2026-10-20-workspace-personalization.md",
+      "lines": 49,
+      "headings": [
+        "# 工作台收藏与关注链路修复",
+        "## 问题与原因",
+        "## 完成范围",
+        "## 验证结果",
+        "## 使用方法与限制",
+        "## 页面证据"
+      ],
+      "claims_and_gaps": [
+        "42: - [ ] 关注动态历史分页与全量索引匹配。",
+        "43: - [ ] 可编辑关键词、启用/停用主题的完整界面。",
+        "44: - [ ] 完整收藏管理页、筛选、分页与失效记录清理。",
+        "45: - [ ] 旧关注在不同浏览器间的导出/导入、长期真实来源质量与推荐效果评估。"
+      ]
+    },
+    {
+      "path": "docs/blog/infopulse-open-source-engineering.md",
+      "lines": 2476,
+      "headings": [
+        "# 从舆情工作台到可验证智能平台：InfoPulse 的开源工程设计",
+        "## 摘要",
+        "## 关键词",
+        "## 研究问题与贡献",
+        "## 1. 背景：信息很多，可信结论很少",
+        "## 2. 总体设计",
+        "## 3. 配置：默认能开发，生产必须显式安全",
+        "## 4. 数据采集：失败必须真实，结果不能伪造",
+        "## 5. 证据约束：没有引用就不输出确定结论",
+        "## 6. 认证、租户和高风险动作",
+        "## 7. 异步任务与应用生命周期",
+        "## 8. 前端：按业务视图加载，而不是一个巨型控制台",
+        "## 9. 开源前如何验证“链路通畅”",
+        "## 10. 开源过程中发现的问题与解决方案",
+        "### 10.1 配置项不完整",
+        "### 10.2 Python SDK 安装后可能无法使用",
+        "### 10.3 仓库能运行，但不等于可以合规开源",
+        "### 10.4 文档很多，但导航与当前实现脱节",
+        "## 11. 实际展示与运行",
+        "## 12. 从一次请求理解完整业务链路",
+        "## 13. 领域模型：为什么不能只存一张“文章表”",
+        "## 14. 数据库迁移：把阶段演进变成可验证历史",
+        "## 15. Collector 设计：统一接口背后的现实复杂度",
+        "### 15.1 HTTP 采集器",
+        "### 15.2 浏览器采集器",
+        "### 15.3 SSRF 防御",
+        "## 16. 清洗、去重、事件聚类与风险评分",
+        "## 17. 搜索与知识图谱：相关不等于可信",
+        "## 18. 私有知识库与 RAG 安全",
+        "## 19. Agent 编排：从聊天转向受控执行",
+        "## 20. 多模态证据：文本之外如何保持可定位",
+        "## 21. 自动化、通知与外部投递",
+        "## 22. 开放平台与 SDK 设计",
+        "## 23. 企业多租户：隔离必须发生在查询层",
+        "## 24. 安全威胁模型：从资产而不是漏洞清单出发",
+        "### 24.1 关键资产",
+        "### 24.2 信任边界",
+        "### 24.3 主要威胁与现有控制",
+        "## 25. 可观测性：日志不是把请求全部打印出来",
+        "## 26. 测试策略：154 个测试分别证明什么",
+        "### 26.1 为什么全量测试较慢",
+        "## 27. CI/CD 与供应链：从提交到可追溯制品",
+        "## 28. Docker 与本地开发体验",
+        "## 29. 前端信息架构与实际空状态",
+        "## 30. 性能分析与容量规划",
+        "### 30.1 API 与数据库",
+        "### 30.2 Worker",
+        "### 30.3 前端",
+        "### 30.4 建议容量指标",
+        "## 31. 故障案例与解决思路",
+        "### 31.1 Redis 不可用",
+        "### 31.2 数据源返回 200 但没有内容",
+        "### 31.3 模型超时",
+        "### 31.4 迁移成功但新版本 readiness 失败",
+        "### 31.5 Webhook 重复送达",
+        "### 31.6 删除文档后搜索仍命中",
+        "## 32. 开源文档为什么也是产品的一部分",
+        "## 33. 从零开始的贡献者教程",
+        "### 33.1 获取代码",
+        "### 33.2 后端最小环境",
+        "### 33.3 前端",
+        "### 33.4 提交前检查",
+        "## 34. 架构权衡与没有选择的方案",
+        "### 34.1 为什么使用 FastAPI，而不是拆成许多微服务",
+        "### 34.2 为什么同时支持 SQLite 和 PostgreSQL",
+        "### 34.3 为什么模型失败要降级，而不是让整个请求失败",
+        "### 34.4 为什么不用模型自动决定所有工具",
+        "### 34.5 为什么不追求“全自动事实核查”",
+        "## 35. 不足、技术债与诚实边界",
+        "### 35.1 外部数据源不稳定",
+        "### 35.2 Python 依赖尚未完全锁定",
+        "### 35.3 认证仍需加固",
+        "### 35.4 前端工程门禁不够完整",
+        "### 35.5 高阶段能力需要更多用户验证",
+        "### 35.6 国际化不足",
+        "### 35.7 生产规模仍需专项验证",
+        "## 36. 分阶段优化路线",
+        "### P0：0-4 周",
+        "### P1：1-3 个月",
+        "### P2：3-6 个月",
+        "### P3：6-12 个月",
+        "## 37. 给维护者的发布检查表",
+        "## 38. 常见问题",
+        "### 没有 LLM API Key 能运行吗？",
+        "### 为什么默认推荐 SQLite，却又说生产必须 PostgreSQL？",
+        "### Redis 挂了 API 为什么还能启动？",
+        "### 采集器为什么不自动绕过验证页？",
+        "### 阶段 20-29 是否都适合普通用户？",
+        "### 现在能直接部署公网吗？",
+        "## 39. 实验设计与可重复验收协议",
+        "### 39.1 实验目标",
+        "### 39.2 环境与变量控制",
+        "### 39.3 验收矩阵",
+        "### 39.4 失败注入与负向测试",
+        "## 40. 结果分析与消融思考",
+        "### 40.1 RQ1：可用性来自降级边界",
+        "### 40.2 RQ2：治理约束必须位于模型之外",
+        "### 40.3 RQ3：项目完整性是向量，不是布尔值",
+        "### 40.4 RQ4：依赖机器人不能识别兼容性集合",
+        "## 41. 有效性威胁",
+        "### 41.1 构念有效性",
+        "### 41.2 内部有效性",
+        "### 41.3 外部有效性",
+        "### 41.4 结论有效性",
+        "## 42. 可复现性声明",
+        "## 43. 伦理、隐私与负责任披露",
+        "## 44. 术语表",
+        "## 45. 参考文献与规范",
+        "## 46. 结语",
+        "## 47. 二次审计：从功能存在到结果可验证",
+        "### 47.1 为什么已有测试不能回答“项目是否完整”",
+        "### 47.2 审计采用的证据层级",
+        "## 48. 身份与出站边界：把默认拒绝写入代码",
+        "### 48.1 管理员不是用户自报的属性",
+        "# backend/app/services/auth_service.py，省略非关键字段",
+        "### 48.2 JWT 签名正确不等于会话仍有效",
+        "### 48.3 SSRF 防护必须覆盖连接过程",
+        "# 实现节选；完整资源界限和 finally 清理见 core/outbound.py",
+        "## 49. 持久化执行：区分入队、发送和远端确认",
+        "### 49.1 为什么不能把 pending 直接改为 succeeded",
+        "### 49.2 原子领取的作用与限制",
+        "# backend/app/services/dispatch.py",
+        "### 49.3 审批必须绑定执行目标",
+        "## 50. 异步知识链路：先持久化输入，再确认任务",
+        "### 50.1 staging 顺序决定可恢复性",
+        "### 50.2 lease 与 attempt 不等于无限重试",
+        "## 51. 浏览器如何找到单测之外的缺陷",
+        "### 51.1 FormData 与全局 JSON 请求头",
+        "### 51.2 SQLite 的便利可能隐藏 PostgreSQL 的约束",
+        "# 示意代码，对应 platform.seed_catalog 的数据库方言选择",
+        "### 51.3 截图是证据，但不是唯一断言",
+        "## 52. 可复现实验协议与发布门禁",
+        "### 52.1 隔离是实验的前提",
+        "### 52.2 指标与观察点",
+        "### 52.3 为什么完整 schema gate 仍不是兼容性证明",
+        "## 53. 供应链：漏洞结果具有时效性",
+        "## 54. 有效性威胁、局限与结构收敛",
+        "### 54.1 内部有效性",
+        "### 54.2 外部有效性",
+        "### 54.3 构念有效性",
+        "### 54.4 重复代码如何收敛",
+        "## 55. 下一阶段：以验收条件而非模块数量推进",
+        "## 56. 第二轮研究设计：从“运行成功”到“失败也有正确语义”",
+        "### 56.1 可检验的研究问题",
+        "### 56.2 实验隔离",
+        "## 57. 响应前提交：一次 404 如何暴露事务边界",
+        "### 57.1 现象与原因",
+        "### 57.2 修复方式与原子性",
+        "### 57.3 为什么已有 HTTP 单测没有发现",
+        "## 58. 任务恢复：数据库 lease 需要进程级实验",
+        "### 58.1 知识文件为何先 staging",
+        "### 58.2 实验序列",
+        "### 58.3 有限结论",
+        "## 59. 带数据迁移：退出码之外还要比较什么",
+        "## 60. 多模态失败原子性：不发布半份证据",
+        "### 60.1 原缺陷的两个层次",
+        "### 60.2 修复结构",
+        "### 60.3 为什么不是所有失败都叫 failed",
+        "### 60.4 SDK 隐式重试也是副作用",
+        "### 60.5 实验和仍未解决的窗口",
+        "## 61. 前端可靠性：取消、非空状态和包体预算",
+        "### 61.1 取消不是异常失败",
+        "### 61.2 非空 fixture 发现 HTML 结构问题",
+        "### 61.3 按需组件不是简单调大告警阈值",
+        "## 62. 平台与容器：测试环境也是实验对象",
+        "## 63. 实际展示、证据索引与复现协议",
+        "### 63.1 本地复现顺序",
+        "# 仓库根目录，仅启动隔离数据库和缓存",
+        "# backend，窗口一：专用审计库，不是业务库",
+        "# frontend，窗口二",
+        "# backend，窗口三：本机已安装 Edge；Linux CI 使用 Chromium",
+        "# frontend",
+        "# 结束自己启动的 API/Vite 后，在仓库根目录停止隔离栈；不删除数据卷",
+        "### 63.2 分层证据矩阵",
+        "## 64. 后续优化的验收合同",
+        "### 64.1 P0：仍需优先收敛的可靠性",
+        "### 64.2 P1：减少重复代码，但保留业务差异",
+        "### 64.3 P2/P3：质量、恢复与治理",
+        "## 65. 局限、反例与结论",
+        "## 66. 实验时钟：为什么真实的 200 也可能是测试错误",
+        "## 67. 实验预算：完整测试与 CI 时限之间的关系",
+        "### 67.1 预算应覆盖哪个边界",
+        "### 67.2 最小修正与验收",
+        "### 67.3 后续性能工作",
+        "## 68. 资料更新：将持久性合同推广到普通写接口",
+        "### 68.1 API 与服务的责任",
+        "### 68.2 有区分能力的测试",
+        "### 68.3 仍然不能扩大解释的边界",
+        "## 69. 从“能够更新资料”到完整身份合同",
+        "### 69.1 为什么事务修好之后还有漏洞",
+        "### 69.2 省略与 null 是两种不同操作",
+        "### 69.3 422、409 和 500 的区分",
+        "## 70. 唯一性迁移是一项数据治理操作",
+        "### 70.1 查重不能代替唯一约束",
+        "### 70.2 先检查全部字段，再创建任何索引",
+        "### 70.3 这项约束仍然有哪些不足",
+        "## 71. 字段内唯一不等于登录无歧义",
+        "## 72. 完整回归如何并行，同时证明没有少跑",
+        "### 72.1 超时也是需要保留的实验结果",
+        "### 72.2 分类按夹具，而不是按文件名或方法长度",
+        "### 72.3 两层完整性证明",
+        "### 72.4 本机测量和解释限制",
+        "## 73. 下一阶段：恢复、删除与跨域 fixture",
+        "## 74. 从独立修复到主分支：最终证据",
+        "## 75. 从“有页面”到“真实可用”：工作台的数据合同",
+        "### 75.1 问题不是空状态难看，而是它没有连接数据",
+        "### 75.2 操作成功与刷新成功是两个事实",
+        "## 76. 顶部工作空间：信息架构先于配色",
+        "### 76.1 研究问题和设计假设",
+        "### 76.2 用数据表达导航，而不是复制多份模板",
+        "### 76.3 布局预算要统一计算",
+        "## 77. 个人中心：一个表单同时涉及身份、事务和会话",
+        "### 77.1 页面结构和功能边界",
+        "### 77.2 差量字段与历史兼容",
+        "### 77.3 一个过期响应不应恢复旧账户",
+        "### 77.4 头像的网络和隐私语义",
+        "## 78. 账户菜单：看到菜单不等于键盘可以用",
+        "## 79. 搜索入口修复：参数、并行读取与空状态时序",
+        "### 79.1 URL 改变不代表业务已使用参数",
+        "### 79.2 初始空状态是一种竞争条件",
+        "## 80. 实验协议、可复现证据与有效性威胁",
+        "### 80.1 分层实验",
+        "### 80.2 真实冲突、故障注入和持久化验证",
+        "### 80.3 截图也可能产生错误证据",
+        "### 80.4 内部、外部和构造有效性",
+        "## 81. 后续路线：从外壳收敛到领域完成度",
+        "## 82. 从开发预览到公开数据可用：一次真实数据实验",
+        "### 82.1 调度状态与持久化状态分开",
+        "### 82.2 网络 IO 不能占着本地数据库写锁",
+        "### 82.3 批次失败与审计记录的原子性",
+        "### 82.4 真实网络暴露证书问题",
+        "### 82.5 信息真实还要求时间和摘要真实",
+        "### 82.6 普通读者视角的验收",
+        "### 82.7 本地使用边界与可持续优化"
+      ],
+      "claims_and_gaps": [
+        "140: 目前仍有两个明确短板：应用层尚未内建登录限流，refresh token 也没有服务端单次使用撤销。默认本地边界下可接受，但在任何网络暴露之前都应完成，这也是路线图的 P0 项。",
+        "520: 持久化运行是另一个关键点。遇到人工审批时，Worker 把运行状态写为 waiting，不占用协程等待数小时。审批完成后，新的 Worker 从数据库加载执行游标、输入、已完成步骤和幂等键继续运行。测试验证了“单独审批者批准后可以恢复”和“重复执行不会制造第二次副作用”。",
+        "800: 真实截图中的“0 条”和“数据源尚未成功同步”是刻意保留的正确状态。许多演示项目会在数据库为空时生成漂亮的假趋势，这会让使用者误以为采集成功。InfoPulse 的空状态明确说明数据从哪里产生，并提供管理数据源入口。",
+        "804: 移动端的主要挑战不是把桌面缩小，而是导航、表格、图谱和工作流编辑器如何重新组织。当前多数业务页有响应式规则，但尚未建立覆盖所有路由的移动端截图门禁，这是开源后的重要缺口。",
+        "880: - 路线图：哪些是已完成基线，哪些只是未来计划。",
+        "984: ### 35.2 Python 依赖尚未完全锁定",
+        "990: 密码使用 bcrypt，JWT 有类型和生产密钥校验，但注册、登录尚未内建 Redis 限流，refresh token 也未做 jti 单次使用和 token family 撤销。项目默认只监听 localhost；进入任何共享网络前必须完成 P0 加固或在可信反向代理实施等价控制。",
+        "1051: - [ ] Release Notes 明确版本是开发者预览还是稳定版。",
+        "1052: - [ ] `.env.example` 与 Settings 字段无缺失、无多余项。",
+        "1053: - [ ] 仓库与 Git 历史未包含真实密钥、Cookie、数据库、日志和上传文件。",
+        "1054: - [ ] 全量测试、API 契约、迁移往返、前端构建、SDK 构建通过。",
+        "1055: - [ ] CodeQL 和依赖审计没有未处理高危问题。",
+        "1056: - [ ] README 启动命令在干净环境重新验证。",
+        "1057: - [ ] 外部服务未配置时的行为与文档一致。",
+        "1058: - [ ] 截图不包含真实用户、token、邮箱或私有数据。",
+        "1059: - [ ] License、SECURITY、CONTRIBUTING 和路线图可访问。",
+        "1060: - [ ] 已知不足出现在 Release Notes，而不是隐藏在 Issue 深处。",
+        "1144: 154 项测试、353 条路径和构建通过支持“开发者预览可用”，但不支持“生产规模完整”。项目完整性至少包含功能覆盖、接口一致性、数据演进、安全控制、运维能力、文档可达性、外部集成真实性和用户价值验证八个维度。当前前五项基线较强，真实外部 canary、移动端 E2E、依赖锁定和高阶段模块用户验证仍不足。",
+        "1180: 154 项测试全部通过并不等于不存在未知漏洞。依赖审计数据库可能滞后，CodeQL 也无法识别所有业务授权错误。本文结论限定为“未发现阻断本地开源的已知问题且基线测试通过”，不声称形式化证明整个系统安全。",
+        "1323: 跨数据库与 HTTP 的操作没有天然原子事务。先写成功再发送可能产生假成功；先发送再提交可能在提交失败后重复发送；超时可能发生在远端已经执行、响应尚未返回之后。因此“收到 HTTP timeout”不能证明“对方没有收到”。",
+        "1339: `unknown` 是业务事实，不是可以隐藏的内部错误。若提供商支持可查询的幂等键，可以基于远端查询设计恢复；若不支持，就不能声称本地 idempotency key 实现了端到端 exactly-once。",
+        "1357: 这套策略优先避免重复高风险副作用，代价是中断时需要人工对账，也可能将尚未发送的任务保守归入 unknown。后续可以细化 preparing/sending/acknowledged 状态及远端幂等协议，但不能通过无限重试“提升成功率”。",
+        "1363: 支持范围同样需要说明：本轮是人工与 connector 两种行动执行，编排通知和记忆工具具有真实效果；不支持的停止条件或工具必须显式拒绝。形式化标记、治理分数和声明记录不会因此自动变成真实安全证明。",
+        "1512: “有引用”不是“事实正确”，“规则得分高”不是“模型质量高”，“状态 completed”不是“现实行动已发生”，“formal_result”字段存在不是“形式化证明已验证”。后续指标应由真实用户任务定义：引用定位率、无证据拒答率、远端副作用可核验率、跨租户误读率、恢复时间、包体预算与安装成功率。",
+        "1560: 根因在服务端：handler 只执行 `flush`，把 `commit` 留在 FastAPI 数据库依赖的 `yield` 之后。`flush` 会把 SQL 发给数据库并获得主键，但不代表事务已提交。真实 ASGI 网络响应可能先到达客户端，新的数据库连接仍看不到未提交数据，或者仍能看到尚未提交撤销之前的会话。",
+        "1712: 这个边界有意偏保守：adapter 内部可能尚未发出网络包就失败，仍归 unknown。好处是不会把“无法确认是否执行”错误当成“确认没有执行”；代价是需要人工核对或未来的 provider request id 查询机制。当前尚未实现完整的自动对账界面和恢复策略，这一不足应公开保留。",
+        "1782: 门禁固定 JS raw 600,000、JS gzip 200,000、CSS raw 160,000 字节。后续小改动会使压缩字节数略变，报告保留每个时点而不覆盖历史实验。动态路由、图片、冷缓存网络、LCP 与 INP 尚未纳入；减少传输字节是已测结果，“快了多少毫秒”不是。",
+        "1878: 本文仍有明确局限：缺少真实提供商矩阵，缺少完整性能与无障碍基线，只有部分 worker 的进程恢复实验，数据库迁移只验证限定核心表。截图是受控环境，fixture 不是现实行动，检索分数不是模型事实准确率，源码中出现治理术语也不等于拥有对应的分布式或形式化保证。",
+        "1922: | 已输出 `Ran 217 tests` | 测试阶段已跑完完整集合 | 契约、迁移、制品已完成 |",
+        "1923: | runner 报 canceled | 当前 head 的门禁未完成 | 业务断言必然失败或可忽略 |",
+        "1997: 事务专项逐个推进的意义在于让每个结论都有自己的观察点和反例。完整后端集合从历史 217 项增加到含资料回归的 221 项后，应使用新提交的实际运行记录，而不是将旧总数当成最终验证。未完成的领域继续保留在路线图；每次扩展覆盖都需要真实测试与独立合并证据。",
+        "2009: 图 69-1 是工程说明图，图片独立保存在博客资源目录，不是产品截图。箭头代表约束的依赖，底部说明了可观察结果与迁移前提。图片刻意保留 Unicode 和维护窗口限制，不把尚未验证的性质画成绿灯。",
+        "2046: 考虑两个连接同时检查 SharedUser 尚未存在。它们都获得“可用”，随后分别写 SharedUser 和 SHAREDUSER。原区分大小写的唯一约束允许两者提交，登录的 lower 查询却可能返回两行。无论服务检查写得多仔细，只要检查和写入之间存在并发窗口，就需要数据库约束兜底。",
+        "2156: 账户删除尤需先明确数据合同：外部文件与数据库不能通过一个本地事务共同原子提交。若先删文件再提交用户，数据库失败时文件已丢；若先提交再删文件，存储失败时可能留下孤儿。应考虑可恢复删除请求、授权与 hold 预检、后台幂等清理、逐对象结果和人工核对，再分别设计失败、重启和并发 worker 的观察点。这个方向当前仍是设计要求，没有在路线图勾成已完成。",
+        "2308: 初版实现先等待来源和已保存搜索，再调用搜索；搜索 loading 初始为 false。浏览器可能在元数据尚未结束时看到 `items=[]`，于是显示“没有匹配内容”。这不是数据确实为空，而是尚未查询。测试曾在这一中间状态完成断言，暴露了状态合同不清。",
+        "2373: 最终，开源可用性不是“没有任何待办”。一个诚实的 v0.x 项目可以在本地清晰启动，有可信的完成范围、可复现测试、清楚的限制和可执行路线。维护者需要做的是让每个完成标记都能追溯到代码与证据，并让未完成部分继续显式存在，而不是用更多页面和更漂亮的截图替代可靠性。",
+        "2476: 下一阶段优先补三类证据：第一，上游限流分类、Retry-After 与退避，避免把外部限额当作代码异常；第二，PostgreSQL 多进程竞争及来源 worker 中断恢复，避免把 SQLite 证明外推到所有数据库；第三，大数据量检索、跨源重复与 RSS 实站兼容矩阵，避免小样本验证掩盖规模问题。LLM、邮件和身份提供商仍需要真实测试账号单独验收，实验模块不因主链完成而自动升级等级。完整完成标记和后续路线见 [R20/R21 验收记录](../audits/2026-10-16-public-use.md)。"
+      ]
+    },
+    {
+      "path": "docs/blog-assets/2026-10-13/README.md",
+      "lines": 13,
+      "headings": [
+        "# 2026-10-13 博客截图来源"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/blog-assets/2026-10-14/README.md",
+      "lines": 5,
+      "headings": [
+        "# 本轮博客配图"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/blog-assets/2026-10-15/README.md",
+      "lines": 13,
+      "headings": [
+        "# 2026-10-15 产品截图来源"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "docs/README.md",
+      "lines": 81,
+      "headings": [
+        "# InfoPulse 文档中心",
+        "## 首次阅读",
+        "## 产品与开发",
+        "## 安全、发布与运维",
+        "## 能力演进",
+        "## 文档维护规则"
+      ],
+      "claims_and_gaps": [
+        "72: | 28 | [认知公地](./28-global-cognitive-commons.md) | BFT 共识、公共财政与跨代治理 |"
+      ]
+    },
+    {
+      "path": "frontend/README.md",
+      "lines": 9,
+      "headings": [
+        "# InfoPulse Frontend"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "README.md",
+      "lines": 208,
+      "headings": [
+        "# InfoPulse",
+        "## 开源状态",
+        "## 核心功能",
+        "## 界面预览",
+        "## 自己配置服务",
+        "## 技术栈",
+        "## 本地开发",
+        "### 无需密钥的公开数据使用入口",
+        "# 仅对本地已注册、启用中的账号授权；退出重新登录。",
+        "# 对已启用来源执行一次真实同步；有来源失败时返回非零。",
+        "### 自定义开发环境",
+        "## Docker Compose",
+        "## 升级已有安装",
+        "## 环境变量",
+        "## 验证",
+        "## 安全与合规",
+        "## 参与和安全"
+      ],
+      "claims_and_gaps": [
+        "30: 仓库还包含数据源管理、统一搜索、事件聚类、报告、订阅、私有知识库、Agent 编排、多模态、企业多租户及开放平台。阶段 20-29 的部分能力是实验性规则和治理记录，不能视为真实分布式共识、形式化证明或隐私删除证明。完整索引见 [docs/README.md](./docs/README.md)。"
+      ]
+    },
+    {
+      "path": "SECURITY.md",
+      "lines": 22,
+      "headings": [
+        "# Security Policy",
+        "## Supported Versions",
+        "## Reporting a Vulnerability",
+        "## Deployment Boundary"
+      ],
+      "claims_and_gaps": []
+    },
+    {
+      "path": "开发步骤.md",
+      "lines": 418,
+      "headings": [
+        "# InfoPulse 开发步骤与实施清单",
+        "## 0. 开发规则",
+        "## Phase 0：工程与运行环境（已完成）",
+        "### Step 0.1：建立根目录交付入口",
+        "### Step 0.2：后端镜像",
+        "### Step 0.3：前端生产镜像",
+        "## Phase 1：后端基础设施（已完成）",
+        "### Step 1.1：配置中心",
+        "### Step 1.2：数据库与模型",
+        "### Step 1.3：Redis",
+        "### Step 1.4：认证",
+        "## Phase 2：数据源与热点洞察（已完成）",
+        "### Step 2.1：统一爬虫接口",
+        "### Step 2.2：微博适配器",
+        "### Step 2.3：B站适配器",
+        "### Step 2.4：贴吧与浏览器管理",
+        "### Step 2.5：工作流聚合",
+        "### Step 2.6：SSE API",
+        "### Step 2.7：热点洞察页面",
+        "## Phase 3：表达工作室（已完成）",
+        "### Step 3.1：请求与服务",
+        "### Step 3.2：写作室页面",
+        "## Phase 4：事件脉络（已完成）",
+        "### Step 4.1：构建时间线",
+        "### Step 4.2：档案室页面",
+        "## Phase 5：热搜解读（已完成）",
+        "### Step 5.1：热榜服务",
+        "### Step 5.2：监控台页面",
+        "## Phase 6：首页（已完成）",
+        "### Step 6.1：首页",
+        "## Phase 7：统一历史与会话完善（已完成）",
+        "### Step 7.1：统一历史 API",
+        "### Step 7.2：内容档案页面",
+        "### Step 7.3：前端会话",
+        "## Phase 8：视觉系统（已完成）",
+        "### Step 8.1：共享框架",
+        "### Step 8.2：页面差异化",
+        "## Phase 9：测试与验收（当前阶段）",
+        "### Step 9.1：后端静态与单元测试",
+        "### Step 9.2：前端构建",
+        "### Step 9.3：API 联调",
+        "### Step 9.4：视觉回归",
+        "## Phase 10：下一轮建议",
+        "### P0：发布前必须做",
+        "### P1：体验增强",
+        "### P2：工程优化",
+        "## 最终完成定义"
+      ],
+      "claims_and_gaps": [
+        "16: ## Phase 0：工程与运行环境（已完成）",
+        "66: ## Phase 1：后端基础设施（已完成）",
+        "116: ## Phase 2：数据源与热点洞察（已完成）",
+        "207: ## Phase 3：表达工作室（已完成）",
+        "224: ## Phase 4：事件脉络（已完成）",
+        "240: ## Phase 5：热搜解读（已完成）",
+        "262: ## Phase 6：首页（已完成）",
+        "273: ## Phase 7：统一历史与会话完善（已完成）",
+        "304: ## Phase 8：视觉系统（已完成）",
+        "411: 一个阶段只有同时满足以下条件才算完成："
+      ]
+    },
+    {
+      "path": "架构说明书.md",
+      "lines": 344,
+      "headings": [
+        "# InfoPulse 架构说明书",
+        "## 1. 架构目标",
+        "## 2. 系统上下文",
+        "## 3. 目录结构",
+        "## 4. 后端分层",
+        "### 4.1 API 层",
+        "### 4.2 Schema 层",
+        "### 4.3 Service 层",
+        "## 5. 数据采集架构",
+        "### 5.1 统一接口",
+        "### 5.2 来源策略",
+        "### 5.3 浏览器管理器",
+        "## 6. 核心工作流",
+        "### 6.1 热点洞察 SSE",
+        "### 6.2 热搜解读",
+        "## 7. LLM 适配与降级",
+        "## 8. 认证与会话",
+        "### 8.1 后端",
+        "### 8.2 前端",
+        "## 9. 数据模型",
+        "### 9.1 `users`",
+        "### 9.2 `analysis_histories`",
+        "## 10. 前端架构",
+        "### 10.1 共享层",
+        "### 10.2 页面视觉语言",
+        "## 11. 部署架构",
+        "### 11.1 本地开发",
+        "### 11.2 Docker Compose",
+        "## 12. 可靠性与安全边界",
+        "## 13. 已知限制"
+      ],
+      "claims_and_gaps": [
+        "343: - 当前热榜来自微博公开热搜接口，尚未聚合 B站和贴吧官方榜单。"
+      ]
+    },
+    {
+      "path": "重构方案.md",
+      "lines": 692,
+      "headings": [
+        "# InfoPulse AI Intelligence Platform 重构方案",
+        "## 1. 产品定位",
+        "## 2. 重构原则",
+        "## 3. 完整功能范围",
+        "### 3.1 登录、注册与首次引导",
+        "### 3.2 首页 Dashboard",
+        "### 3.3 数据中心与全局搜索",
+        "### 3.4 事件中心",
+        "### 3.5 AI 分析中心",
+        "### 3.6 评论分析",
+        "### 3.7 知识分析",
+        "### 3.8 数据统计",
+        "### 3.9 预警中心",
+        "### 3.10 AI 分析师与 AI 工作区",
+        "### 3.11 报告中心",
+        "### 3.12 收藏与订阅",
+        "### 3.13 数据源管理",
+        "### 3.14 个人工作台与系统设置",
+        "### 3.15 Workspace 工作台",
+        "### 3.16 Discover 发现",
+        "### 3.17 AI 任务中心",
+        "### 3.18 知识库（RAG）",
+        "### 3.19 通知中心",
+        "### 3.20 AI 每日分析建议",
+        "### 3.21 传播路径分析",
+        "### 3.22 独立系统设置",
+        "## 4. 首期可运行闭环",
+        "### 4.1 今日情报",
+        "### 4.2 情报搜索",
+        "### 4.3 事件中心",
+        "### 4.4 AI 分析师",
+        "### 4.5 收藏与简报",
+        "## 5. 分期说明",
+        "## 6. 信息架构",
+        "## 7. 页面设计",
+        "### 7.1 全局布局",
+        "### 7.2 Workspace",
+        "### 7.3 今日情报",
+        "### 7.4 Discover",
+        "### 7.5 搜索",
+        "### 7.6 事件详情",
+        "### 7.7 AI Agent",
+        "### 7.8 任务、订阅与通知",
+        "### 7.9 知识库",
+        "### 7.10 数据源中心",
+        "### 7.11 登录注册",
+        "## 8. 三方数据源与真实接入方式",
+        "### 8.1 已在本机验证可连通",
+        "### 8.2 可接入但需要凭证或额外条件",
+        "### 8.3 RSS/Atom 扩展源",
+        "### 8.4 非官方接口和网页采集",
+        "### 8.5 统一字段能力",
+        "### 8.6 真实数据验收",
+        "## 9. 核心数据模型",
+        "## 10. 后端边界",
+        "## 11. API 草案",
+        "## 12. 迁移计划",
+        "### 阶段一：情报数据闭环",
+        "### 阶段二：AI 分析闭环",
+        "### 阶段三：自动化",
+        "### 阶段四：AI 工作操作系统",
+        "## 13. 现有代码处置",
+        "## 14. 完成定义"
+      ],
+      "claims_and_gaps": [
+        "150: - 最近报告：最近生成、待编辑、已完成和定时生成的报告。",
+        "152: - 待办与任务：今日即将执行、失败、等待确认和已完成的 AI 任务。",
+        "154: - 一键继续：继续上一次分析、打开未完成报告或追问最近事件。",
+        "338: - 主列依次呈现今日关注、AI 建议、未完成任务和最近报告。"
+      ]
+    },
+    {
+      "path": "需求.md",
+      "lines": 248,
+      "headings": [
+        "# InfoPulse 产品需求文档",
+        "## 1. 产品定义",
+        "## 2. 目标用户",
+        "## 3. 产品范围",
+        "### 3.1 本期必须提供",
+        "### 3.2 本期明确不做",
+        "## 4. 信息架构",
+        "## 5. 功能需求",
+        "### 5.1 今日工作台",
+        "### 5.2 热点洞察",
+        "### 5.3 表达工作室",
+        "### 5.4 事件脉络",
+        "### 5.5 热搜解读",
+        "### 5.6 内容档案",
+        "### 5.7 账号与会话",
+        "## 6. 数据源要求",
+        "## 7. AI 与降级要求",
+        "## 8. 非功能需求",
+        "### 8.1 性能",
+        "### 8.2 稳定性",
+        "### 8.3 安全",
+        "### 8.4 体验与视觉",
+        "## 9. API 清单",
+        "## 10. 验收标准",
+        "## 11. 后续迭代"
+      ],
+      "claims_and_gaps": []
+    }
+  ]
+}

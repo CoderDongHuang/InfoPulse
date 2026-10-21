@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { workflowApi } from '@/api/workflows'
 import { useWatchlistStore } from '@/stores/watchlist'
@@ -44,12 +45,13 @@ async function selectItem(item: any) {
   catch { explanation.value = '暂时无法生成背景摘要，可以打开原始来源继续查看。' }
 }
 
-function toggleWatch() {
+async function toggleWatch() {
   if (!selected.value) return
-  watchlist.toggle({ title: selected.value.title, category: selected.value.category, heat: selected.value.heat, sourceUrl: selected.value.url })
+  try { await watchlist.toggle({ title: selected.value.title }) }
+  catch (cause) { ElMessage.error(cause instanceof Error && cause.message.includes('120') ? cause.message : '关注操作失败，请重试。') }
 }
 
-onMounted(load)
+onMounted(() => { void load(); void watchlist.load().catch(() => {}) })
 </script>
 
 <template>
@@ -86,7 +88,8 @@ onMounted(load)
         <h2>{{ selected?.title || '选择一个话题' }}</h2>
         <p class="explanation">{{ explanation || '点击左侧榜单，查看话题为什么升温。' }}</p>
         <dl v-if="selected"><div><dt>来源</dt><dd>{{ selected.platform }}</dd></div><div><dt>热度</dt><dd>{{ Number(selected.heat || 0).toLocaleString() }}</dd></div><div><dt>分类</dt><dd>{{ selected.category }}</dd></div></dl>
-        <div class="panel-actions"><button type="button" class="primary" :disabled="!selected" @click="router.push({ path: '/insight', query: { q: selected?.title } })">生成完整洞察<el-icon><Right /></el-icon></button><button type="button" :disabled="!selected" @click="toggleWatch"><el-icon><CollectionTag /></el-icon>{{ selected && watchlist.has(selected.title) ? '取消关注' : '关注这个话题' }}</button><a v-if="selected?.url" :href="selected.url" target="_blank" rel="noreferrer">打开来源</a></div>
+        <p v-if="watchlist.error" role="alert">{{ watchlist.error }}<button type="button" @click="watchlist.load().catch(() => {})">重新加载关注</button></p>
+        <div class="panel-actions"><button type="button" class="primary" :disabled="!selected" @click="router.push({ path: '/insight', query: { q: selected?.title } })">生成完整洞察<el-icon><Right /></el-icon></button><button type="button" :disabled="!selected || watchlist.busy || watchlist.loading || !!watchlist.error" @click="toggleWatch"><el-icon><CollectionTag /></el-icon>{{ selected && watchlist.has(selected.title) ? '取消关注' : '关注这个话题' }}</button><a v-if="selected?.url" :href="selected.url" target="_blank" rel="noreferrer">打开来源</a></div>
       </aside>
     </main>
   </div>

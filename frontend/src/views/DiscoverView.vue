@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRoute } from 'vue-router'
 import { stage3Api } from '@/api/stage3'
+import { recordRecentView } from '@/utils/recentViews'
 
 const channels = ref<any[]>([]), active = ref('all'), range = ref('week')
+const route = useRoute()
 const data = ref<any>({ items: [], source_warnings: [] }), loading = ref(false)
 const error = ref(''), page = ref(1), busy = ref<string | null>(null)
 let requestId = 0
@@ -28,9 +31,22 @@ async function act(id: string, type: string) {
   finally { busy.value = null }
 }
 async function turn(delta: number) { page.value += delta; await load() }
+async function toggleChannel() {
+  const channel = channels.value.find(item => item.id === active.value)
+  if (!channel || busy.value) return
+  busy.value = 'channel'
+  try {
+    if (channel.followed) await stage3Api.unfollow(channel.id)
+    else await stage3Api.follow(channel.id)
+    channel.followed = !channel.followed
+    ElMessage.success(channel.followed ? '已关注频道，可在工作台查看动态' : '已取消关注频道')
+  } catch { ElMessage.error('关注频道失败，请重试') }
+  finally { busy.value = null }
+}
 onMounted(async () => {
   try { channels.value = await stage3Api.channels() }
   catch { channels.value = [{ id: 'all', name: '全部' }] }
+  if (channels.value.some(channel => channel.id === route.query.channel)) active.value = String(route.query.channel)
   await load()
 })
 </script>
@@ -38,12 +54,13 @@ onMounted(async () => {
   <main class="stage-page">
     <header class="page-head"><div><p>DISCOVER / REAL SIGNALS</p><h1>发现值得看的内容</h1><span>汇集公开来源，按时效、互动与关注主题排序。</span></div><div class="refresh-actions"><button type="button" :disabled="loading" @click="load(true)">刷新内容</button><select v-model="range" aria-label="时间范围" @change="load(true)"><option value="day">今日</option><option value="week">本周</option><option value="month">本月</option></select></div></header>
     <nav class="channels"><button v-for="c in channels" :key="c.id" :class="{active: active === c.id}" @click="select(c.id)">{{ c.name }}<i v-if="c.followed">已关注</i></button></nav>
+    <div class="refresh-actions"><button type="button" :disabled="!!busy || !channels.some(c => c.id === active)" @click="toggleChannel">{{ channels.find(c => c.id === active)?.followed ? '取消关注当前频道' : '关注当前频道' }}</button><span>关注后的相关文章会显示在个人工作台。</span></div>
     <aside v-if="data.source_warnings.length" class="rule" aria-label="来源提示"><p v-for="warning in data.source_warnings" :key="warning.source_id">{{ warning.source }}：{{ warning.message }}</p><router-link to="/sources">查看数据源状态</router-link></aside>
     <p class="rule">{{ data.ranking_rule }}</p>
     <section v-if="loading" class="empty" role="status">正在读取公开来源内容…</section>
     <section v-else-if="error" class="empty" role="alert"><p>{{ error }}</p><button @click="load()">重试</button></section>
     <section v-else-if="!data.items.length" class="empty"><strong>当前范围没有内容</strong><p>首次采集完成后点击「刷新内容」。也可切换到全部频道或本月；个人反馈可能隐藏内容。数据源中心提供同步结果。</p><router-link to="/sources">查看数据源</router-link></section>
-    <div v-else class="discover-list"><article v-for="item in data.items" :key="item.id"><div class="score">{{ Math.round(item.score) }}</div><div><small>{{ item.source.name }} · {{ item.published_at?.slice(0, 10) || '来源未提供发布时间' }}</small><h2>{{ item.title }}</h2><p>{{ item.summary || '原始来源未提供正文摘要' }}</p><div class="reasons"><span v-for="r in item.recommendation_reasons" :key="r.rule">{{ r.label }}</span></div><footer><a :href="item.canonical_url" target="_blank" rel="noopener noreferrer">原文</a><button :disabled="!!busy" @click="act(item.id, 'favorite')">收藏</button><button :disabled="!!busy" @click="act(item.id, 'seen')">已看过</button><button :disabled="!!busy" @click="act(item.id, 'not_interested')">不感兴趣</button></footer></div></article></div>
+    <div v-else class="discover-list"><article v-for="item in data.items" :key="item.id"><div class="score">{{ Math.round(item.score) }}</div><div><small>{{ item.source.name }} · {{ item.published_at?.slice(0, 10) || '来源未提供发布时间' }}</small><h2>{{ item.title }}</h2><p>{{ item.summary || '原始来源未提供正文摘要' }}</p><div class="reasons"><span v-for="r in item.recommendation_reasons" :key="r.rule">{{ r.label }}</span></div><footer><a :href="item.canonical_url" target="_blank" rel="noopener noreferrer" @click="recordRecentView('content', item.id)">原文</a><button :disabled="!!busy" @click="act(item.id, 'favorite')">收藏</button><button :disabled="!!busy" @click="act(item.id, 'seen')">已看过</button><button :disabled="!!busy" @click="act(item.id, 'not_interested')">不感兴趣</button></footer></div></article></div>
     <footer v-if="!loading && !error && data.total" class="channels" aria-label="分页"><button :disabled="page === 1" @click="turn(-1)">上一页</button><span>第 {{ page }} 页 · {{ data.total }} 条（最近 500 条候选）</span><button :disabled="!data.has_more" @click="turn(1)">下一页</button></footer>
   </main>
 </template>

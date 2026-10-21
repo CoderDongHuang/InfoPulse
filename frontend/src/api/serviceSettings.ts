@@ -7,6 +7,7 @@ export interface ServiceForm {
   llm_api_key: string
   media_vision_model: string
   media_transcription_model: string
+  media_transcription_protocol: 'openai' | 'qwen_asr'
   smtp_host: string
   smtp_port: 465 | 587
   smtp_username: string

@@ -12883,6 +12883,44 @@
             "HTTPBearer": []
           }
         ]
+      },
+      "get": {
+        "operationId": "history_detail_api_v1_history__record_id__get",
+        "deprecated": false,
+        "parameters": [
+          {
+            "in": "path",
+            "name": "record_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/hot-search/explain": {
@@ -21364,7 +21402,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TargetRequest"
+                "$ref": "#/components/schemas/RecentViewRequest"
               }
             }
           },
@@ -29372,6 +29410,27 @@
         ],
         "type": "object"
       },
+      "RecentViewRequest": {
+        "properties": {
+          "target_id": {
+            "type": "string"
+          },
+          "target_type": {
+            "enum": [
+              "content",
+              "event",
+              "report",
+              "history"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_type",
+          "target_id"
+        ],
+        "type": "object"
+      },
       "RecoveryDrillCreate": {
         "properties": {
           "actual_rpo_minutes": {
@@ -30759,6 +30818,14 @@
           "media_transcription_model": {
             "default": "",
             "maxLength": 150,
+            "type": "string"
+          },
+          "media_transcription_protocol": {
+            "default": "openai",
+            "enum": [
+              "openai",
+              "qwen_asr"
+            ],
             "type": "string"
           },
           "media_vision_model": {

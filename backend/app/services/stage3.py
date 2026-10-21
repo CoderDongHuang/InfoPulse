@@ -5,6 +5,8 @@ from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.intelligence import ChannelFollow, ContentItem, DataSource, Event, EventContent, Favorite, RecentView, RecommendationFeedback, SyncRun, WatchTopic
 from app.models.intelligence import Report
+from app.services.personalization import saved_targets, history_title
+from app.models.analysis_history import AnalysisHistory
 
 CHANNELS = {
  "all": ("全部", []),
@@ -76,18 +78,48 @@ async def discover_data(db: AsyncSession, user_id: str, channel="ai", range_name
 
 async def workspace_data(db: AsyncSession, user_id: str):
     topics = (await db.scalars(select(WatchTopic).where(WatchTopic.user_id == user_id, WatchTopic.enabled.is_(True)).order_by(WatchTopic.created_at.desc()))).all()
+    followed = (await db.scalars(select(ChannelFollow).where(ChannelFollow.user_id == user_id).order_by(ChannelFollow.created_at.desc()))).all()
+    observed_at = func.coalesce(ContentItem.published_at, ContentItem.fetched_at)
+    candidates = (await db.execute(select(ContentItem, DataSource).join(DataSource).where(
+        ContentItem.deleted_at.is_(None)).order_by(observed_at.desc(), ContentItem.id).limit(500))).all() if topics or followed else []
+    def matches(item, terms):
+        text = f"{item.title} {item.body} {' '.join(item.tags or [])}"
+        return any(keyword_matches(term, text) for term in terms)
     attention = []
     for topic in topics:
-        terms = [topic.name] + list(topic.keywords or []); count = 0
-        for term in terms: count += int(await db.scalar(select(func.count(ContentItem.id)).where(ContentItem.deleted_at.is_(None), func.lower(ContentItem.title).contains(term.lower()))) or 0)
+        count = sum(matches(item, [topic.name] + list(topic.keywords or [])) for item, _ in candidates)
         attention.append({"id": topic.id, "name": topic.name, "count": count, "keywords": topic.keywords})
+    followed_channels = [{"id": row.channel_id, "name": CHANNELS[row.channel_id][0]} for row in followed if row.channel_id in CHANNELS]
+    followed_items = []
+    for item, source in candidates:
+        reasons = [{"rule": "watched_topic", "label": f"关注主题：{topic.name}"} for topic in topics if matches(item, [topic.name] + list(topic.keywords or []))]
+        for channel in followed_channels:
+            key = channel["id"]
+            if key == "all" or matches(item, CHANNELS[key][1]) or (key == "papers" and item.content_type == "paper") or (key == "open-source" and item.content_type == "repository"):
+                reasons.append({"rule": "followed_channel", "label": f"关注频道：{channel['name']}"})
+        if reasons:
+            followed_items.append(content_dict(item, source, reasons=reasons))
+        if len(followed_items) >= 12:
+            break
     recommendation = await discover_data(db, user_id, "all", "week", 1, 5)
-    favorites = [dict(target_type=x.target_type, target_id=x.target_id, created_at=dt(x.created_at)) for x in (await db.scalars(select(Favorite).where(Favorite.user_id == user_id).order_by(Favorite.created_at.desc()).limit(8))).all()]
-    views = [dict(target_type=x.target_type, target_id=x.target_id, title=x.title, viewed_at=dt(x.viewed_at)) for x in (await db.scalars(select(RecentView).where(RecentView.user_id == user_id).order_by(RecentView.viewed_at.desc()).limit(8))).all()]
+    favorite_rows = (await db.scalars(select(Favorite).where(Favorite.user_id == user_id).order_by(Favorite.created_at.desc()).limit(8))).all()
+    favorites = await saved_targets(db, user_id, favorite_rows)
+    for item, row in zip(favorites, favorite_rows):
+        item["created_at"] = dt(row.created_at)
+    view_rows = (await db.scalars(select(RecentView).where(RecentView.user_id == user_id).order_by(RecentView.viewed_at.desc(), RecentView.id.desc()).limit(8))).all()
+    views = await saved_targets(db, user_id, view_rows)
+    for item, row in zip(views, view_rows):
+        item["viewed_at"] = dt(row.viewed_at)
     reports = (await db.scalars(
         select(Report).where(Report.user_id == user_id, Report.deleted_at.is_(None))
         .order_by(Report.updated_at.desc(), Report.id.desc()).limit(8)
     )).all()
-    recent_reports = [dict(id=row.id, title=row.title, report_type=row.report_type,
+    recent_reports = [dict(id=row.id, title=row.title, report_type=row.report_type, kind="report", path=f"/reports/{row.id}",
                            status=row.status, updated_at=dt(row.updated_at)) for row in reports]
-    return {"date": datetime.now(timezone.utc).date().isoformat(), "attention": attention, "recommendations": recommendation["items"], "favorites": favorites, "recent_reports": recent_reports, "recent_views": views, "tasks": [], "source_warnings": recommendation["source_warnings"]}
+    histories = (await db.scalars(select(AnalysisHistory).where(
+        AnalysisHistory.user_id == user_id, AnalysisHistory.module.in_(["insight", "mouthpiece", "timeline"]),
+        AnalysisHistory.status == "completed").order_by(AnalysisHistory.created_at.desc(), AnalysisHistory.id.desc()).limit(8))).all()
+    recent_reports.extend(dict(id=row.id, title=history_title(row), report_type=row.module, kind="history",
+        path=f"/history?record={row.id}", status=row.status, updated_at=dt(row.created_at)) for row in histories)
+    recent_reports = sorted(recent_reports, key=lambda row: (row["updated_at"], row["id"]), reverse=True)[:8]
+    return {"date": datetime.now(timezone.utc).date().isoformat(), "attention": attention, "followed_channels": followed_channels, "followed_items": followed_items, "recommendations": recommendation["items"], "favorites": favorites, "recent_reports": recent_reports, "recent_views": views, "tasks": [], "source_warnings": recommendation["source_warnings"]}

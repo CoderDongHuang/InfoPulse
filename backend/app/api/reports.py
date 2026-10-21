@@ -31,7 +31,9 @@ async def templates(_u:User=Depends(get_current_user)):return [{"id":k,"name":v,
 async def listing(user:User=Depends(get_current_user),db=Depends(get_db)):return [{"id":r.id,"title":r.title,"report_type":r.report_type,"status":r.status,"updated_at":r.updated_at} for r in (await db.scalars(select(Report).where(Report.user_id==user.id,Report.deleted_at.is_(None)).order_by(Report.updated_at.desc()))).all()]
 @router.post("/reports",status_code=201)
 async def create(p:ReportCreate,user:User=Depends(get_current_user),db=Depends(get_db)):
- ids=await source_ids(db,user.id,p.source_config);rows=(await db.execute(select(ContentItem,DataSource).join(DataSource).where(ContentItem.id.in_(ids),ContentItem.deleted_at.is_(None)))).all() if ids else [];citations=[{"content_id":x.id,"title":x.title,"source":s.name,"url":x.canonical_url,"quote":(x.body or x.title)[:400]} for x,s in rows];body="\n".join(f"- {x.title} [{i+1}]" for i,(x,_) in enumerate(rows));r=Report(user_id=user.id,title=p.title,report_type=p.report_type,source_config=p.source_config);db.add(r);await db.flush();v=ReportVersion(report_id=r.id,version_number=1,content_markdown=f"# {p.title}\n\n## 摘要\n\n## 关键发现\n{body}\n\n## 影响与建议\n",structured_content={},citations=citations,created_by=user.id);db.add(v);await db.flush();r.current_version_id=v.id;return {"id":r.id,"version_id":v.id}
+ ids=await source_ids(db,user.id,p.source_config);rows=(await db.execute(select(ContentItem,DataSource).join(DataSource).where(ContentItem.id.in_(ids),ContentItem.deleted_at.is_(None)))).all() if ids else [];citations=[{"content_id":x.id,"title":x.title,"source":s.name,"url":x.canonical_url,"quote":(x.body or x.title)[:400]} for x,s in rows];body="\n".join(f"- {x.title} [{i+1}]" for i,(x,_) in enumerate(rows));r=Report(user_id=user.id,title=p.title,report_type=p.report_type,source_config=p.source_config);db.add(r);await db.flush();v=ReportVersion(report_id=r.id,version_number=1,content_markdown=f"# {p.title}\n\n## 摘要\n\n## 关键发现\n{body}\n\n## 影响与建议\n",structured_content={},citations=citations,created_by=user.id);db.add(v);await db.flush();r.current_version_id=v.id
+ await db.commit()
+ return {"id":r.id,"version_id":v.id}
 @router.post("/reports/{rid}/rewrite")
 async def rewrite(rid:str,p:RewriteRequest,user:User=Depends(get_current_user),db=Depends(get_db)):
  await owned(db,rid,user.id)
@@ -44,9 +46,12 @@ async def detail(rid:str,user:User=Depends(get_current_user),db=Depends(get_db))
 async def update(rid:str,p:ReportUpdate,user:User=Depends(get_current_user),db=Depends(get_db)):
  r=await owned(db,rid,user.id)
  for k,v in p.model_dump(exclude_none=True).items():setattr(r,k,v)
+ await db.commit()
  return {"id":r.id,"title":r.title,"status":r.status}
 @router.delete("/reports/{rid}",status_code=204)
-async def remove(rid:str,user:User=Depends(get_current_user),db=Depends(get_db)):(await owned(db,rid,user.id)).deleted_at=datetime.now(timezone.utc)
+async def remove(rid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
+ (await owned(db,rid,user.id)).deleted_at=datetime.now(timezone.utc)
+ await db.commit()
 @router.get("/reports/{rid}/versions")
 async def versions(rid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
  await owned(db,rid,user.id);return [{"id":v.id,"version_number":v.version_number,"created_at":v.created_at} for v in (await db.scalars(select(ReportVersion).where(ReportVersion.report_id==rid).order_by(ReportVersion.version_number.desc()))).all()]
@@ -54,12 +59,16 @@ async def versions(rid:str,user:User=Depends(get_current_user),db=Depends(get_db
 async def save(rid:str,p:VersionCreate,user:User=Depends(get_current_user),db=Depends(get_db)):
  r=await owned(db,rid,user.id);rows=(await db.execute(select(ContentItem,DataSource).join(DataSource).where(ContentItem.id.in_(p.citation_content_ids),ContentItem.deleted_at.is_(None)))).all() if p.citation_content_ids else [];found={x.id for x,_ in rows}
  if found!=set(p.citation_content_ids):raise HTTPException(403,"报告包含不可访问或已删除的引用")
- citations=[{"content_id":x.id,"title":x.title,"source":s.name,"url":x.canonical_url,"quote":(x.body or x.title)[:400]} for x,s in rows];number=int(await db.scalar(select(func.max(ReportVersion.version_number)).where(ReportVersion.report_id==rid))or 0)+1;v=ReportVersion(report_id=rid,version_number=number,content_markdown=p.content_markdown,structured_content=p.structured_content,citations=citations,created_by=user.id);db.add(v);await db.flush();r.current_version_id=v.id;r.updated_at=datetime.now(timezone.utc);return {"id":v.id,"version_number":number,"citations":citations}
+ citations=[{"content_id":x.id,"title":x.title,"source":s.name,"url":x.canonical_url,"quote":(x.body or x.title)[:400]} for x,s in rows];number=int(await db.scalar(select(func.max(ReportVersion.version_number)).where(ReportVersion.report_id==rid))or 0)+1;v=ReportVersion(report_id=rid,version_number=number,content_markdown=p.content_markdown,structured_content=p.structured_content,citations=citations,created_by=user.id);db.add(v);await db.flush();r.current_version_id=v.id;r.updated_at=datetime.now(timezone.utc)
+ await db.commit()
+ return {"id":v.id,"version_number":number,"citations":citations}
 @router.post("/reports/{rid}/versions/{vid}/restore")
 async def restore(rid:str,vid:str,user:User=Depends(get_current_user),db=Depends(get_db)):
  r=await owned(db,rid,user.id);v=await db.scalar(select(ReportVersion).where(ReportVersion.id==vid,ReportVersion.report_id==rid))
  if not v:raise HTTPException(404,"版本不存在")
- r.current_version_id=v.id;return {"version_id":v.id}
+ r.current_version_id=v.id;r.updated_at=datetime.now(timezone.utc)
+ await db.commit()
+ return {"version_id":v.id}
 @router.post("/reports/{rid}/exports",status_code=201)
 async def export(rid:str,p:ExportCreate,user:User=Depends(get_current_user),db=Depends(get_db)):
  r=await owned(db,rid,user.id);v=await db.get(ReportVersion,r.current_version_id);job=ReportExport(report_id=r.id,version_id=v.id,format=p.format,status="running");db.add(job);await db.flush()

@@ -7,6 +7,7 @@ from sqlalchemy import func,or_,select
 from openai import AsyncOpenAI
 from app.core.runtime_settings import RuntimeSettings, use_settings
 from app.core.private_clients import managed_model_client, model_http_client
+from app.core.model_compat import chat_options
 from app.services.service_settings import owner_settings
 from app.core.database import _get_sessionmaker
 from app.models.enterprise import TenantQuota
@@ -59,15 +60,59 @@ def client():
 async def vision(data,mime,model):
  encoded=base64.b64encode(data).decode();prompt="Extract only visible evidence. Return strict JSON: {ocr:[{text,bbox:[x,y,w,h],confidence}], chart:{type,title,series,findings}, summary}. Do not infer hidden values. Empty arrays when unsupported."
  async with managed_model_client(client) as sdk:
-  response=await asyncio.wait_for(sdk.chat.completions.create(model=model,messages=[{"role":"user","content":[{"type":"text","text":prompt},{"type":"image_url","image_url":{"url":f"data:{mime};base64,{encoded}"}}]}],temperature=0,max_tokens=3000,response_format={"type":"json_object"}),timeout=settings.LLM_TIMEOUT_SECONDS)
+  response=await asyncio.wait_for(sdk.chat.completions.create(model=model,messages=[{"role":"user","content":[{"type":"text","text":prompt},{"type":"image_url","image_url":{"url":f"data:{mime};base64,{encoded}"}}]}],temperature=0,max_tokens=3000,response_format={"type":"json_object"},**chat_options(settings.LLM_API_BASE,model)),timeout=settings.LLM_TIMEOUT_SECONDS)
   return json.loads(response.choices[0].message.content or "{}")
-async def transcribe(data,name,model):
- stream=io.BytesIO(data);stream.name=name
- async with managed_model_client(client) as sdk:
-  result=await asyncio.wait_for(sdk.audio.transcriptions.create(model=model,file=stream,response_format="verbose_json",timestamp_granularities=["segment"]),timeout=settings.LLM_TIMEOUT_SECONDS)
- raw=result.model_dump() if hasattr(result,"model_dump") else dict(result);segments=raw.get("segments") or []
- if not segments and raw.get("text"):segments=[{"start":0,"end":0,"text":raw["text"],"speaker":"speaker_unknown"}]
- return [{"start":float(x.get("start",0)),"end":float(x.get("end",0)),"text":str(x.get("text","")).strip(),"speaker":x.get("speaker") or "speaker_unknown","confidence":float(x.get("confidence",0) or 0)} for x in segments if str(x.get("text","")).strip()]
+def validate_transcription(data, name, model):
+    if settings.MEDIA_TRANSCRIPTION_PROTOCOL != "qwen_asr":
+        return
+    # Filetrans/realtime models use different APIs and must never be silently
+    # submitted to chat.completions. Limit the encoded payload, not only the file.
+    if not (model == "qwen3-asr-flash" or re.fullmatch(r"qwen3-asr-flash-\d{4}-\d{2}-\d{2}", model)):
+        raise ValueError("Qwen chat ASR requires qwen3-asr-flash or a dated snapshot; filetrans/realtime APIs are not supported")
+    if Path(name).suffix.lower() not in {".wav", ".mp3", ".m4a", ".ogg"}:
+        raise ValueError("Qwen chat ASR supports WAV, MP3, M4A or OGG uploads")
+    if 4 * ((len(data) + 2) // 3) + 64 >= 10_000_000:
+        raise ValueError("Qwen chat ASR requires a Base64 payload under 10 MB and audio under 5 minutes; split the recording first")
+
+
+async def transcribe(data, name, model):
+    validate_transcription(data, name, model)
+    async with managed_model_client(client) as sdk:
+        if settings.MEDIA_TRANSCRIPTION_PROTOCOL == "qwen_asr":
+            mime = MIME[Path(name).suffix.lower()][1]
+            encoded = base64.b64encode(data).decode("ascii")
+            result = await asyncio.wait_for(sdk.chat.completions.create(
+                model=model, messages=[{"role": "user", "content": [{"type": "input_audio", "input_audio": {
+                    "data": f"data:{mime};base64,{encoded}"}}]}], stream=False,
+                extra_body={"asr_options": {"enable_itn": False}},
+            ), timeout=settings.LLM_TIMEOUT_SECONDS)
+            text = (result.choices[0].message.content or "").strip()
+            if not text:
+                raise ValueError("Transcription returned no text")
+            # This API has no segment timestamps or diarization. Unknown values
+            # remain null; they must not become fabricated 0-second evidence.
+            return [{"start": None, "end": None, "text": text, "speaker": "speaker_unknown", "confidence": 0}]
+        stream = io.BytesIO(data)
+        stream.name = name
+        result = await asyncio.wait_for(sdk.audio.transcriptions.create(
+            model=model, file=stream, response_format="verbose_json", timestamp_granularities=["segment"],
+        ), timeout=settings.LLM_TIMEOUT_SECONDS)
+    raw = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+    segments = raw.get("segments") or []
+    if not segments and raw.get("text"):
+        segments = [{"start": None, "end": None, "text": raw["text"]}]
+    if not segments:
+        raise ValueError("Transcription returned no text")
+    return [{"start": float(x["start"]) if x.get("start") is not None else None,
+             "end": float(x["end"]) if x.get("end") is not None else None,
+             "text": str(x.get("text", "")).strip(), "speaker": x.get("speaker") or "speaker_unknown",
+             "confidence": float(x.get("confidence", 0) or 0)} for x in segments if str(x.get("text", "")).strip()]
+
+
+def transcript_locator(item):
+    return {"start_ms": int(item["start"] * 1000) if item["start"] is not None else None,
+            "end_ms": int(item["end"] * 1000) if item["end"] is not None else None,
+            "speaker": item["speaker"], "confidence": item["confidence"]}
 def ffprobe(path):
  exe=shutil.which("ffprobe")
  if not exe:raise RuntimeError("ffprobe is required for video processing")
@@ -106,6 +151,7 @@ async def _process_asset(db,asset,run):
   return await vision(*args)
  async def call_transcribe(*args):
   nonlocal provider_started
+  validate_transcription(*args)
   provider_started=True
   return await transcribe(*args)
  try:
@@ -118,7 +164,7 @@ async def _process_asset(db,asset,run):
    if result.get("summary"):evidence(db,asset,ordinal,"visual_summary",str(result["summary"]));ordinal+=1
   elif asset.media_type=="audio":
    model,cost=await route_for(db,asset,"transcription");run.model_routes={"transcription":model};run.estimated_cost_cents=cost
-   for item in await call_transcribe(data,asset.filename,model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
+   for item in await call_transcribe(data,asset.filename,model):evidence(db,asset,ordinal,"transcript",item["text"],**transcript_locator(item));ordinal+=1;all_text.append(item["text"])
   else:
    temp,meta,frames,audio=await asyncio.to_thread(video_parts,data,Path(asset.filename).suffix.lower())
    try:
@@ -127,7 +173,7 @@ async def _process_asset(db,asset,run):
      frame_key=f"media/{asset.organization_id}/{asset.id}/frames/{index:06d}.jpg";frame_keys.append(frame_key);await asyncio.to_thread(storage.put,frame_key,frame);result=await call_vision(frame,"image/jpeg",vision_model);text="\n".join(str(x.get("text","")) for x in result.get("ocr",[]) if x.get("text"));summary=str(result.get("summary","") or "");evidence(db,asset,ordinal,"video_frame",(text+"\n"+summary).strip(),start_ms=(index-1)*settings.MEDIA_FRAME_INTERVAL_SECONDS*1000,frame_number=index,storage_key=frame_key,metadata={"chart":result.get("chart")});ordinal+=1;all_text.extend([text,summary])
     if audio:
      audio_model,audio_cost=await route_for(db,asset,"transcription");run.model_routes={**run.model_routes,"transcription":audio_model}
-     for item in await call_transcribe(audio,"audio.wav",audio_model):evidence(db,asset,ordinal,"transcript",item["text"],start_ms=int(item["start"]*1000),end_ms=int(item["end"]*1000),speaker=item["speaker"],confidence=item["confidence"]);ordinal+=1;all_text.append(item["text"])
+     for item in await call_transcribe(audio,"audio.wav",audio_model):evidence(db,asset,ordinal,"transcript",item["text"],**transcript_locator(item));ordinal+=1;all_text.append(item["text"])
      run.estimated_cost_cents=vision_cost+audio_cost
     else:run.estimated_cost_cents=vision_cost
    finally:temp.cleanup()

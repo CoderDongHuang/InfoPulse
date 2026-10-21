@@ -4,6 +4,8 @@ class TargetRequest(BaseModel):
     target_type: Literal["content", "event", "report"]
     target_id: str
     title: str = ""
+class RecentViewRequest(TargetRequest):
+    target_type: Literal["content", "event", "report", "history"]
 class TopicRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     keywords: list[str] = Field(default_factory=list)

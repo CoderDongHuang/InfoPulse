@@ -33,5 +33,6 @@ export const workflowApi = {
   getHotRanking: async () => (await request.get('/hot-search/ranking', { headers: { 'X-Suppress-Error-Message': '1' } })).data,
   explainHotItem: async (data: Record<string, any>) => (await request.post('/hot-search/explain', data)).data,
   getHistory: async (module?: 'insight' | 'mouthpiece' | 'timeline') => (await request.get('/history', { params: { module } })).data,
+  historyDetail: async (id: string) => (await request.get(`/history/${id}`)).data,
   deleteHistory: async (id: string) => request.delete(`/history/${id}`),
 }

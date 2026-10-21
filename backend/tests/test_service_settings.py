@@ -109,6 +109,23 @@ class PrivateSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.save(revision=1, smtp_host="other.example.com")).status_code, 422)
         self.assertEqual((await self.save(revision=1, llm_api_base="https://other.example.com/v1", llm_api_key="key-b", smtp_host="smtp.example.com")).status_code, 200)
 
+    async def test_qwen_models_and_protocol_are_private_and_survive_reload(self):
+        response = await self.save(llm_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            llm_model="qwen-plus", llm_api_key="private-qwen-key", media_vision_model="qwen3-vl-plus",
+            media_transcription_model="qwen3-asr-flash", media_transcription_protocol="qwen_asr")
+        self.assertEqual(response.status_code, 200, response.text)
+        saved = (await self.http.get("/api/v1/settings/services", headers=self.headers[0])).json()
+        self.assertEqual(saved["media_transcription_protocol"], "qwen_asr")
+        self.assertTrue(saved["capabilities"]["vision"])
+        self.assertTrue(saved["capabilities"]["transcription"])
+        self.assertNotIn("private-qwen-key", json.dumps(saved))
+        async with self.sessions() as db:
+            config = await owner_settings(db, self.users[0].id)
+            self.assertEqual(config.MEDIA_TRANSCRIPTION_PROTOCOL, "qwen_asr")
+            self.assertEqual(config.MEDIA_VISION_MODEL, "qwen3-vl-plus")
+            self.assertEqual((await owner_settings(db, self.users[1].id)).MEDIA_TRANSCRIPTION_PROTOCOL, "openai")
+        self.assertEqual((await self.save(index=1, media_transcription_protocol="unsupported")).status_code, 422)
+
     async def test_invalid_inputs_do_not_echo_secrets_or_allow_private_destinations(self):
         for endpoint in ("http://example.com/v1", "https://127.0.0.1", "https://[::1]", "https://169.254.169.254", "https://localhost/v1", "https://user:pw@example.com", "https://example.com:8443", "https://example.com/v1?key=secret", "https://example.com:bad", "https://[invalid]"):
             response = await self.save(llm_api_base=endpoint, llm_api_key="hidden-test-key")

@@ -1,0 +1,44 @@
+{
+  "discover_501st_matching_item": {
+    "database_matching_items": 1,
+    "returned_total": 0,
+    "has_more": false
+  },
+  "sso_mfa_policy": {
+    "require_sso": true,
+    "require_mfa": true,
+    "password_login_and_tenant_access_allowed": true
+  },
+  "cancelled_retry": {
+    "task_status": "cancelled",
+    "run_status": "succeeded",
+    "reports_created": 1
+  },
+  "schedule_after_terminal_failure": {
+    "elapsed_days": 2,
+    "run_count": 1,
+    "status": "dead_letter"
+  },
+  "confirmed_run_not_resumed": {
+    "confirmation_status": "approved",
+    "run_status": "awaiting_confirmation"
+  },
+  "navigation_download_without_bearer": {
+    "status": 401,
+    "body": {
+      "detail": "Not authenticated"
+    }
+  },
+  "sqlite_delete_cascade": {
+    "foreign_keys": 0,
+    "private_reports_after_user_delete": 1
+  },
+  "dependency_commit_order": [
+    "response_201",
+    "response_body",
+    "commit_failed"
+  ],
+  "account_delete_with_foreign_keys": {
+    "personal_tenant_owner_deletion": "blocked_by_foreign_key"
+  }
+}

@@ -1,8 +1,11 @@
 # InfoPulse 开源优化路线图
 
-更新日期：2026-10-20。公开数据主链可本地自托管使用（beta），其余模块按能力矩阵保持明确边界，不是所有模块正式完工。`[x]` 仅表示下述明确范围完成；`[ ]` 表示待完成。详细问题与测试对应见 [修复验收报告](./audits/2026-10-09-remediation.md) 和 [逐项验收记录](./audits/2026-10-13-roadmap-progress.md)，实验边界见 [能力矩阵](./32-capability-matrix.md)。
+更新日期：2026-10-21。公开数据主链可本地自托管使用（beta），其余模块按能力矩阵保持明确边界，不是所有模块正式完工。`[x]` 仅表示下述明确范围完成；`[ ]` 表示待完成。最新状态见 [本次全项目审计修复](./audits/2026-10-21-remediation.md)，历史测试见 [修复验收报告](./audits/2026-10-09-remediation.md) 和 [逐项验收记录](./audits/2026-10-13-roadmap-progress.md)，实验边界见 [能力矩阵](./32-capability-matrix.md)。
 
 ## 本轮缺陷收敛
+
+- [x] R36（2026-10-21）：完成本次审计 A01–A14 的代码与文档修复：报告保存/下载、不可实施身份策略禁用、账户事务删除与清理 outbox、任务暂停/确认/周期调度、发现页完整分页、响应前提交、媒体 lease 与进程中断恢复、分阶段发布/回滚/worker/共享导出卷及网络上传清单。依赖安全升级后支持 Python 3.11/3.12，当前 API 357 paths。逐项证据与 GitHub 记录见 [专项验收](./audits/2026-10-21-remediation.md)；本次 A 编号与下方历史 A 编号不同。
+- [ ] R36 现场验收：真实 Kubernetes/CNI/Ingress/RWX、分阶段故障与回滚、外部提供商及备份恢复；代码与清单完成不代表现场通过。
 
 - [x] R35（2026-10-20）：头像裁剪进一步移除百分比、加减/重置工具栏和尺寸参数，只保留直接拖动、滚轮/键盘缩放与取消/确认；解码后自动聚焦预览。前端 78/78、生产构建、浏览器实际交互及上传通过，见 [专项记录](./audits/2026-10-20-avatar-direct-crop.md)。替代 R34 的界面方案，触屏双指缩放仍待优化。
 
@@ -62,15 +65,16 @@
 - [x] 最小容器栈真实构建与 Nginx UI/大于 1 MiB 上传/WS 握手；GitHub Linux CI 已通过，见验收报告。
 - [x] 完整 Chromium 镜像构建与 browser crawler/media 可选运行依赖验收；真实 Chromium / ffmpeg 合成 fixture 通过，不扩展为真实采集源或模型质量承诺，见逐项验收记录 R01。
 - [x] PostgreSQL 14 张核心表带数据迁移往返与独立 knowledge worker 进程中断、有效 lease、过期恢复、双 worker 竞争验收，见逐项验收记录 R02。
-- [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration/media worker 中断恢复；不能把 knowledge 验收扩展为全部 worker。
-- [x] 媒体普通异常回滚部分证据、源读取失败记录终态、模型调用后失败标 unknown 并拒绝重放，见 R07；进程中断/lease 恢复仍待单独验收。
-- [x] Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。
-- [x] Windows Python 3.10/3.11 持续 CI：完整 Python 依赖入口、pip check、全量后端测试、API 契约、SQLite 迁移；R04 两版本最新 CI 均通过，完整范围见逐项验收记录。
+- [ ] PostgreSQL 其余领域带数据迁移矩阵及 actions/orchestration worker 中断恢复；媒体 PostgreSQL 中断矩阵仍待完成，不能把 knowledge 验收扩展为全部 worker。
+- [x] 媒体普通异常原子回滚、源读取失败终态、模型调用后失败标 unknown 并拒绝重放，见 R07；R36 新增 SQLite 真实子进程 kill、过期 lease 恢复及 owner fence 回归。付费提供商对账仍待验收。
+- [x] 历史 R04：Linux Python 3.10/3.11 最小安装、pip check、PostgreSQL 迁移往返与产品浏览器 CI；Windows Python 3.10 干净安装本机验证。当前 Pillow 13 已要求 Python ≥3.11，不再支持新安装 Python 3.10。
+- [x] 历史 R04：Windows Python 3.10/3.11 持续 CI 完整依赖、pip check、后端测试、API 契约及 SQLite 迁移通过。当前矩阵改为 Python 3.11/3.12，最新结果见 R36。
 - [x] Windows 回归预算与完整覆盖：R11 的 45 分钟串行预算是历史修正；R13 后临时增至 60 分钟，R15 再拆为 unit 与三个 integration 分片，安装/契约/迁移独立保留。当前配置与验收见 [R15](./audits/2026-10-14-test-layers.md)，历史取消原因见 [R13](./audits/2026-10-14-profile-validation.md)。没有删减测试；耗时平衡仍可优化。
 - [x] 资料更新字段校验、规范化、显式 null 拒绝和 409 冲突响应，见 [R13](./audits/2026-10-14-profile-validation.md)。并发大小写唯一性数据库约束另行验收。
 - [x] 账户身份数据库 lower() 唯一性约束、存量冲突阻止升级和 PostgreSQL 并发写入验收，见 [R14](./audits/2026-10-14-identity-uniqueness.md)。Unicode 跨数据库排序规则不在本次保证内。
 - [x] 登录按邮箱/用户名命名空间消除历史 @ 用户名遮蔽邮箱问题，真实双账户 HTTP 验证身份及错误密码，见 [R16](./audits/2026-10-14-login-namespace.md)。历史账户可用自己的邮箱登录，不自动改名。
-- [ ] 账户删除的外部文件/数据库一致性、legal hold 与并发 worker 验收。
+- [x] R36：账户删除的 SQLite 外键级联、事务失败回滚、外部清理 outbox 重试、legal hold/共享组织/处理中 worker 阻止删除及真实 HTTP 删除与会话失效验收。
+- [ ] 账户删除的真实 S3/多副本共享卷、向量/缓存/备份一致性与恢复演练；合规擦除证明仍待完成。
 - [ ] 多平台版本约束文件和镜像 digest 维护；安装清单不等于版本锁定。
 - [ ] 所有核心按钮、401/断网/取消/超时、两用户协作、跨租户负向 UI 测试；路由巡检不等于按钮验收。
 - [x] 当前 7 个 MessageBox 页面取消/关闭正常退出，图谱多步输入每一步取消均无写入；知识库四操作真实浏览器验收，见 R05。其他负向 UI 场景仍待完成。
@@ -88,7 +92,7 @@
 - [ ] 严格 DTO/OpenAPI 类型生成，优先清理权限、工作流与知识 API 的高风险 `any`。
 - [ ] 按领域拆分大型 Vue 页面、请求状态和 composables，补组件回归。
 - [x] 前端 Element Plus 组件/样式按需加载与静态入口依赖图 bundle budget；JS 1,099,167 → 503,002 字节、CSS 368,917 → 136,414 字节，本机生产构建及组件交互验收通过，见逐项记录 R03。动态路由和图片另需性能预算。
-- [x] 后端人工审阅 unit + 三个确定性 integration 分片，Linux 3.11/Windows 3.10/3.11 并行矩阵与精确覆盖汇总；保留 PostgreSQL/容器 e2e。本机 237/237，见 [R15](./audits/2026-10-14-test-layers.md)。耗时平衡和预算收紧仍可优化。
+- [x] 后端人工审阅 unit + 三个确定性 integration 分片与精确覆盖汇总；保留 PostgreSQL/容器 e2e。历史 R15 本机 237/237，见 [记录](./audits/2026-10-14-test-layers.md)；当前矩阵 Linux 3.11、Windows 3.11/3.12，最新计数与结果见 R36。耗时平衡和预算收紧仍可优化。
 - [ ] SDK 真实 HTTP、分页、重试和版本兼容矩阵及发布流水线。
 
 验收：同一 fixture 重构前后结果、租户边界和副作用一致；包体和 CI 时长有测量预算，不以删测试改善数字。

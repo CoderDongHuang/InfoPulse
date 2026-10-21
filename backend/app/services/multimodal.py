@@ -130,7 +130,7 @@ def video_parts(data,suffix):
 def evidence(db,asset,ordinal,kind,text,metadata=None,**locator):
  value=text.strip();metadata=metadata or {};fingerprint={**locator,"metadata":metadata};row=MediaEvidence(organization_id=asset.organization_id,asset_id=asset.id,ordinal=ordinal,evidence_type=kind,text=value,content_hash=hashlib.sha256((kind+value+json.dumps(fingerprint,sort_keys=True,default=str)).encode()).hexdigest(),start_ms=locator.pop("start_ms",None),end_ms=locator.pop("end_ms",None),frame_number=locator.pop("frame_number",None),bbox=locator.pop("bbox",[]),speaker=locator.pop("speaker",""),confidence=locator.pop("confidence",0),storage_key=locator.pop("storage_key",""),metadata_json={**metadata,**locator});db.add(row)
 async def process_asset(db,asset,run):
- lease_owner=run.lease_owner
+ lease_owner=getattr(run,"lease_owner",None)
  try:
   private=await owner_settings(db,asset.user_id)
  except Exception:

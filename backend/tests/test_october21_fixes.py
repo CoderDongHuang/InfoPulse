@@ -75,13 +75,14 @@ class AuditFixTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_historical_foreign_key_checker_reports_without_repair(self):
         import sqlite3
+        from contextlib import closing
         from scripts.sqlite_integrity_check import check
         path=Path(self.temp.name)/"legacy.db"
-        with sqlite3.connect(path) as db:
+        with closing(sqlite3.connect(path)) as db:
             db.executescript("CREATE TABLE parent(id INTEGER PRIMARY KEY); CREATE TABLE child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES parent(id)); INSERT INTO child VALUES(1,99);")
         result=check(path)
         self.assertFalse(result["ok"]);self.assertEqual(result["violations"][0]["table"],"child")
-        with sqlite3.connect(path) as db:self.assertEqual(db.execute("SELECT parent_id FROM child").fetchone()[0],99)
+        with closing(sqlite3.connect(path)) as db:self.assertEqual(db.execute("SELECT parent_id FROM child").fetchone()[0],99)
 
     async def test_registered_account_cascades_and_cleanup_is_durable_retryable(self):
         async with self.sessions() as db:

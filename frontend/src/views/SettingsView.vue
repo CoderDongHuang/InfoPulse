@@ -2,20 +2,22 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
 import { readServiceSettings, saveServiceSettings, testService, type ServiceForm, type ServiceStatus } from '@/api/serviceSettings'
+import { applyModelPreset, type ModelPreset } from '@/utils/modelPresets'
 
-const form = reactive<ServiceForm>({ revision: 0, llm_api_base: 'https://api.openai.com/v1', llm_model: 'gpt-4o-mini', llm_api_key: '', media_vision_model: '', media_transcription_model: '', smtp_host: '', smtp_port: 587, smtp_username: '', smtp_password: '', smtp_from: '', clear_secrets: [] })
+const form = reactive<ServiceForm>({ revision: 0, llm_api_base: 'https://api.openai.com/v1', llm_model: 'gpt-4o-mini', llm_api_key: '', media_vision_model: '', media_transcription_model: '', media_transcription_protocol: 'openai', smtp_host: '', smtp_port: 587, smtp_username: '', smtp_password: '', smtp_from: '', clear_secrets: [] })
 const status = ref<ServiceStatus>(), loading = ref(true), busy = ref(''), error = ref(''), notice = ref(''), baseline = ref('')
 const dirty = computed(() => JSON.stringify(form) !== baseline.value)
+const isQwen = computed(() => /^https:\/\/dashscope(?:-intl|-us)?\.aliyuncs\.com\//.test(form.llm_api_base))
 const capabilities = computed(() => [
   { label: '公开资讯与检索', ready: true, text: '无需服务密钥' },
   { label: 'AI 对话与分析', ready: status.value?.capabilities.text_ai, text: '模型密钥、地址、文本模型' },
   { label: '图片理解', ready: status.value?.capabilities.vision && status.value?.capabilities.media_worker_enabled, text: '视觉模型与媒体工作进程' },
-  { label: '音频转录', ready: status.value?.capabilities.transcription && status.value?.capabilities.media_worker_enabled, text: '转录模型与媒体工作进程' },
+  { label: '音频转录', ready: status.value?.capabilities.transcription && status.value?.capabilities.media_worker_enabled, text: '转录模型、协议与媒体工作进程' },
   { label: '邮件通知', ready: status.value?.capabilities.email, text: 'SMTP 服务与通知偏好' },
 ])
 function accept(value: ServiceStatus) {
   status.value = value
-  for (const key of ['revision', 'llm_api_base', 'llm_model', 'media_vision_model', 'media_transcription_model', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_from'] as const) Object.assign(form, { [key]: value[key] })
+  for (const key of ['revision', 'llm_api_base', 'llm_model', 'media_vision_model', 'media_transcription_model', 'media_transcription_protocol', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_from'] as const) Object.assign(form, { [key]: value[key] })
   form.llm_api_key = ''; form.smtp_password = ''; form.clear_secrets = []
   baseline.value = JSON.stringify(form)
 }
@@ -41,9 +43,9 @@ async function test(service: 'llm' | 'smtp') {
   catch { error.value = '连接测试未通过。请检查已保存的密钥、服务地址、模型权限、余额和网络。服务商返回内容已隐藏。' }
   finally { busy.value = '' }
 }
-function preset(value: string) {
-  if (value === 'deepseek') { form.llm_api_base = 'https://api.deepseek.com/v1'; form.llm_model = 'deepseek-chat' }
-  if (value === 'openai') { form.llm_api_base = 'https://api.openai.com/v1'; form.llm_model = 'gpt-4o-mini' }
+function preset(value: ModelPreset) {
+  applyModelPreset(form, value)
+  notice.value = '已填写服务地址、各类模型与转录协议，请核对地域和模型权限并填写对应密钥，然后保存。切换预设会替换模型名称；密钥不会自动替换。'
 }
 onMounted(load)
 </script>
@@ -62,16 +64,21 @@ onMounted(load)
         <fieldset :disabled="!!busy || !status.encryption_ready">
           <section class="surface settings-card">
             <div class="section-title"><el-icon aria-hidden="true"><ChatDotRound /></el-icon><div><h2>AI 模型</h2><p>支持 OpenAI 兼容接口。配置后用于对话、分析、报告改写与翻译；编排仍需设置模型路由和预算。</p></div></div>
-            <div class="presets"><span>快速填写</span><button type="button" @click="preset('deepseek')">DeepSeek</button><button type="button" @click="preset('openai')">OpenAI</button><span>也可手动填写其他兼容服务</span></div>
+            <div class="presets"><span>快速填写</span><button type="button" @click="preset('qwen')">千问 · 北京</button><button type="button" @click="preset('qwen-intl')">千问 · 新加坡</button><button type="button" @click="preset('deepseek')">DeepSeek · 文本</button><button type="button" @click="preset('openai')">OpenAI</button><span>模型名称均可自行修改</span></div>
+            <p v-if="isQwen" class="provider-note">千问通过阿里云百炼提供文本、视觉与语音模型。API Key、模型权限与服务地域需匹配。免费额度、有效期和支持模型以你的百炼账号为准，额度用完后可能计费；本项目不查询余额。请在百炼控制台核对费用限制；如账号提供“免费额度用完即停”，可按需开启。<a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener noreferrer">打开百炼控制台 ↗</a></p>
             <div class="fields">
               <label class="wide" for="llm-base">API 基础地址<input id="llm-base" v-model="form.llm_api_base" type="url" required maxlength="500" placeholder="https://api.example.com/v1" /><small>仅支持公开 HTTPS 的标准端口，不允许本机、内网、查询参数或携带用户名密码。更换地址需重新输入或清除原密钥。</small></label>
-              <label for="llm-model">文本模型<input id="llm-model" v-model="form.llm_model" required maxlength="150" placeholder="deepseek-chat" /></label>
+              <label for="llm-model">文本模型<input id="llm-model" v-model="form.llm_model" :list="isQwen ? 'qwen-text-models' : undefined" required maxlength="150" placeholder="如 qwen-plus / deepseek-chat" /><small>用于 AI 对话、资讯分析、翻译与报告。工作流的显式模型路由可覆盖此默认值。</small></label>
               <label for="llm-key"><span class="field-heading">API Key <small>{{ status.llm_api_key_configured ? '已保存 · 留空保留' : '尚未配置' }}</small></span><input id="llm-key" v-model="form.llm_api_key" type="password" autocomplete="new-password" maxlength="4096" placeholder="输入你自己的服务密钥" /></label>
               <label class="check wide"><input v-model="form.clear_secrets" type="checkbox" value="llm_api_key" />清除已保存的模型密钥（关闭模型调用）</label>
-              <label for="vision-model">视觉模型（可选）<input id="vision-model" v-model="form.media_vision_model" maxlength="150" placeholder="填写服务商支持的图片理解模型" /></label>
-              <label for="audio-model">转录模型（可选）<input id="audio-model" v-model="form.media_transcription_model" maxlength="150" placeholder="填写支持带时间戳转录的模型" /></label>
+              <label for="vision-model">视觉模型（可选）<input id="vision-model" v-model="form.media_vision_model" :list="isQwen ? 'qwen-vision-models' : undefined" maxlength="150" placeholder="如 qwen3-vl-plus" /><small>用于图片 OCR、图表分析与视频抽帧理解。</small></label>
+              <label for="audio-model">转录模型（可选）<input id="audio-model" v-model="form.media_transcription_model" :list="isQwen ? 'qwen-audio-models' : undefined" maxlength="150" placeholder="如 qwen3-asr-flash / whisper-1" /><small>用于音频与视频音轨转文字；不是语音合成或实时语音对话。</small></label>
+              <label class="wide" for="audio-protocol">语音接口协议<select id="audio-protocol" v-model="form.media_transcription_protocol"><option value="openai">OpenAI Transcriptions · 可返回分段时间戳</option><option value="qwen_asr">千问 ASR · Chat Completions · 无时间戳</option></select><small v-if="form.media_transcription_protocol === 'qwen_asr'">支持 qwen3-asr-flash 及日期快照。音频须少于 5 分钟（服务商校验），Base64 编码后小于 10 MB。不支持 Filetrans／Realtime 模型；结果不提供时间定位或说话人区分。</small><small v-else>调用 /audio/transcriptions，请确认服务支持 verbose_json 与 segment 时间戳；模型名称不能替代接口适配。</small></label>
             </div>
-            <p class="hint">视觉与音频共用上面的服务地址和密钥；纯文本服务不一定支持图片或转录。视频还需要 FFmpeg / ffprobe。{{ status.capabilities.media_worker_enabled ? '媒体工作进程已启用。' : '当前实例未启用媒体工作进程，请由管理员开启后使用。' }}</p>
+            <datalist id="qwen-text-models"><option value="qwen-plus" /><option value="qwen-turbo" /><option value="qwen-max" /></datalist>
+            <datalist id="qwen-vision-models"><option value="qwen3-vl-plus" /><option value="qwen-vl-plus" /><option value="qwen-vl-max" /></datalist>
+            <datalist id="qwen-audio-models"><option value="qwen3-asr-flash" /></datalist>
+            <p class="hint">视觉与音频共用上面的服务地址和密钥。DeepSeek 预设只配置文本，并清空不适用的媒体模型；如需同时使用多模态，可选千问或其他支持对应接口的服务。视频还需要 FFmpeg / ffprobe。{{ status.capabilities.media_worker_enabled ? '媒体工作进程已启用。' : '当前实例未启用媒体工作进程，请由管理员开启后使用。' }}</p>
             <button class="secondary" type="button" :disabled="!!busy || dirty || !status.llm_api_key_configured" @click="test('llm')">{{ busy === 'llm' ? '模型测试中…' : '测试已保存的文本模型' }}</button><small class="test-note">会向服务商发起一次少量 token 的真实请求，可能计费。</small>
           </section>
           <section class="surface settings-card">
@@ -100,9 +107,12 @@ onMounted(load)
 </style>
 
 <style scoped>
-.fields { align-items: end; }
+.fields { align-items: start; }
 .fields label { line-height: 20px; }
+.fields label:not(.check) { display: grid; grid-template-rows: auto 44px auto; align-content: start; }
 .fields .field-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 10px; font-size: inherit; font-weight: inherit; color: inherit; }
 .field-heading small { line-height: inherit; }
 .fields input:not([type=checkbox]), .fields select { box-sizing: border-box; height: 44px; }
+.provider-note { margin: -4px 0 24px; padding: 14px 16px; border: 1px solid #dbe6f4; border-radius: 8px; background: #f5f8fd; color: #52637a; font-size: 12px; line-height: 1.8; }
+.provider-note a { margin-left: 8px; color: #2563eb; }
 </style>

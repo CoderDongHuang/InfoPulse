@@ -17,6 +17,7 @@ class ServiceSettingsUpdate(BaseModel):
     llm_api_key: SecretStr = SecretStr("")
     media_vision_model: str = Field(default="", max_length=150)
     media_transcription_model: str = Field(default="", max_length=150)
+    media_transcription_protocol: Literal["openai", "qwen_asr"] = "openai"
     smtp_host: str = Field(default="", max_length=253)
     smtp_port: Literal[465, 587] = 587
     smtp_username: str = Field(default="", max_length=254)

@@ -15,6 +15,15 @@ router = APIRouter(prefix="/api/v1/history", tags=["History"])
 HistoryModule = Literal["insight", "mouthpiece", "timeline"]
 
 
+@router.get("/{record_id}")
+async def history_detail(record_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    row = await db.scalar(select(AnalysisHistory).where(AnalysisHistory.id == record_id, AnalysisHistory.user_id == current_user.id))
+    if row is None:
+        raise HTTPException(404, "记录不存在")
+    return {"id": row.id, "module": row.module, "input_params": row.input_params,
+            "output_result": row.output_result, "status": row.status, "created_at": row.created_at}
+
+
 @router.get("")
 async def list_history(
     page: int = Query(1, ge=1),

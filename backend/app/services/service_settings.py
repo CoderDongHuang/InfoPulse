@@ -15,6 +15,7 @@ SECRET_FIELDS = {"llm_api_key", "smtp_password"}
 FIELDS = {
     "llm_api_base": "LLM_API_BASE", "llm_model": "LLM_MODEL", "llm_api_key": "LLM_API_KEY",
     "media_vision_model": "MEDIA_VISION_MODEL", "media_transcription_model": "MEDIA_TRANSCRIPTION_MODEL",
+    "media_transcription_protocol": "MEDIA_TRANSCRIPTION_PROTOCOL",
     "smtp_host": "SMTP_HOST", "smtp_port": "SMTP_PORT", "smtp_username": "SMTP_USERNAME",
     "smtp_password": "SMTP_PASSWORD", "smtp_from": "SMTP_FROM",
 }

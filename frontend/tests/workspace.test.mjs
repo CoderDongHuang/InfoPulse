@@ -11,7 +11,7 @@ const handlers = ast.statements.filter(node => ts.isFunctionDeclaration(node)).m
 const code = ts.transpileModule(handlers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText
 function scenario(api = {}) {
   const ctx = { stage3Api: api }
-  for (const key of ['loading', 'error', 'data', 'pending', 'actionError', 'actionNotice']) ctx[key] = { value: null }
+  for (const key of ['loading', 'error', 'data', 'pending', 'actionError', 'actionNotice', 'reloadRequested']) ctx[key] = { value: null }
   vm.runInNewContext(code, ctx)
   return ctx
 }
@@ -61,4 +61,23 @@ test('successful feedback followed by failed reload is distinguished from failed
   assert.equal(s.actionError.value, '')
   assert.match(s.error.value, /加载失败/)
   assert.equal(s.pending.value, null)
+})
+
+test('a browsing update during workspace loading triggers a fresh read instead of being lost', async () => {
+  let release, reads = 0
+  const s = scenario({ workspace: async () => {
+    reads++
+    if (reads === 1) return new Promise(resolve => { release = resolve })
+    return { recent_views: [{ title: 'Just read' }] }
+  } })
+  s.document = { visibilityState: 'visible' }
+  const first = s.load()
+  s.refreshVisible()
+  release({ recent_views: [] })
+  await first
+  assert.equal(reads, 2)
+  assert.equal(s.data.value.recent_views[0].title, 'Just read')
+  s.document.visibilityState = 'hidden'
+  s.refreshVisible()
+  assert.equal(reads, 2)
 })

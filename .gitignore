@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 .venv/
 .venv-audit/
+.venv-audit312/
 venv/
 env/
 *.egg-info/

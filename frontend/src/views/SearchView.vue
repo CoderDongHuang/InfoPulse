@@ -6,6 +6,7 @@ import { intelligenceApi, type SavedSearch, type SearchItem } from '@/api/intell
 import { sourceApi, type DataSource } from '@/api/sources'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingState from '@/components/common/LoadingState.vue'
+import { recordRecentView } from '@/utils/recentViews'
 
 const route = useRoute()
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
@@ -37,7 +38,9 @@ async function loadMetadata() {
 }
 async function openDetail(item: SearchItem) {
   detailLoading.value = true; detail.value = { title: item.title }
-  try { detail.value = await intelligenceApi.content(item.id) } finally { detailLoading.value = false }
+  try { detail.value = await intelligenceApi.content(item.id); void recordRecentView('content', item.id) }
+  catch { detail.value = null; ElMessage.error('读取内容失败，请重试') }
+  finally { detailLoading.value = false }
 }
 async function saveCurrent() {
   if (!saveName.value.trim()) return
@@ -66,7 +69,7 @@ onMounted(() => { void loadMetadata(); void search() })
         <LoadingState v-if="loading" label="正在查询数据库" />
         <div v-else-if="searchError" role="alert"><p>{{ searchError }}</p><button type="button" @click="search()">重试搜索</button></div>
         <EmptyState v-else-if="!items.length" title="没有匹配内容" description="调整关键词或筛选条件，或先到数据源中心执行同步。" />
-        <article v-for="item in items" v-else :key="item.id"><div class="result-meta"><span>{{ item.source.name }}</span><time>{{ date(item.published_at) }}</time><em>{{ item.content_type }}</em></div><button class="result-title" type="button" @click="openDetail(item)">{{ item.title }}</button><p>{{ item.summary || '该来源没有提供摘要。' }}</p><footer><span>热度 {{ item.heat }}</span><span>{{ item.sentiment }}</span><span>{{ item.language.toUpperCase() }}</span><button type="button" @click="prepareEvent(item)">创建事件</button><a :href="item.canonical_url" target="_blank" rel="noreferrer">打开原文<el-icon><TopRight /></el-icon></a></footer></article>
+        <article v-for="item in items" v-else :key="item.id"><div class="result-meta"><span>{{ item.source.name }}</span><time>{{ date(item.published_at) }}</time><em>{{ item.content_type }}</em></div><button class="result-title" type="button" @click="openDetail(item)">{{ item.title }}</button><p>{{ item.summary || '该来源没有提供摘要。' }}</p><footer><span>热度 {{ item.heat }}</span><span>{{ item.sentiment }}</span><span>{{ item.language.toUpperCase() }}</span><button type="button" @click="prepareEvent(item)">创建事件</button><a :href="item.canonical_url" target="_blank" rel="noreferrer" @click="recordRecentView('content', item.id)">打开原文<el-icon><TopRight /></el-icon></a></footer></article>
         <nav v-if="!loading && !searchError && total>12" class="pager"><button :disabled="page===1" @click="page--;search()">上一页</button><span>第 {{ page }} 页</span><button :disabled="page*12>=total" @click="page++;search()">下一页</button></nav>
       </section></main>
     <div v-if="detail" class="overlay" @click.self="detail=null"><aside class="detail-drawer"><header><p>CONTENT DETAIL</p><button @click="detail=null">×</button></header><LoadingState v-if="detailLoading" label="读取内容详情" /><template v-else><h2>{{ detail.title }}</h2><div class="detail-meta"><span>{{ detail.source?.name }}</span><span>{{ detail.author?.name }}</span><span>{{ date(detail.published_at) }}</span></div><p class="body">{{ detail.body || '来源未提供正文。' }}</p><dl><div><dt>内容类型</dt><dd>{{ detail.content_type }}</dd></div><div><dt>语言 / 地区</dt><dd>{{ detail.language }} / {{ detail.region || '未标注' }}</dd></div><div><dt>互动</dt><dd>{{ detail.metrics?.likes || 0 }} 赞 · {{ detail.metrics?.comments || 0 }} 评论</dd></div><div><dt>实体</dt><dd>{{ detail.entities?.join?.('、') || '待提取' }}</dd></div></dl><a :href="detail.canonical_url" target="_blank">打开原始来源</a></template></aside></div>

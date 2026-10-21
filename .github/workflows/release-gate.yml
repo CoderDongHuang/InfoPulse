@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     defaults:
       run:
         working-directory: backend
@@ -118,7 +118,7 @@ jobs:
       matrix:
         environment:
           - {id: linux311, os: ubuntu-latest, python: "3.11"}
-          - {id: windows310, os: windows-latest, python: "3.10"}
+          - {id: windows312, os: windows-latest, python: "3.12"}
           - {id: windows311, os: windows-latest, python: "3.11"}
         layer:
           - {id: unit, suite: unit, index: 1}
@@ -166,7 +166,7 @@ jobs:
           path: regression-reports
           merge-multiple: true
       - name: Require every discovered test exactly once in each environment
-        run: python backend/scripts/verify_test_reports.py --reports regression-reports --environments linux311 windows310 windows311 --output backend-coverage.json
+        run: python backend/scripts/verify_test_reports.py --reports regression-reports --environments linux311 windows312 windows311 --output backend-coverage.json
       - uses: actions/upload-artifact@v6
         if: always()
         with:
@@ -217,7 +217,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     services:
       postgres:
         image: pgvector/pgvector:pg16

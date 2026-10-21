@@ -9,6 +9,7 @@ from openai import AsyncOpenAI
 
 from app.core.runtime_settings import RuntimeSettings
 from app.core.private_clients import managed_model_client, model_http_client
+from app.core.model_compat import chat_options
 
 settings = RuntimeSettings()
 
@@ -47,6 +48,7 @@ async def stream_chat(
             model=settings.LLM_MODEL,
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
             temperature=temperature, max_tokens=max_tokens, stream=True,
+            **chat_options(settings.LLM_API_BASE, settings.LLM_MODEL),
         ), timeout=settings.LLM_TIMEOUT_SECONDS)
         try:
             iterator = stream.__aiter__()
@@ -75,6 +77,7 @@ async def complete_chat(
             model=model or settings.LLM_MODEL,
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
             temperature=temperature, max_tokens=max_tokens, stream=False,
+            **chat_options(settings.LLM_API_BASE, model or settings.LLM_MODEL),
         ), timeout=settings.LLM_TIMEOUT_SECONDS)
         return response.choices[0].message.content or ""
 

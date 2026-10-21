@@ -1,11 +1,30 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { workflowApi } from '@/api/workflows'
 import { runDialog } from '@/utils/dialog'
+import { recordRecentView } from '@/utils/recentViews'
+import WorkflowResult from '@/components/common/WorkflowResult.vue'
 
 const router = useRouter()
+const route = useRoute()
+const selected = ref<any>(null), detailLoading = ref(false), detailError = ref(''), loadError = ref('')
+const detailOpen = ref(false)
+let detailRequest = 0
+
+async function openRecord(id: string) {
+  const request = ++detailRequest
+  detailOpen.value = true; detailLoading.value = true; detailError.value = ''; selected.value = null
+  try {
+    const record = await workflowApi.historyDetail(id)
+    if (request !== detailRequest) return
+    selected.value = record
+    void recordRecentView('history', id)
+  } catch { if (request === detailRequest) detailError.value = '读取档案失败，记录可能已删除或连接中断。' }
+  finally { if (request === detailRequest) detailLoading.value = false }
+}
+watch(() => route.query.record, id => { if (typeof id === 'string' && id) void openRecord(id) }, { immediate: true })
 const loading = ref(false)
 const items = ref<any[]>([])
 const activeModule = ref<'all' | 'insight' | 'mouthpiece' | 'timeline'>('all')
@@ -30,7 +49,9 @@ function summaryOf(item: any) {
 
 async function load() {
   loading.value = true
+  loadError.value = ''
   try { items.value = (await workflowApi.getHistory()).items }
+  catch { loadError.value = '档案读取失败，请重试。' }
   finally { loading.value = false }
 }
 async function remove(id: string) {
@@ -49,21 +70,28 @@ onMounted(load)
         <button v-for="tab in [{ key: 'all', label: '全部' }, { key: 'insight', label: '热点洞察' }, { key: 'mouthpiece', label: '表达文案' }, { key: 'timeline', label: '事件脉络' }]" :key="tab.key" type="button" :class="{ active: activeModule === tab.key }" @click="activeModule = tab.key as typeof activeModule">{{ tab.label }}</button>
         <span>{{ visibleItems.length }} RECORDS</span>
       </nav>
+      <p v-if="loadError" role="alert">{{ loadError }} <button type="button" @click="load">重试</button></p>
       <div v-if="visibleItems.length" class="archive-list">
         <article v-for="(item, index) in visibleItems" :key="item.id">
           <div class="record-index mono">{{ String(index + 1).padStart(3, '0') }}</div>
           <div class="record-type"><span>{{ moduleMeta[item.module as keyof typeof moduleMeta]?.code || 'REPORT' }}</span><strong>{{ moduleMeta[item.module as keyof typeof moduleMeta]?.label || item.module }}</strong></div>
-          <div class="record-copy"><h2>{{ titleOf(item) }}</h2><p>{{ summaryOf(item) }}</p></div>
+          <div class="record-copy"><h2><button class="record-title" type="button" @click="openRecord(item.id)">{{ titleOf(item) }}</button></h2><p>{{ summaryOf(item) }}</p></div>
           <time>{{ new Date(item.created_at).toLocaleDateString('zh-CN') }}<small>{{ new Date(item.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }}</small></time>
-          <div class="record-actions"><button type="button" aria-label="继续创作" @click="router.push(moduleMeta[item.module as keyof typeof moduleMeta]?.route || '/insight')"><el-icon><ArrowRight /></el-icon></button><button type="button" aria-label="删除" @click="remove(item.id)"><el-icon><Delete /></el-icon></button></div>
+          <div class="record-actions"><button type="button" aria-label="查看报告" @click="openRecord(item.id)"><el-icon><ArrowRight /></el-icon></button><button type="button" aria-label="删除" @click="remove(item.id)"><el-icon><Delete /></el-icon></button></div>
         </article>
       </div>
       <div v-else class="empty-history"><el-icon><Files /></el-icon><h2>{{ loading ? '正在调取档案' : '这个分类还没有内容' }}</h2><p>完成热点洞察、表达创作或事件脉络后，内容会自动保存在这里。</p><button v-if="!loading" @click="router.push('/insight')">开始第一份分析</button></div>
     </main>
+    <el-dialog v-model="detailOpen" :title="selected ? titleOf(selected) : '内容档案'" width="min(860px, 94vw)">
+      <p v-if="detailLoading" role="status">正在读取已保存的结果…</p>
+      <div v-else-if="detailError" role="alert"><p>{{ detailError }}</p><button v-if="typeof route.query.record === 'string'" @click="openRecord(route.query.record)">重试</button></div>
+      <template v-else-if="selected"><p>{{ moduleMeta[selected.module as keyof typeof moduleMeta]?.label || '内容档案' }} · {{ new Date(selected.created_at).toLocaleString('zh-CN') }}</p><WorkflowResult :value="selected.output_result" /><details><summary>查看生成参数</summary><WorkflowResult :value="selected.input_params" /></details></template>
+    </el-dialog>
   </div>
 </template>
 
 <style scoped>
+.record-title{padding:0;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer}.record-title:hover{color:#167f76}
 .history-page { min-height: calc(100vh - 64px); color: #241d17; background: #e9e4dc; }.history-head { display: flex; align-items: end; justify-content: space-between; border-bottom: 1px solid #b7aea3; }.history-head h1 { margin: 0; font: 800 44px/1.05 Georgia, "Songti SC", serif; }.history-head > div > p:last-child { margin: 10px 0 0; color: #74695f; }.history-head > button, .empty-history button { min-height: 40px; padding: 0 14px; border: 1px solid #30271f; border-radius: 2px; color: #f8f4ee; background: #30271f; display: flex; align-items: center; gap: 7px; cursor: pointer; }.archive-shell { padding-top: 22px; }.archive-tabs { min-height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 6px; border: 1px solid #c4bbb0; background: #f4f0ea; }.archive-tabs button { flex: 0 0 auto; min-height: 30px; padding: 0 12px; border: 0; background: transparent; color: #756b62; white-space: nowrap; cursor: pointer; }.archive-tabs button.active { color: #fff; background: #9d3f32; }.archive-tabs > span { margin-left: auto; color: #8d8176; font: 700 9px/1 "Cascadia Code", monospace; }.archive-list { border: 1px solid #c4bbb0; border-top: 0; background: #f8f5f0; }.archive-list article { min-height: 116px; padding: 18px 16px; display: grid; grid-template-columns: 58px 110px minmax(260px, 1fr) 120px 80px; gap: 18px; align-items: center; border-top: 1px solid #d7cfc5; }.archive-list article:first-child { border-top: 0; }.record-index { color: #a99e92; font-size: 12px; }.record-type span, .record-type strong { display: block; }.record-type span { color: #9d3f32; font: 800 9px/1 "Cascadia Code", monospace; }.record-type strong { margin-top: 7px; font-size: 12px; }.record-copy { min-width: 0; }.record-copy h2 { margin: 0; overflow: hidden; font: 700 20px/1.3 Georgia, "Songti SC", serif; text-overflow: ellipsis; white-space: nowrap; }.record-copy p { margin: 8px 0 0; overflow: hidden; color: #756b62; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }.archive-list time { color: #62584f; font: 700 11px/1.3 "Cascadia Code", monospace; }.archive-list time small { display: block; margin-top: 6px; color: #9a8f84; }.record-actions { display: flex; }.record-actions button { width: 34px; height: 34px; border: 1px solid #cfc5ba; color: #74695f; background: transparent; cursor: pointer; }.record-actions button:hover { color: #fff; background: #9d3f32; }.empty-history { min-height: 480px; display: grid; place-items: center; align-content: center; text-align: center; }.empty-history > .el-icon { font-size: 58px; color: #a99e92; }.empty-history h2 { margin: 18px 0 5px; }.empty-history p { color: #756b62; }.empty-history button { margin-top: 12px; }
 @media (max-width: 820px) { .history-head { align-items: flex-start; gap: 18px; }.archive-tabs { overflow-x: auto; }.archive-tabs > span { display: none; }.archive-list article { grid-template-columns: 42px 90px minmax(180px, 1fr) 68px; }.archive-list time { display: none; }.record-actions { grid-column: 4; grid-row: 1; } }
 @media (max-width: 560px) { .history-head h1 { font-size: 34px; }.history-head > button { display: none; }.archive-list article { grid-template-columns: 36px 1fr 70px; gap: 10px; }.record-type { grid-column: 2; }.record-copy { grid-column: 1 / -1; grid-row: 2; }.record-actions { grid-column: 3; grid-row: 1; }.record-copy h2 { font-size: 18px; } }

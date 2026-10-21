@@ -3,7 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { intelligenceApi, type IntelligenceEvent } from "@/api/intelligence";
-import { stage3Api } from "@/api/stage3";
+import { recordRecentView } from "@/utils/recentViews";
 import LoadingState from "@/components/common/LoadingState.vue";
 const route = useRoute(),
   router = useRouter(),
@@ -25,7 +25,7 @@ async function load() {
   loading.value = true;
   try {
     event.value = await intelligenceApi.event(id);
-    void stage3Api.recordView("event", id, event.value.title);
+    void recordRecentView("event", id);
     Object.assign(edit, {
       title: event.value.title,
       category: event.value.category,

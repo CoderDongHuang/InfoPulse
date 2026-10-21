@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { reportsApi, type ExportFormat } from '@/api/reports'
+import { recordRecentView } from '@/utils/recentViews'
 
 const route = useRoute(), router = useRouter(), id = String(route.params.id)
 const report = ref<any>(null), content = ref(''), savedContent = ref(''), versions = ref<any[]>([]), saving = ref(false), citation = ref<any>(null), exportJob = ref<any>(null), rewriting = ref(false)
@@ -10,7 +11,7 @@ let autosaveTimer: ReturnType<typeof setTimeout> | undefined
 const outline = computed<Array<{ level: number; title: string; index: number }>>(() => content.value.split('\n').map((line, index) => ({ line, index, match: line.match(/^(#{1,3})\s+(.+)/) })).filter(x => x.match).map(x => ({ level: Number(x.match![1].length), title: String(x.match![2]), index: Number(x.index) })))
 const dirty = computed(() => content.value !== savedContent.value)
 const evidence = computed(() => (report.value?.current_version.citations || []).map((item: any, index: number) => ({ ...item, number: index + 1 })))
-async function load() { report.value = await reportsApi.detail(id); content.value = report.value.current_version.content_markdown; savedContent.value = content.value; versions.value = await reportsApi.versions(id) }
+async function load() { report.value = await reportsApi.detail(id); content.value = report.value.current_version.content_markdown; savedContent.value = content.value; void recordRecentView('report', id); versions.value = await reportsApi.versions(id) }
 async function save(silent = false) { if (!dirty.value || saving.value) return; saving.value = true; try { const result = await reportsApi.saveVersion(id, { content_markdown: content.value, structured_content: report.value.current_version.structured_content || {}, citation_content_ids: report.value.current_version.citations.map((c: any) => c.content_id) }); report.value.current_version = { ...report.value.current_version, id: result.id, version_number: result.version_number, content_markdown: content.value, citations: result.citations }; savedContent.value = content.value; versions.value = await reportsApi.versions(id); if (!silent) ElMessage.success(`已保存版本 v${result.version_number}`) } finally { saving.value = false } }
 watch(content, () => { clearTimeout(autosaveTimer); autosaveTimer = setTimeout(() => void save(true), 1400) })
 async function restore(version: any) { await reportsApi.restore(id, version.id); await load(); ElMessage.success(`已恢复到版本 v${version.version_number}`) }

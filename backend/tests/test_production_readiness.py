@@ -47,18 +47,43 @@ class ProductionConfigurationTests(unittest.TestCase):
         self.assertNotIn("open-sesame", value)
         self.assertGreaterEqual(value.count("[REDACTED]"), 2)
 
-    def test_deployment_preflight_rejects_missing_integrations(self):
+    def test_deployment_preflight_allows_optional_integrations(self):
         settings = Settings(
             ENVIRONMENT="production",
+            DATABASE_URL="postgresql+asyncpg://app:password@db/infopulse",
+            JWT_SECRET_KEY="j" * 48,
+            ADMIN_EMAILS=["admin@example.com"],
+            METRICS_TOKEN="m" * 32,
+            SSO_PROXY_SECRET="s" * 48,
+            PLATFORM_ENCRYPTION_KEY="p" * 48,
+            CORS_ORIGINS=["https://app.example.com"],
+            TRUSTED_HOSTS=["api.example.com"],
             RUN_BACKGROUND_WORKERS_IN_API=False,
-            LLM_API_KEY="",
-            SMTP_HOST="",
-            S3_ACCESS_KEY="",
+            KNOWLEDGE_STORAGE_BACKEND="s3",
+            S3_BUCKET="infopulse-knowledge",
+        )
+        self.assertEqual(integration_errors(settings), [])
+
+    def test_deployment_preflight_rejects_incomplete_optional_integrations(self):
+        settings = Settings(
+            ENVIRONMENT="production",
+            DATABASE_URL="postgresql+asyncpg://app:password@db/infopulse",
+            JWT_SECRET_KEY="j" * 48,
+            ADMIN_EMAILS=["admin@example.com"],
+            METRICS_TOKEN="m" * 32,
+            SSO_PROXY_SECRET="s" * 48,
+            PLATFORM_ENCRYPTION_KEY="p" * 48,
+            CORS_ORIGINS=["https://app.example.com"],
+            TRUSTED_HOSTS=["api.example.com"],
+            RUN_BACKGROUND_WORKERS_IN_API=False,
+            KNOWLEDGE_STORAGE_BACKEND="s3",
+            S3_BUCKET="infopulse-knowledge",
+            S3_ACCESS_KEY="access-key",
+            SMTP_HOST="smtp.example.com",
         )
         errors = " ".join(integration_errors(settings))
-        self.assertIn("LLM_API_KEY", errors)
-        self.assertIn("S3_ACCESS_KEY", errors)
-        self.assertIn("SMTP_HOST", errors)
+        self.assertIn("S3_ACCESS_KEY and S3_SECRET_KEY", errors)
+        self.assertIn("SMTP_HOST and SMTP_FROM", errors)
 
     def test_metrics_never_include_request_values(self):
         metrics.begin()

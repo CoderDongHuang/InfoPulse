@@ -36,7 +36,13 @@ Production deployment is manual through the protected GitHub `production` enviro
 
 ## Credentials
 
-The production preflight requires PostgreSQL, Redis, S3, SMTP, model and GitHub source credentials. Hacker News, DEV.to and arXiv use public official endpoints and have no secret. Webhook signing secrets remain per-user encrypted application data; delivery still validates every destination against SSRF rules.
+The production preflight requires valid production security settings and an S3 bucket because the production manifest selects S3 for private knowledge storage. S3 access keys may be omitted when the runtime provides a workload identity; if static keys are used, both access and secret keys are required. LLM, SMTP and GitHub credentials are optional integrations: without them, the corresponding AI, email or higher-quota GitHub features remain unavailable, while public Hacker News, DEV.to and arXiv sources need no token. SMTP host and sender must be configured together, and SMTP username/password must be configured together. Webhook signing secrets remain per-user encrypted application data; delivery still validates every destination against SSRF rules.
+
+The repository is ready for a staging server setup, but it is not yet evidence of production readiness. The production cluster, ingress controller/CNI behavior, RWX storage, managed PostgreSQL/Redis/S3, DNS/TLS, secret delivery, monitoring and backup/restore drill all need real-environment acceptance before public traffic is enabled. Use the [audit acceptance record](./audits/2026-10-21-remediation.md) to track those checks.
+
+## Initial infrastructure sizing
+
+The Kubernetes template's steady-state requests are approximately 7.2 vCPU and 9.5 GiB RAM across API, web and workers, before Kubernetes/system overhead, ingress, observability and rollout headroom. For an initial staging cluster, budget at least 3 worker nodes with 4 vCPU and 8 GiB RAM each, plus a separate control plane if self-managed. This is a starting point, not a production capacity guarantee; media jobs can use up to 4 CPU and 4 GiB each, and the template permits multiple replicas. Prefer managed PostgreSQL with pgvector, managed Redis, an S3 bucket and a storage class that supports RWX exports. Validate real workload metrics before production sizing or enabling autoscaling ceilings.
 
 Never place real values in `.env.production.example`, Kubernetes YAML, image layers, workflow logs or release records. Rotate a credential immediately if preflight or a provider test exposes it.
 

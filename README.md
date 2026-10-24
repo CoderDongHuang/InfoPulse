@@ -228,4 +228,4 @@ python scripts/production_check.py
 - 本项目采用 [MIT License](./LICENSE)。
 - 后续优化计划见 [开源优化路线图](./docs/30-open-source-roadmap.md)。
 - 版本发布说明见 [v0.1.0-beta](./docs/releases/v0.1.0-beta.md)；贡献入口包含 Issue/PR 模板和 CODEOWNERS。
-- 项目设计与开源实践详解见 [技术博客](./docs/blog/infopulse-open-source-engineering.md)。
+- 项目设计、实际启动证据与当前边界见[技术博客](./docs/blog/infopulse-open-source-engineering.md)，采集、认证、Agent 和测试重构详解见[专题索引](./docs/blog/README.md)；原长文另存历史记录。

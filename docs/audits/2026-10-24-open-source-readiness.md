@@ -65,6 +65,6 @@ Python 3.12.14、Node.js 22.19.0、Git 和 Edge 已预装；本机 pip/npm 下�
 - 前端 **93/93** 测试通过，含新增 6 项会话/图编辑行为测试；TypeScript、生产构建和 bundle budget 通过。
 - Python 3.12 后端图、编排、审计专项 **20/20** 通过，覆盖分支、非法图、运行时与权限/出站请求回归。此次本机没有宣称完整后端套件通过；完整跨平台回归由 PR 发布门禁执行。
 - 后端 unit 分层 **60/60** 通过，完整发现 324 项、每项确定性归类；`compileall` 通过。沙箱内首次运行在临时目录清理时受权限限制，沙箱外重跑正常退出。
-- 社区模板及首批前端拆分已随 [PR #98](https://github.com/CoderDongHuang/InfoPulse/pull/98) 合并，该 PR 的 Linux/Windows、容器、浏览器产品和安全门禁全部通过；本报告的新增图模块及补充证据另经后续 PR 检查。
+- 社区模板及首批前端拆分已随 [PR #98](https://github.com/CoderDongHuang/InfoPulse/pull/98) 合并；本报告的新增图模块及补充证据随 [PR #99](https://github.com/CoderDongHuang/InfoPulse/pull/99) 合并至 `b9a428a530fa2b690269219c889e000b4d9dcefb`。PR #99 的 26 项检查全部通过，包括 Linux/Windows 分层回归及完整性门禁、容器、浏览器产品、依赖审计与 CodeQL；没有以本机专项代替完整 CI 结果。
 
 大型页面的模板组件进一步拆分、真实 LLM/SMTP/S3 提供商、备份恢复、可观测性和长期稳定性仍按[路线图](../30-open-source-roadmap.md)保留待办。

@@ -25,7 +25,7 @@
 | 编排 evaluate | experimental/static | 禁用工具集合检查与静态评分 | 不运行模型质量评测，分数不证明事实准确率或引用质量 |
 | 阶段 20-29 规则治理 | experimental | 存在规则计算、签名记录、拓扑模拟、声明状态 | 不是已部署的 BFT、真正分布式执行、形式化验证或多方可信审批 |
 | “删除证明”与“可证明自治” | experimental | 治理记录、有限规则和签名声明 | 未证明源数据/向量/缓存/对象/备份全部删除；不能代替合规证明 |
-| 发布工程 | beta | 当前 357 路径契约，后端 318 项发现、前端 87 项测试；支持 Python 3.11/3.12（Linux 3.11、Windows 双版本 CI）；full/minimal 容器与 PostgreSQL 14 表迁移/知识 worker 恢复；依赖审计/SBOM；分阶段发布、全应用资源回滚及 sources/actions workers 清单 | 最新通过结果见本次审计验收；真实 Kubernetes/CNI/Ingress/RWX、其他领域迁移/worker 恢复、版本锁定与镜像 digest、性能/可用性 SLO 仍待完成 |
+| 发布工程 | beta | 2026-10-24 PR #99 合并版本：357 路径契约，后端 324 项发现、前端 93 项测试；支持 Python 3.11/3.12（Linux 3.11、Windows 双版本 CI）；full/minimal 容器与 PostgreSQL 14 表迁移/知识 worker 恢复；依赖审计/SBOM；分阶段发布、全应用资源回滚及 sources/actions workers 清单 | 发现数量不是执行结果，最新范围见[开源就绪记录](./audits/2026-10-24-open-source-readiness.md)与对应 PR 检查；真实 Kubernetes/CNI/Ingress/RWX、其他领域迁移/worker 恢复、版本锁定与镜像 digest、性能/可用性 SLO 仍待完成 |
 
 ## 默认拒绝与空配置
 

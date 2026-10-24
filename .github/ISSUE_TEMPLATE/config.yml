@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/CoderDongHuang/InfoPulse/security/advisories/new
+    about: Please report vulnerabilities privately.
+  - name: Documentation and capability matrix
+    url: https://github.com/CoderDongHuang/InfoPulse/tree/main/docs
+    about: Check supported capabilities and external dependency boundaries first.

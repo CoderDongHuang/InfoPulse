@@ -4,6 +4,8 @@
 
 最新全项目审计：[2026-10-21 代码、部署与文档审计](./audits/2026-10-21-project-audit.md)。记录 14 类问题、隔离复现和验证边界；对应 [修复状态与验证](./audits/2026-10-21-remediation.md) 持续标记完成与待验收项。
 
+最新开源就绪记录：[2026-10-24 快速启动与能力边界验收](./audits/2026-10-24-open-source-readiness.md)。版本说明见 [v0.1.0-beta](./releases/v0.1.0-beta.md)，社区协作规则见仓库根目录的 [CONTRIBUTING](../CONTRIBUTING.md)。
+
 ## 首次阅读
 
 1. [产品 PRD](./01-产品PRD.md)：产品角色、页面、交互与验收边界。

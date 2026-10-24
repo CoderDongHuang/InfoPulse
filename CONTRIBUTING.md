@@ -31,3 +31,10 @@ Collectors must use public or explicitly authorized data sources. Changes must
 not bypass authentication, CAPTCHAs, access controls, platform restrictions, or
 data-retention requirements. AI-generated claims must retain their source and
 uncertainty metadata.
+
+
+## Community workflow
+
+Use the bug or feature form in `.github/ISSUE_TEMPLATE` and check the roadmap and capability matrix before opening a proposal. Pull requests should describe the user-visible outcome, include focused validation, and update documentation when a capability, credential, migration, or deployment boundary changes. UI changes should include a reproducible route or redacted screenshot. Do not commit `.env` files, cookies, tokens, local databases, logs, generated bundles, or private source material.
+
+The default reviewer is listed in `.github/CODEOWNERS`. Security issues belong in `SECURITY.md`, not a public issue. Release notes follow `docs/12-release-notes-template.md` and the versioned examples under `docs/releases/`.

@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem in the local beta or documentation.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先搜索已有 issue。请勿提交密码、API key、Cookie、数据库或私有内容。
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0-beta / commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - quickstart
+        - frontend
+        - backend
+        - source sync
+        - documentation
+        - deployment
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include the smallest command sequence and expected/actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Safe logs or screenshots
+      description: Redact credentials, tokens, cookies, emails and private URLs.

@@ -1,5 +1,5 @@
 """Durable, policy-bound agent workflow runtime."""
-import asyncio, re, socket
+import asyncio, socket
 from datetime import datetime,timedelta,timezone
 from sqlalchemy import func,or_,select,update
 from sqlalchemy.exc import IntegrityError
@@ -12,49 +12,14 @@ from app.models.platform import ConnectorInstallation
 from app.models.dispatch import DispatchJob
 from app.services.dispatch import enqueue_dispatch, process_dispatch_once
 
+# Re-export graph helpers for existing API callers and extensions.
+from app.services.workflow_graph import NODE_TYPES, next_node, validate_graph
+
 UTC=timezone.utc
-NODE_TYPES={"start","agent","tool","approval","condition","memory_read","memory_write","end"}
 TERMINAL={"completed","failed","cancelled","rejected"}
 
 def now():return datetime.now(UTC)
 
-def validate_graph(graph:dict)->dict:
-    nodes=graph.get("nodes");edges=graph.get("edges")
-    if not isinstance(nodes,list) or not isinstance(edges,list) or not 2<=len(nodes)<=100:raise ValueError("graph requires 2-100 nodes and an edge list")
-    ids=[x.get("id") for x in nodes]
-    if any(not isinstance(x,str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,79}",x) for x in ids) or len(ids)!=len(set(ids)):raise ValueError("node ids must be unique stable identifiers")
-    if sum(x.get("type")=="start" for x in nodes)!=1 or sum(x.get("type")=="end" for x in nodes)<1:raise ValueError("graph requires exactly one start and at least one end")
-    if any(x.get("type") not in NODE_TYPES for x in nodes):raise ValueError("unsupported node type")
-    known=set(ids);adj={x:[] for x in ids};incoming={x:0 for x in ids}
-    for edge in edges:
-        source,target=edge.get("source"),edge.get("target")
-        if source not in known or target not in known or source==target:raise ValueError("edge references an invalid node")
-        adj[source].append(target);incoming[target]+=1
-    start=next(x["id"] for x in nodes if x["type"]=="start")
-    reached=set();stack=[start]
-    while stack:
-        item=stack.pop()
-        if item in reached:continue
-        reached.add(item);stack.extend(adj[item])
-    if reached!=known:raise ValueError("all nodes must be reachable from start")
-    queue=[x for x in ids if incoming[x]==0];visited=[]
-    while queue:
-        item=queue.pop();visited.append(item)
-        for target in adj[item]:
-            incoming[target]-=1
-            if incoming[target]==0:queue.append(target)
-    if len(visited)!=len(ids):raise ValueError("workflow graph must be acyclic")
-    for node in nodes:
-        cfg=node.get("config",{})
-        outgoing=[e for e in edges if e["source"]==node["id"]]
-        labels=[e.get("condition", "always") or "always" for e in outgoing]
-        if any(label not in {"always", "default", "true", "false"} for label in labels):raise ValueError("unsupported edge condition")
-        if len(labels)!=len(set(labels)) or ("always" in labels and len(labels)>1):raise ValueError("ambiguous outgoing edges; parallel execution is not supported")
-        if node["type"]=="end" and outgoing:raise ValueError("end nodes cannot have outgoing edges")
-        if node["type"]!="end" and not outgoing:raise ValueError("non-end nodes must have outgoing edges")
-        if node["type"]=="tool" and not cfg.get("tool_key"):raise ValueError("tool nodes require tool_key")
-        if node["type"]=="agent" and not cfg.get("prompt_key"):raise ValueError("agent nodes require prompt_key")
-    return {"nodes":nodes,"edges":edges}
 
 def audit(db,org,action,run_id=None,actor_id=None,details=None):db.add(OrchestrationAudit(organization_id=org,run_id=run_id,actor_id=actor_id,action=action,details=details or {}))
 
@@ -69,16 +34,6 @@ async def seed_catalog(db,organization_id):
     values=[dict(organization_id=organization_id,key=key,name=name,risk_level=risk,connector_key=connector,action=action,input_schema={"type":"object"}) for key,name,risk,connector,action in builtins]
     await db.execute(insert(ToolDefinition).values(values).on_conflict_do_nothing(index_elements=["organization_id","key"]))
 
-def next_node(graph,current,node_output):
-    edges=[x for x in graph["edges"] if x["source"]==current]
-    if not edges:return None
-    selected=[x for x in edges if x.get("condition") in (None,"always","default")]
-    for edge in edges:
-        condition=edge.get("condition")
-        if condition=="true" and bool(node_output.get("result")):return edge["target"]
-        if condition=="false" and not bool(node_output.get("result")):return edge["target"]
-    if selected:return selected[0]["target"]
-    raise ValueError("No outgoing condition matched; add an explicit default edge")
 
 async def model_output(db,run,node):
     from app.core.runtime_settings import use_settings

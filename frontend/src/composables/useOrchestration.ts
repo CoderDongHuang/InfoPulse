@@ -2,6 +2,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { enterpriseApi, selectTenant, type TenantContext } from '@/api/enterprise'
 import { orchestrationApi as api } from '@/api/orchestration'
+import { useWorkflowDesigner } from '@/composables/useWorkflowDesigner'
 
 /** Business state for the orchestration console, extracted from the view so
  * API workflows can be tested without mounting the full page. */
@@ -22,10 +23,8 @@ export function useOrchestration() {
   const selected = ref<any>()
   const runDetail = ref<any>()
   const evalResult = ref<any>()
-  const graph = reactive<any>({ nodes: [{ id: 'start', type: 'start', config: {} }, { id: 'end', type: 'end', config: {} }], edges: [{ source: 'start', target: 'end' }] })
+  const { graph, node, edge, addNode, addEdge, removeNode } = useWorkflowDesigner()
   const flow = reactive({ name: '', description: '', change_note: 'Initial version' })
-  const node = reactive({ id: '', type: 'agent', configValue: '' })
-  const edge = reactive({ source: 'start', target: 'end', condition: 'always' })
   const prompt = reactive({ key: '', system_prompt: '', input_variables: [] as string[], status: 'active' })
   const route = reactive({ task_type: 'general', primary_model: '', fallback_models: [] as string[], max_cost_cents: 100, max_tokens: 4000, enabled: true })
   const dataset = reactive({ name: '', cases: '[{"name":"baseline","input":{},"forbidden_tools":[]}]', threshold: .8 })
@@ -44,25 +43,6 @@ export function useOrchestration() {
         api.overview(), api.workflows(), api.runs(), api.approvals(), api.tools(), api.prompts(), api.routes(), api.datasets(), api.templates(), api.memories(),
       ])
     } finally { loading.value = false }
-  }
-  function addNode() {
-    if (!node.id || graph.nodes.some((x: any) => x.id === node.id)) return ElMessage.warning('节点 ID 不能为空且必须唯一')
-    const config: any = {}
-    if (node.type === 'agent') config.prompt_key = node.configValue || 'default'
-    if (node.type === 'tool') config.tool_key = node.configValue || 'memory.read'
-    if (node.type === 'approval') config.summary = node.configValue || '人工复核'
-    if (node.type.startsWith('memory')) config.key = node.configValue || node.id
-    graph.nodes.push({ id: node.id, type: node.type, config })
-    node.id = ''
-  }
-  function addEdge() {
-    if (!graph.nodes.some((x: any) => x.id === edge.source) || !graph.nodes.some((x: any) => x.id === edge.target)) return ElMessage.warning('请选择有效节点')
-    graph.edges.push({ ...edge }); edge.source = edge.target; edge.target = 'end'
-  }
-  function removeNode(id: string) {
-    if (['start', 'end'].includes(id)) return
-    graph.nodes = graph.nodes.filter((x: any) => x.id !== id)
-    graph.edges = graph.edges.filter((x: any) => x.source !== id && x.target !== id)
   }
   async function createFlow() { await api.createWorkflow({ ...flow, workspace_id: ctx.value?.workspaces[0]?.id, graph }); flow.name = ''; await load(); ElMessage.success('工作流草稿已创建') }
   async function openFlow(id: string) { selected.value = await api.workflow(id); const active = selected.value.versions.find((x: any) => x.id === selected.value.active_version_id) || selected.value.versions[0]; Object.assign(graph, JSON.parse(JSON.stringify(active.graph))); tab.value = 'designer' }

@@ -20,11 +20,11 @@ const onSuccess = () => router.push((route.query.redirect as string) || '/')
         <p>PUBLIC OPINION DESK · 2026</p>
         <h1>别被热度带着走，<br>先看清信息从哪里来。</h1>
         <div class="edition-meta">
-          <span>微博</span><span>B站</span><span>百度贴吧</span><span>DeepSeek</span>
+          <span>Hacker News</span><span>GitHub</span><span>DEV</span><span>arXiv</span>
         </div>
       </div>
-      <div class="signal-board"><span><i></i>微博公开热榜</span><span><i></i>B站公开讨论</span><span><i></i>贴吧兴趣社区</span></div>
-      <div class="live-strip"><span>LIVE</span> 公开讨论采集与 AI 结构化分析</div>
+      <div class="signal-board"><span>公开源受网络与限流影响</span><span>无模型时提供证据摘要</span></div>
+      <div class="live-strip"><span>BETA</span> AI 生成、邮件及社交讨论采集需另行配置凭据</div>
     </section>
 
     <section class="auth-panel">

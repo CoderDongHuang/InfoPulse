@@ -21,6 +21,7 @@ UNIT_CLASSES = frozenset({
     "tests.test_profile_validation.ProfileSchemaTests",
     "tests.test_api_contract_gate.ContractGateTests",
     "tests.test_workflows.WorkflowTests",
+    "tests.test_workflow_graph.WorkflowGraphTests",
     "tests.test_cognitive_commons.CognitiveCommonsTests",
     "tests.test_cognitive_infrastructure.CognitiveInfrastructureTests",
     "tests.test_planetary_resilience.PlanetaryResilienceTests",

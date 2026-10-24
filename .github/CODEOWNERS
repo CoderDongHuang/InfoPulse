@@ -1,0 +1,7 @@
+# Default review ownership. Keep this file small and explicit so outside
+# contributors can see which areas need maintainer review.
+* @CoderDongHuang
+/backend/ @CoderDongHuang
+/frontend/ @CoderDongHuang
+/docs/ @CoderDongHuang
+/.github/ @CoderDongHuang

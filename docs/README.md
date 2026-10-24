@@ -39,7 +39,8 @@
 
 - [UI 设计规范](./02-UI设计规范.md)
 - [开发计划](./05-开发计划.md)
-- [技术博客：从舆情工作台到可验证智能平台](./blog/infopulse-open-source-engineering.md)
+- [技术博客：从公开信息到可追溯摘要](./blog/infopulse-open-source-engineering.md)
+- [工程博客专题索引](./blog/README.md)：采集容错、认证配置、Agent 引用与测试重构；原 82 节长文另存历史归档。
 - [API 弃用策略](./api-deprecation-policy.md)
 - [API 契约快照](./api-contract-v1.json)
 

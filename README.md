@@ -22,7 +22,7 @@ InfoPulse 是一个面向公开信息研究的 AI 情报与舆情工作台。持
 | --- | --- | --- |
 | 工作台、发现、来源 | 本机四个公开源的实际采集结果和来源健康状态 | 无第三方密钥；受网络、上游限流和源策略影响 |
 | 日报、Agent | 有引用的规则/证据摘要，并明确标注未配置模型 | LLM API 地址、模型名和 API key 才启用模型生成 |
-| 私人配置 | 空配置表单和连接测试入口 | LLM/视觉/转写、SMTP、S3 等各自的账号与授权 |
+| 私人配置 | 空配置表单和连接测试入口 | 用户自己的 LLM/视觉/转写、SMTP 账号与授权；S3 由部署者通过服务端环境配置 |
 | 邮件、对象存储、SSO/SCIM、社交讨论采集 | 能力入口或降级提示，不会伪造成功 | SMTP、S3、身份提供商，或经授权的平台 Cookie/token |
 
 仓库截图、测试账号和本地 `.public-local` 内容只用于隔离验收，不代表线上数据。公开主链不会注入演示文章；没有凭据时，页面会显示降级、不可用或待配置状态。按 README 完成注册、登录、工作台、来源和 Agent 演示的实际 Edge 记录见[十分钟验收报告](./docs/audits/2026-10-24-open-source-readiness.md)。
@@ -66,14 +66,13 @@ InfoPulse 是一个面向公开信息研究的 AI 情报与舆情工作台。持
 
 ### 无需密钥的公开数据使用入口
 
-Python 3.11/3.12、Node.js 22 LTS。首次拉取后在两个终端分别执行：
+先安装 Python 3.11/3.12、Node.js 22 LTS、Git 和浏览器，再克隆本仓库并进入项目目录。2026-10-24 在 Windows + Edge 的干净项目环境中，从创建虚拟环境到完成页面演示实测约 **9 分 9 秒**；运行时已预装，包下载缓存未清除，耗时受网络影响，详见[验收条件与截图](./docs/audits/2026-10-24-open-source-readiness.md)。在两个终端分别执行（依赖安装可同时进行）：
 
 ```powershell
 cd backend
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements-base.txt
-python -m scripts.public_server
+.\.venv\Scripts\python.exe -m pip install -r requirements-base.txt
+.\.venv\Scripts\python.exe -m scripts.public_server
 ```
 
 ```powershell
@@ -85,6 +84,14 @@ npm run dev -- --host 127.0.0.1 --port 15174 --strictPort
 
 打开 [本地工作台](http://127.0.0.1:15174/)，注册账号即可使用。此入口自动迁移专用 SQLite，随机密钥、知识文件和真实采集内容保存在 `backend/.public-local/`，不读取现有 `.env`，不覆盖原开发数据库。请备份整个目录并限制访问，删除密钥会使旧会话或加密配置失效。前端使用 Vite 本地服务器，两个终端需要保持运行；不构成公网部署方案。
 
+首次演示按以下顺序操作：
+
+1. 登录页切到注册，创建自己的本地账号，进入工作台；再从账户菜单退出，用相同账号登录。
+2. 打开「发现」，等待首次同步后刷新，查看文章；从「平台与工具 → 数据源中心」查看四个来源及同步时间。来源异常时查看网络和错误提示，不会自动填入演示文章。
+3. 点击「询问 AI」，选择「总结今天 AI 行业的公开情报」并发送。未配模型时返回证据摘要；点击回答下方引用查看来源详情。
+
+命令直接使用虚拟环境中的 Python，无需修改 PowerShell 脚本执行策略。
+
 > 如果发现页或工作台没有内容，先检查地址：以上日常使用入口为 `15174 → 18081`。`15173 → 18080` 是浏览器验收环境，使用独立账号和测试数据库，自动采集被关闭，页面会显示「隔离验收环境」。不要把验收库、账号或密钥复制进日常环境。首次同步完成后点击「刷新内容／刷新工作台」，并到数据源中心检查真实同步状态；频道、时间范围和个人反馈也会影响可见内容。
 
 如果仓库中已有 `frontend/.env.local`，请用上面的 `VITE_API_PROXY_TARGET` 命令覆盖旧值；该文件可能保留其他端口的个人开发配置。
@@ -94,9 +101,9 @@ npm run dev -- --host 127.0.0.1 --port 15174 --strictPort
 普通注册用户没有共享数据源管理权限。需要管理时，在同一后端虚拟环境执行：
 
 ```powershell
-python -m scripts.public_server --promote your-email@example.com
+.\.venv\Scripts\python.exe -m scripts.public_server --promote your-email@example.com
 # 仅对本地已注册、启用中的账号授权；退出重新登录。
-python -m scripts.public_server --sync-once
+.\.venv\Scripts\python.exe -m scripts.public_server --sync-once
 # 对已启用来源执行一次真实同步；有来源失败时返回非零。
 ```
 

@@ -3,14 +3,15 @@ import { ArrowUp, ChatDotRound, Check, Close, CopyDocument, Delete, Document, Fo
 import { useAgentView } from '@/composables/useAgentView'
 
 const {
-  route, router, chat, historySearch, sidebarOpen, citation, messagesEl, inputEl, historyToggle,
+  chat, historySearch, sidebarOpen, citation, messagesEl, inputEl, historyToggle,
   feedbackBusy, feedbackGiven, visibleHistory, hasMessages, citationOpen, eventId, quick,
   citationLink, closeSidebar, open, create, send, keydown, remove, feedback, copy, useQuick,
 } = useAgentView()
 
-// Template refs are consumed by Vue's template compiler; keep them in the
-// setup scope for runtime binding while satisfying TypeScript's unused checks.
-void route; void router; void messagesEl; void inputEl; void historyToggle
+// Explicit setters keep DOM refs owned by the composable across mount/unmount.
+const bindMessages = (el: unknown) => { messagesEl.value = el as HTMLElement | undefined }
+const bindInput = (el: unknown) => { inputEl.value = el as HTMLTextAreaElement | undefined }
+const bindHistoryToggle = (el: unknown) => { historyToggle.value = el as HTMLButtonElement | undefined }
 </script>
 
 <template>
@@ -34,14 +35,14 @@ void route; void router; void messagesEl; void inputEl; void historyToggle
 
     <div class="chat" :class="{ 'is-empty': !hasMessages }" :aria-busy="chat.busy">
       <header class="chat-header">
-        <button ref="historyToggle" class="icon-button history-toggle" aria-label="打开历史会话" aria-controls="chat-history" :aria-expanded="sidebarOpen" @click="sidebarOpen = !sidebarOpen"><el-icon><Fold /></el-icon></button>
+        <button :ref="bindHistoryToggle" class="icon-button history-toggle" aria-label="打开历史会话" aria-controls="chat-history" :aria-expanded="sidebarOpen" @click="sidebarOpen = !sidebarOpen"><el-icon><Fold /></el-icon></button>
         <div class="chat-title"><strong>{{ hasMessages ? chat.active?.title : 'InfoPulse AI' }}</strong><span>情报研究助手</span></div>
         <span v-if="chat.active?.event_id || eventId()" class="event-badge">事件上下文</span>
         <button class="icon-button header-new" aria-label="新建会话" :disabled="chat.busy" @click="create"><el-icon><Plus /></el-icon></button>
       </header>
       <div v-if="chat.error" class="chat-error" role="alert">{{ chat.error }}</div>
 
-      <div ref="messagesEl" class="messages" :class="{ 'welcome-area': !hasMessages }">
+      <div :ref="bindMessages" class="messages" :class="{ 'welcome-area': !hasMessages }">
         <div v-if="!hasMessages" class="welcome">
           <div class="welcome-heading"><span class="assistant-mark"><el-icon><ChatDotRound /></el-icon></span><h1>我是 InfoPulse，很高兴见到你！</h1></div>
           <p>从公开情报到私有知识，和你一起发现信息背后的价值。</p>
@@ -67,7 +68,7 @@ void route; void router; void messagesEl; void inputEl; void historyToggle
 
       <div class="composer-area">
         <div class="composer">
-          <textarea ref="inputEl" v-model="chat.prompt" rows="1" maxlength="8000" aria-label="输入问题" placeholder="给 InfoPulse 发送消息" @keydown="keydown" />
+          <textarea :ref="bindInput" v-model="chat.prompt" rows="1" maxlength="8000" aria-label="输入问题" placeholder="给 InfoPulse 发送消息" @keydown="keydown" />
           <div class="composer-toolbar"><div class="context-options">
             <span class="context-chip public-context" title="检索本机已采集的公开情报，不是实时网页搜索"><el-icon><Search /></el-icon>公开情报</span>
             <button class="context-chip" :class="{ selected: chat.useFavorites }" :aria-pressed="chat.useFavorites" :disabled="chat.streaming" @click="chat.useFavorites = !chat.useFavorites"><el-icon><Star /></el-icon>收藏</button>
